@@ -90,7 +90,8 @@ program
         settings={settings}
       />,
       {
-        exitOnCtrlC: true,
+        // Ctrl+C is handled inside REPL: abort streaming if active, else exit
+        exitOnCtrlC: false,
         patchConsole: !options.debug,
       }
     )

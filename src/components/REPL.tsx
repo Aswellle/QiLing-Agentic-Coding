@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react'
-import { Box, Text, useApp } from 'ink'
+import { Box, Text, useApp, useInput } from 'ink'
 import { MessageBubble } from './Message'
 import { ToolCallDisplay, type ToolCallRecord } from './ToolCallDisplay'
 import { PermissionDialog, type PermissionRequest } from './PermissionDialog'
@@ -7,9 +7,11 @@ import { PromptInput, type SlashCommand } from './PromptInput'
 import { StatusBar } from './StatusBar'
 import { StartupBanner } from './StartupBanner'
 import { runQuery } from '../query'
+import { compactConversation } from '../compact/engine'
 import { BUILTIN_COMMANDS } from '../commands/index'
 import { formatModelList, resolveModel } from '../commands/model'
 import { createProvider } from '../providers/index'
+import { formatUsageLine } from '../utils/tokens'
 import type { Message } from '../types/message'
 import type { Tool } from '../types/tool'
 import type { Provider } from '../types/provider'
@@ -53,6 +55,23 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
   const [currentProvider, setCurrentProvider] = useState(provider)
   const [error, setError] = useState<string | null>(null)
   const [notification, setNotification] = useState<string | null>(null)
+  const [retryStatus, setRetryStatus] = useState<string | null>(null)
+
+  // AbortController for Ctrl+C during streaming
+  const abortControllerRef = useRef<AbortController | null>(null)
+
+  // Ctrl+C handler: abort if streaming, else exit
+  useInput((_input, key) => {
+    if (key.ctrl && _input === 'c') {
+      if (isStreaming && abortControllerRef.current) {
+        abortControllerRef.current.abort()
+        setNotification('⚠ 已中止当前请求')
+        setTimeout(() => setNotification(null), 3000)
+      } else if (!pendingPermission) {
+        exit()
+      }
+    }
+  })
 
   const messagesRef = useRef(messages)
   messagesRef.current = messages
@@ -77,9 +96,14 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
     restrictedToolNames?: string[]
   ) => {
     setError(null)
+    setRetryStatus(null)
     setStreamingText('')
     setToolCalls([])
     setIsStreaming(true)
+
+    // Fresh AbortController for this query
+    const ac = new AbortController()
+    abortControllerRef.current = ac
 
     let queryTools = tools
     if (restrictedToolNames) {
@@ -98,7 +122,7 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
         queryTools,
         currentProvider,
         permissions,
-        { systemPrompt: querySystemPrompt ?? systemPrompt },
+        { systemPrompt: querySystemPrompt ?? systemPrompt, signal: ac.signal },
         {
           onTextDelta: (text) => setStreamingText(prev => prev + text),
           onToolStart: (id, name) => {
@@ -112,6 +136,9 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
                 ? { ...tc, status: isError ? 'error' : 'done', result, endTime: Date.now() }
                 : tc
             ))
+          },
+          onRetry: (attempt, total, errMsg, delayMs) => {
+            setRetryStatus(`重试 (${attempt}/${total})，等待 ${Math.round(delayMs / 1000)}s... ${errMsg.slice(0, 40)}`)
           },
           onPermissionRequest: (toolName, description, resolve) => {
             setPendingPermission({
@@ -131,10 +158,15 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
       setMessages(result.messages)
       setRounds(result.rounds)
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err))
+      const msg = err instanceof Error ? err.message : String(err)
+      if (!msg.includes('Aborted') && !msg.includes('AbortError')) {
+        setError(msg)
+      }
     } finally {
       setIsStreaming(false)
       setStreamingText('')
+      setRetryStatus(null)
+      abortControllerRef.current = null
     }
   }, [tools, currentProvider, permissions, systemPrompt])
 
@@ -240,43 +272,39 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
 
   async function handleCompact(customInstructions?: string) {
     const msgs = messagesRef.current
-    if (msgs.length < 2) {
-      setError('Not enough conversation history to compact.')
+    if (msgs.length < 4) {
+      setNotification('对话历史太短，无需压缩')
+      setTimeout(() => setNotification(null), 3000)
       return
     }
 
+    const ac = new AbortController()
+    abortControllerRef.current = ac
     setIsStreaming(true)
-    setNotification(null)
+    setNotification('压缩中...')
+
     try {
-      const contextSummary = customInstructions
-        ? `Summarize the conversation so far. Custom focus: ${customInstructions}`
-        : `Summarize the conversation so far. Preserve: key decisions, code changes made, current task state, and any important context needed to continue. Be concise — use bullet points.`
+      const result = await compactConversation(msgs, currentProvider, permissions, {
+        customInstructions,
+        signal: ac.signal,
+        onProgress: (msg) => setNotification(msg),
+      })
 
-      const result = await runQuery(
-        [...msgs, { role: 'user', content: contextSummary }],
-        new Map(), // No tools for compaction
-        currentProvider,
-        permissions,
-        { systemPrompt: 'You are a helpful assistant. Summarize conversations concisely.' },
-        { onUsageUpdate: setUsage }
+      setMessages(result.messages)
+      setToolCalls([])
+      setNotification(
+        `✓ 压缩完成：${result.originalCount} → ${result.compactedCount} 条消息`
       )
-
-      const summary = result.messages.filter(m => m.role === 'assistant').slice(-1)[0]
-      if (summary) {
-        const originalCount = msgs.length
-        const compressedMessages: Message[] = [
-          { role: 'user', content: '[Context compacted — summary of previous conversation:]' },
-          summary,
-        ]
-        setMessages(compressedMessages)
-        setToolCalls([])
-        setNotification(`✓ Compacted ${originalCount} messages → 2 (summary preserved)`)
-        setTimeout(() => setNotification(null), 5000)
-      }
+      setTimeout(() => setNotification(null), 5000)
     } catch (err) {
-      setError(`Compact failed: ${err instanceof Error ? err.message : String(err)}`)
+      const msg = err instanceof Error ? err.message : String(err)
+      if (!msg.includes('Aborted')) {
+        setError(`压缩失败：${msg}`)
+      }
+      setNotification(null)
     } finally {
       setIsStreaming(false)
+      abortControllerRef.current = null
     }
   }
 

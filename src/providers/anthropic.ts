@@ -44,56 +44,55 @@ export class AnthropicProvider implements Provider {
         temperature: options.temperature,
       })
 
-      const toolInputAccumulators = new Map<string, string>()
+      // BUG FIX: Anthropic SDK sends content_block_delta with event.index (not id).
+      // We must map index → tool_use_id to correctly correlate delta/stop events.
+      const indexToId = new Map<number, string>()
+      const toolInputAccumulators = new Map<string, string>() // id → accumulated JSON
 
       for await (const event of stream) {
         if (event.type === 'content_block_start') {
           if (event.content_block.type === 'tool_use') {
-            toolInputAccumulators.set(event.content_block.id, '')
-            yield {
-              type: 'tool_use_start',
-              id: event.content_block.id,
-              name: event.content_block.name,
-            }
+            const { id, name } = event.content_block
+            indexToId.set(event.index, id)
+            toolInputAccumulators.set(id, '')
+            yield { type: 'tool_use_start', id, name }
           }
+
         } else if (event.type === 'content_block_delta') {
           if (event.delta.type === 'text_delta') {
             yield { type: 'text_delta', text: event.delta.text }
+
           } else if (event.delta.type === 'input_json_delta') {
-            const existing = toolInputAccumulators.get(event.index.toString()) ?? ''
-            toolInputAccumulators.set(event.index.toString(), existing + event.delta.partial_json)
-            yield {
-              type: 'tool_use_delta',
-              id: event.index.toString(),
-              inputDelta: event.delta.partial_json,
+            const id = indexToId.get(event.index)
+            if (id !== undefined) {
+              const existing = toolInputAccumulators.get(id) ?? ''
+              toolInputAccumulators.set(id, existing + event.delta.partial_json)
+              yield { type: 'tool_use_delta', id, inputDelta: event.delta.partial_json }
             }
           }
+
         } else if (event.type === 'content_block_stop') {
-          const accumulated = toolInputAccumulators.get(event.index.toString())
-          if (accumulated !== undefined) {
-            yield { type: 'tool_use_stop', id: event.index.toString() }
+          const id = indexToId.get(event.index)
+          if (id !== undefined && toolInputAccumulators.has(id)) {
+            yield { type: 'tool_use_stop', id }
           }
-        } else if (event.type === 'message_delta') {
-          if (event.usage) {
-            // usage reported in message_stop
-          }
-        } else if (event.type === 'message_stop') {
-          // Covered by message.finalMessage below
         }
+        // message_delta and message_stop handled via finalMessage below
       }
 
       const finalMessage = await stream.finalMessage()
       const usage: TokenUsage = {
         inputTokens: finalMessage.usage.input_tokens,
         outputTokens: finalMessage.usage.output_tokens,
-        cacheReadTokens: (finalMessage.usage as { cache_read_input_tokens?: number }).cache_read_input_tokens ?? 0,
-        cacheWriteTokens: (finalMessage.usage as { cache_creation_input_tokens?: number }).cache_creation_input_tokens ?? 0,
+        cacheReadTokens:
+          (finalMessage.usage as { cache_read_input_tokens?: number })
+            .cache_read_input_tokens ?? 0,
+        cacheWriteTokens:
+          (finalMessage.usage as { cache_creation_input_tokens?: number })
+            .cache_creation_input_tokens ?? 0,
       }
-      yield {
-        type: 'stop',
-        stopReason: finalMessage.stop_reason ?? 'end_turn',
-        usage,
-      }
+      yield { type: 'stop', stopReason: finalMessage.stop_reason ?? 'end_turn', usage }
+
     } catch (error) {
       yield {
         type: 'error',
@@ -103,7 +102,6 @@ export class AnthropicProvider implements Provider {
   }
 
   countTokens(messages: Message[]): number {
-    // Rough estimation: 4 chars per token
     const text = messages
       .map(m => (typeof m.content === 'string' ? m.content : JSON.stringify(m.content)))
       .join('\n')

@@ -1,6 +1,7 @@
 import React from 'react'
 import { Box, Text } from 'ink'
 import type { TokenUsage } from '../types/message'
+import { formatUsageLine, formatTokenCount } from '../utils/tokens'
 
 interface Props {
   model: string
@@ -8,27 +9,49 @@ interface Props {
   contextWindow: number
   isStreaming: boolean
   rounds: number
+  retryStatus?: string | null
 }
 
-export function StatusBar({ model, usage, contextWindow, isStreaming, rounds }: Props) {
+export function StatusBar({ model, usage, contextWindow, isStreaming, rounds, retryStatus }: Props) {
   const totalTokens = usage.inputTokens + usage.outputTokens
-  const usagePct = Math.round((totalTokens / contextWindow) * 100)
-  const usageColor = usagePct > 80 ? 'red' : usagePct > 60 ? 'yellow' : 'green'
+  const usagePct = contextWindow > 0 ? Math.round((totalTokens / contextWindow) * 100) : 0
+  const usageColor = usagePct > 85 ? 'red' : usagePct > 70 ? 'yellow' : 'green'
+
+  const shortModel = model.length > 24 ? model.slice(0, 22) + '…' : model
 
   return (
-    <Box flexDirection="row" justifyContent="space-between" marginTop={0}>
-      <Box flexDirection="row" gap={1}>
-        <Text color="gray">{model}</Text>
-        {isStreaming && <Text color="yellow"> ⟳ streaming</Text>}
-        {rounds > 0 && <Text color="gray"> · round {rounds}</Text>}
-      </Box>
-      <Box flexDirection="row" gap={1}>
-        {(usage.cacheReadTokens > 0 || usage.cacheWriteTokens > 0) && (
-          <Text color="blue">cache: {Math.round(usage.cacheReadTokens / 1000)}k↓{Math.round(usage.cacheWriteTokens / 1000)}k↑  </Text>
-        )}
-        <Text color={usageColor}>
-          ctx: {Math.round(totalTokens / 1000)}k / {Math.round(contextWindow / 1000)}k ({usagePct}%)
-        </Text>
+    <Box flexDirection="column">
+      {retryStatus && (
+        <Box>
+          <Text color="yellow">⟳ {retryStatus}</Text>
+        </Box>
+      )}
+      <Box flexDirection="row" justifyContent="space-between">
+        {/* Left: model + streaming status */}
+        <Box flexDirection="row" gap={1}>
+          <Text color="gray">{shortModel}</Text>
+          {isStreaming && <Text color="yellow">⟳</Text>}
+          {rounds > 0 && <Text color="gray">·{rounds}r</Text>}
+        </Box>
+
+        {/* Right: cost + context usage */}
+        <Box flexDirection="row" gap={1}>
+          {totalTokens > 0 && (
+            <>
+              <Text color="gray">{formatUsageLine(usage, model)}</Text>
+              <Text color="gray">·</Text>
+            </>
+          )}
+          {(usage.cacheReadTokens > 0) && (
+            <>
+              <Text color="blue">cache↓{formatTokenCount(usage.cacheReadTokens)}</Text>
+              <Text color="gray">·</Text>
+            </>
+          )}
+          <Text color={usageColor}>
+            ctx {usagePct}%
+          </Text>
+        </Box>
       </Box>
     </Box>
   )

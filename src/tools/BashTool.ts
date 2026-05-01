@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import type { Tool, ToolResult, ToolContext, ToolDefinition, PermissionDecision } from '../types/tool'
+import { classifyBashCommand } from '../permissions/classifier'
 
 const inputSchema = z.object({
   command: z.string().describe('The shell command to execute'),
@@ -9,34 +10,24 @@ const inputSchema = z.object({
 
 type Input = z.infer<typeof inputSchema>
 
-// Commands that are always considered destructive (require extra care)
-const DESTRUCTIVE_PATTERNS = [
-  /^rm\s+(-[a-z]*f[a-z]*\s+|.*\s+-[a-z]*f)/i,
-  /^(sudo\s+)?dd\s/i,
-  /\|\s*sudo\s/,
-  />(>)?\s*\/dev\/sd/,
-  /mkfs\./,
-  /fdisk/,
-]
-
 export const BashTool: Tool<Input> = {
   name: 'Bash',
   description:
     'Execute a shell command in the current working directory. ' +
     'Returns stdout and stderr. Commands run with a 120-second timeout by default. ' +
-    'Available on Unix/macOS systems. Use PowerShell tool on Windows.',
+    'Available on Unix/macOS/WSL. Use PowerShell tool for Windows-native commands.',
   inputSchema,
 
   checkPermissions(input: Input): PermissionDecision {
-    for (const pattern of DESTRUCTIVE_PATTERNS) {
-      if (pattern.test(input.command)) {
-        return {
-          type: 'ask',
-          description: `⚠ Potentially destructive command:\n  ${input.command}`,
-        }
-      }
+    const { level, reason } = classifyBashCommand(input.command)
+    if (level === 'safe') {
+      return { type: 'allow' }
     }
-    return { type: 'ask', description: `Run shell command:\n  ${input.command}` }
+    const prefix = level === 'high' ? '🔴 高风险' : level === 'medium' ? '🟡 中等风险' : '🟢 低风险'
+    return {
+      type: 'ask',
+      description: `${prefix}: ${reason}\n\n  ${input.command}`,
+    }
   },
 
   async call(input: Input, context: ToolContext): Promise<ToolResult> {
