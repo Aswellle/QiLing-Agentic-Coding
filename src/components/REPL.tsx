@@ -15,6 +15,8 @@ import { filterToolsForMode, buildModeSystemPrompt, type AppMode } from '../mode
 import { resolveMentions } from '../utils/mentions'
 import { loadAllSkills, formatSkillList } from '../skills/loader'
 import { loadLastSession, listSessions, formatSessionList } from '../session/resume'
+import { HistoryManager } from '../history/manager'
+import { formatErrorMessage } from '../utils/errorMessages'
 import type { Message } from '../types/message'
 import type { Tool } from '../types/tool'
 import type { Provider } from '../types/provider'
@@ -65,6 +67,13 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
   const [retryStatus, setRetryStatus] = useState<string | null>(null)
   const [appMode, setAppMode] = useState<AppMode>('act')
   const [skills, setSkills] = useState<ReturnType<typeof loadAllSkills>>([])
+
+  // History manager — created once per REPL session
+  const historyRef = useRef<HistoryManager | null>(null)
+  useEffect(() => {
+    const sessionId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+    historyRef.current = new HistoryManager(sessionId, workingDir)
+  }, [workingDir])
 
   // Load skills on mount and when workingDir changes
   useEffect(() => {
@@ -158,7 +167,8 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
             ))
           },
           onRetry: (attempt, total, errMsg, delayMs) => {
-            setRetryStatus(`重试 (${attempt}/${total})，等待 ${Math.round(delayMs / 1000)}s... ${errMsg.slice(0, 40)}`)
+            const secs = Math.round(delayMs / 1000)
+            setRetryStatus(`重试 (${attempt}/${total}) 等待 ${secs}s — ${errMsg.slice(0, 60)}`)
           },
           onPermissionRequest: (toolName, description, resolve) => {
             setPendingPermission({
@@ -171,12 +181,18 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
             })
           },
           onUsageUpdate: setUsage,
-          onError: setError,
+          onError: (err) => setError(formatErrorMessage(err, currentProvider.config.name)),
         }
       )
 
       setMessages(result.messages)
       setRounds(result.rounds)
+
+      // Save new messages to history
+      if (historyRef.current) {
+        const newMessages = result.messages.slice(queryMessages.length)
+        historyRef.current.saveMessages(newMessages)
+      }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
       if (!msg.includes('Aborted') && !msg.includes('AbortError')) {
@@ -188,7 +204,7 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
       setRetryStatus(null)
       abortControllerRef.current = null
     }
-  }, [tools, currentProvider, permissions, systemPrompt])
+  }, [tools, currentProvider, permissions, systemPrompt, appMode, settings])
 
   const handleSubmit = useCallback(async (rawInput: string) => {
     if (rawInput.startsWith('/')) {

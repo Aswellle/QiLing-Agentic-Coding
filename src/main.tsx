@@ -13,7 +13,7 @@ import { loadAllMcpTools } from './tools/McpTool'
 import { checkForUpdates } from './utils/updater'
 import { loadLastSession } from './session/resume'
 
-const VERSION = '0.1.0'
+const VERSION = '0.2.0'
 
 const program = new Command()
 
@@ -32,6 +32,7 @@ program
   .option('--yolo', 'Skip all permission confirmations (dangerous!)')
   .option('--readonly', 'Read-only mode: disable all write/execute tools')
   .option('--no-update-check', 'Skip startup update check')
+  .option('--no-repo-map', 'Skip automatic repository map injection into system prompt')
   .option('--resume [session-id]', 'Resume last session (or specific session by ID)')
   .option('--thinking <tokens>', 'Enable extended thinking with token budget', parseInt)
   .action(async (options) => {
@@ -99,12 +100,20 @@ program
       process.exit(1)
     }
 
-    // ─── Build core components ─────────────────────────────────────────────
+    // ─── Build core components (fast path) ────────────────────────────────
     const provider    = createProvider(settings)
     const tools       = buildToolRegistry(settings)
     const permissions = new PermissionsManager(settings)
-    // Build system prompt async (includes RepoMap injection for larger projects)
-    const systemPrompt = await buildSystemPromptAsync(workingDir, settings)
+
+    // Sync prompt first (no RepoMap) so TUI appears fast
+    const { buildSystemPrompt } = await import('./utils/systemPrompt')
+    const systemPromptSync = buildSystemPrompt(workingDir, settings)
+
+    // Async enrich: RepoMap + full memory scan (fires after TUI is visible)
+    let systemPrompt = systemPromptSync
+    const enrichPromptAsync = options.repoMap !== false
+      ? buildSystemPromptAsync(workingDir, settings).then(p => { systemPrompt = p }).catch(() => {})
+      : Promise.resolve()
 
     // ─── Session resume ────────────────────────────────────────────────────
     let initialMessages = undefined
@@ -143,7 +152,10 @@ program
     }
 
     // ─── Configure AgentTool ─────────────────────────────────────────────
-    configureAgentTool(provider, permissions, () => tools, systemPrompt)
+    configureAgentTool(provider, permissions, () => tools, systemPromptSync)
+    void enrichPromptAsync.then(() => {
+      configureAgentTool(provider, permissions, () => tools, systemPrompt)
+    })
 
     // ─── Launch TUI ───────────────────────────────────────────────────────
     const { waitUntilExit } = render(
@@ -151,7 +163,7 @@ program
         tools={tools}
         provider={provider}
         permissions={permissions}
-        systemPrompt={systemPrompt}
+        systemPrompt={systemPromptSync}
         workingDir={workingDir}
         version={VERSION}
         settings={settings}

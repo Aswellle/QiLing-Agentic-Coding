@@ -29,22 +29,61 @@ export class AnthropicProvider implements Provider {
     tools: ToolDefinition[],
     options: StreamOptions = {}
   ): AsyncGenerator<StreamChunkType> {
-    const anthropicMessages = messages.map(msg => ({
-      role: msg.role,
-      content: typeof msg.content === 'string' ? msg.content : msg.content,
-    })) as Anthropic.MessageParam[]
+    // ── Prompt cache injection ────────────────────────────────────────────
+    // Inject cache_control on system prompt and first 2 user messages.
+    // This gives 80-90% cost reduction on repeated queries (cache hits).
+    // Only Claude 3.5+ supports ephemeral caching.
+    const supportsCaching = (
+      this.config.model.includes('claude-3') ||
+      this.config.model.includes('claude-sonnet') ||
+      this.config.model.includes('claude-opus') ||
+      this.config.model.includes('claude-haiku')
+    )
+
+    // Build system prompt with cache_control
+    const systemWithCache = supportsCaching && options.systemPrompt
+      ? [{ type: 'text' as const, text: options.systemPrompt, cache_control: { type: 'ephemeral' as const } }]
+      : options.systemPrompt
+
+    // Mark first 2 user messages (likely to be repeated context) as cacheable
+    let cacheInserted = 0
+    const anthropicMessages = messages.map((msg, idx) => {
+      const base = { role: msg.role, content: typeof msg.content === 'string' ? msg.content : msg.content }
+      // Cache the first 2 user messages (usually context/memory) and tools block
+      if (supportsCaching && msg.role === 'user' && cacheInserted < 2 && idx < 4) {
+        cacheInserted++
+        const rawContent = msg.content as unknown
+        const content = typeof msg.content === 'string'
+          ? [{ type: 'text' as const, text: msg.content, cache_control: { type: 'ephemeral' as const } }]
+          : (rawContent as Array<Record<string, unknown>>).map((block, i) =>
+              i === (rawContent as unknown[]).length - 1
+                ? { ...block, cache_control: { type: 'ephemeral' as const } }
+                : block
+            )
+        return { ...base, content }
+      }
+      return base
+    }) as Anthropic.MessageParam[]
 
     try {
       // Extended thinking support (Claude 3.5+ / 3 Opus)
       const thinkingConfig = (options as { thinking?: { type: string; budget_tokens: number } }).thinking
       const supportsThinking = this.config.model.includes('opus') || this.config.model.includes('sonnet-4')
 
+      // Also cache the tools definition (rarely changes across turns)
+      const toolsWithCache = supportsCaching && tools.length > 0
+        ? tools.map((t, i) => i === tools.length - 1
+            ? { ...t, cache_control: { type: 'ephemeral' } }
+            : t
+          ) as Anthropic.Tool[]
+        : tools.length > 0 ? (tools as Anthropic.Tool[]) : undefined
+
       const stream = await this.client.messages.stream({
         model: this.config.model,
         max_tokens: options.maxTokens ?? this.config.maxTokens ?? 8096,
-        system: options.systemPrompt,
+        system: systemWithCache as Anthropic.MessageStreamParams['system'],
         messages: anthropicMessages,
-        tools: tools.length > 0 ? (tools as Anthropic.Tool[]) : undefined,
+        tools: toolsWithCache,
         temperature: thinkingConfig ? undefined : options.temperature,
         ...(thinkingConfig && supportsThinking ? {
           thinking: { type: 'enabled', budget_tokens: thinkingConfig.budget_tokens },

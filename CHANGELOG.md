@@ -8,10 +8,79 @@
 ## [Unreleased]
 
 ### 待开发
-- Plan/Act 模式（只读探索 + 执行分离）
-- MCP SSE transport 支持
-- 对话历史搜索 (`/history`)
 - 键位自定义 (`~/.qiling/keybindings.json`)
+- Vim 键位模式
+- 语音输入支持
+- 团队记忆共享
+
+---
+
+## [0.2.0] - 2026-05-01
+
+### 重大新增
+
+**AI 扩展能力**
+- Anthropic 提示词缓存 — system prompt + 前 2 条 user 消息注入 `cache_control: ephemeral`，缓存命中时成本降低 80-90%
+- 扩展思考 (`--thinking <tokens>`) — Claude Opus/Sonnet-4 支持 extended thinking
+- RepoMap 自动注入 — 启动时异步生成仓库符号索引注入 system prompt（`--no-repo-map` 禁用）
+
+**新工具**
+- `LspDiagnostics` — 语言服务器诊断工具：TypeScript (typescript-language-server)、Python (pylsp/pyright)、Go (gopls)、Rust (rust-analyzer)
+
+**Hooks 系统**
+- PreToolUse / PostToolUse / Stop 三种钩子
+- 环境变量注入：QILING_TOOL_NAME, QILING_FILE_PATH, QILING_BASH_COMMAND, QILING_TOOL_RESULT
+- 典型用途：FileEdit 后自动 prettier，任务完成后桌面通知
+
+**Skills 系统**
+- 加载 `.qiling/skills/*.md` 和 `.claude/skills/*.md`（兼容 Claude Code）
+- `/skills` 命令列出所有可用 skill
+- 使用 `/<skill-name>` 调用
+
+**@mention 上下文注入**
+- `@file src/auth.ts` — 注入文件内容
+- `@folder src/` — 注入目录树
+- `@url https://...` — 抓取并注入网页
+- `@code functionName` — 搜索并注入函数定义
+- `@git` — 注入 git status + diff
+- `@repomap [path]` — 注入仓库索引
+
+**会话管理**
+- `--resume` / `--resume <id>` — 恢复上次/指定会话
+- `/resume`、`/history` 命令
+- 对话历史自动持久化到 `~/.qiling/history/<session>.jsonl`
+
+**Provider 扩展**
+- AWS Bedrock（需 `@anthropic-ai/bedrock-sdk`）
+- Google Cloud Vertex AI
+- 共支持 12 个 provider
+
+**MCP 完整化**
+- SSE transport 支持（HTTP server-sent events）
+- `/mcp` 管理命令：list/status/add/remove
+
+**Plan/Act 模式**
+- `/plan` — 只读探索（FileRead/Glob/Grep）
+- `/act` — 恢复全部工具
+- StatusBar 显示 `[PLAN]` 徽章
+
+**Agent 增强**
+- `isolation: "worktree"` — git worktree 隔离执行
+- 并行工具执行 — 只读工具 (FileRead/Glob/Grep/RepoMap) 并发执行
+- 子代理深度限制防递归
+
+**其他**
+- 输入历史 ↑↓ 回溯（100条）
+- `/test` 命令 — 测试-修复-重试循环
+- `/repomap` 命令
+- `/doctor` 环境诊断
+- 生产级错误信息（401/429/529/网络故障分类提示）
+- 启动性能优化（系统提示同步快速返回，RepoMap 后台加载）
+
+### 新增测试
+100 个单元测试，0 失败，覆盖：hooks、skills、session、planMode、compact、permissions、tools、settings、query
+
+[0.2.0]: https://github.com/Aswellle/QiLing-Agentic-Coding/releases/tag/v0.2.0
 
 ---
 

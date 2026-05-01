@@ -59,10 +59,17 @@ export const FileEditTool: Tool<Input> = {
     writeFileSync(filePath, newContent, 'utf-8')
 
     const occurrences = countOccurrences(content, input.old_string)
+    // Embed diff metadata as JSON comment so ToolCallDisplay can render it
+    const diffMeta = JSON.stringify({
+      __diff: true,
+      file_path: input.file_path,
+      old_string: input.old_string.slice(0, 2000),
+      new_string: input.new_string.slice(0, 2000),
+    })
     return {
       content: [{
         type: 'text',
-        text: `Successfully edited ${input.file_path} (replaced ${occurrences} occurrence${occurrences !== 1 ? 's' : ''}).`,
+        text: `Successfully edited ${input.file_path} (replaced ${occurrences} occurrence${occurrences !== 1 ? 's' : ''}).\n<!--DIFF:${diffMeta}-->`,
       }],
     }
   },

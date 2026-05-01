@@ -26,6 +26,10 @@ const inputSchema = z.object({
   prompt: z.string().describe('The task for the agent to perform. Be specific and include all context needed — the agent starts with no prior conversation history.'),
   description: z.string().optional().describe('Short description (3-5 words) of what the agent will do'),
   system_prompt: z.string().optional().describe('Override the agent\'s system prompt'),
+  isolation: z.enum(['none', 'worktree']).default('none').describe(
+    '"worktree": run in an isolated git worktree (safe for risky changes). ' +
+    '"none": run in current working directory (default).'
+  ),
 })
 
 type Input = z.infer<typeof inputSchema>
@@ -53,12 +57,47 @@ export const AgentTool: Tool<Input> = {
 
     const agentMessages = [{ role: 'user' as const, content: input.prompt }]
     const agentTools = _getTools()
-    // Remove Agent from agent's toolset to prevent infinite recursion
     const agentToolsNoSelf = new Map(agentTools)
-    agentToolsNoSelf.delete('Agent')
+    agentToolsNoSelf.delete('Agent') // Prevent infinite recursion
 
     const agentSystemPrompt = input.system_prompt ?? AGENT_SYSTEM_PROMPT
     const taskDesc = input.description ?? input.prompt.slice(0, 50)
+
+    // ── Worktree isolation ────────────────────────────────────────────────
+    let worktreeDir: string | null = null
+    let worktreeBranch: string | null = null
+
+    if (input.isolation === 'worktree') {
+      try {
+        const branchName = `agent/${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
+        const worktreePath = `${context.workingDir}/.qiling/worktrees/${branchName.replace('/', '-')}`
+
+        const mkdirProc = Bun.spawn(['mkdir', '-p', worktreePath], { cwd: context.workingDir, stdout: 'pipe', stderr: 'pipe' })
+        await mkdirProc.exited
+
+        const wtProc = Bun.spawn(['git', 'worktree', 'add', '-b', branchName, worktreePath], {
+          cwd: context.workingDir, stdout: 'pipe', stderr: 'pipe',
+        })
+        await wtProc.exited
+
+        if (wtProc.exitCode === 0) {
+          worktreeDir = worktreePath
+          worktreeBranch = branchName
+          context.onProgress?.(`Launching agent in worktree: ${branchName}`)
+        } else {
+          // Worktree setup failed — fall back to normal execution
+          context.onProgress?.(`Worktree setup failed, running in-place`)
+        }
+      } catch {
+        // Fallback silently
+      }
+    }
+
+    const agentWorkingDir = worktreeDir ?? context.workingDir
+    const agentContext: import('../types/tool').ToolContext = {
+      workingDir: agentWorkingDir,
+      sessionId: context.sessionId + '-agent',
+    }
 
     context.onProgress?.(`Launching agent: ${taskDesc}`)
 
@@ -69,8 +108,31 @@ export const AgentTool: Tool<Input> = {
         _provider,
         _permissions,
         { systemPrompt: agentSystemPrompt, maxRounds: 15 },
-        {} // No callbacks for sub-agents (output goes to result)
+        {} // No callbacks for sub-agents
       )
+
+      // ── Worktree cleanup ────────────────────────────────────────────────
+      if (worktreeDir && worktreeBranch) {
+        // Check if agent made any changes
+        const diffProc = Bun.spawn(['git', 'diff', '--name-only', `HEAD..${worktreeBranch}`], {
+          cwd: context.workingDir, stdout: 'pipe', stderr: 'pipe',
+        })
+        const changedFiles = (await new Response(diffProc.stdout).text()).trim()
+        await diffProc.exited
+
+        if (!changedFiles) {
+          // No changes — clean up worktree silently
+          await Bun.spawn(['git', 'worktree', 'remove', '--force', worktreeDir], { cwd: context.workingDir, stdout: 'pipe', stderr: 'pipe' }).exited
+          await Bun.spawn(['git', 'branch', '-D', worktreeBranch], { cwd: context.workingDir, stdout: 'pipe', stderr: 'pipe' }).exited
+        } else {
+          // Changes exist — report them
+          const extraInfo = `\n\n[Worktree: ${worktreeBranch} | Changed: ${changedFiles.split('\n').length} files]\nRun: git merge ${worktreeBranch}  to apply changes`
+          const texts = result.messages.filter(m => m.role === 'assistant').slice(-1)
+          if (texts.length > 0 && typeof texts[0].content === 'string') {
+            texts[0].content += extraInfo
+          }
+        }
+      }
 
       // Extract the final assistant message
       const assistantMessages = result.messages.filter(m => m.role === 'assistant')
@@ -95,6 +157,11 @@ export const AgentTool: Tool<Input> = {
         content: [{ type: 'text', text: text + usageSummary }],
       }
     } catch (error) {
+      // Clean up worktree on error
+      if (worktreeDir && worktreeBranch) {
+        Bun.spawn(['git', 'worktree', 'remove', '--force', worktreeDir], { cwd: context.workingDir }).exited.catch(() => {})
+        Bun.spawn(['git', 'branch', '-D', worktreeBranch], { cwd: context.workingDir }).exited.catch(() => {})
+      }
       return {
         content: [{ type: 'text', text: `Agent failed: ${error instanceof Error ? error.message : String(error)}` }],
         isError: true,
@@ -112,6 +179,7 @@ export const AgentTool: Tool<Input> = {
           prompt: { type: 'string', description: 'Complete task description with all necessary context' },
           description: { type: 'string', description: 'Short description (3-5 words) of what the agent will do' },
           system_prompt: { type: 'string', description: 'Override agent system prompt' },
+          isolation: { type: 'string', enum: ['none', 'worktree'], default: 'none', description: 'Run in git worktree for safe isolation' },
         },
         required: ['prompt'],
       },

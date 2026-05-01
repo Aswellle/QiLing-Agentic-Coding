@@ -95,6 +95,54 @@ export const BUILTIN_COMMANDS: Command[] = [
     },
   },
   {
+    name: '/mcp',
+    description: '管理 MCP 服务器 (list/add/remove/status)',
+    execute: async (args, ctx) => {
+      const parts = args.trim().split(/\s+/)
+      const subcmd = parts[0] ?? 'list'
+      const { getMcpStatus, formatMcpStatus, addMcpServer, removeMcpServer } = await import('../mcp/manager')
+      const { loadSettings } = await import('../settings/loader')
+      const settings = loadSettings(ctx.workingDir)
+      const mcpServers = settings.mcpServers ?? {}
+
+      switch (subcmd) {
+        case 'list':
+        case 'status': {
+          ctx.onMessage({ role: 'assistant', content: '正在检查 MCP 服务器连接状态...' })
+          const statuses = await getMcpStatus(mcpServers)
+          ctx.onMessage({ role: 'assistant', content: formatMcpStatus(statuses) })
+          break
+        }
+        case 'add': {
+          // /mcp add <name> <command> [args...]
+          const name = parts[1]
+          const command = parts[2]
+          const cmdArgs = parts.slice(3)
+          if (!name || !command) {
+            ctx.onMessage({ role: 'assistant', content: '用法: /mcp add <name> <command> [args...]\n例: /mcp add filesystem npx -y @modelcontextprotocol/server-filesystem /path' })
+            break
+          }
+          await addMcpServer(name, command, cmdArgs, ctx.workingDir)
+          ctx.onMessage({ role: 'assistant', content: `✅ 已添加 MCP 服务器 "${name}"。重新启动 qiling 或调用 /mcp status 查看连接状态。` })
+          break
+        }
+        case 'remove':
+        case 'rm': {
+          const name = parts[1]
+          if (!name) {
+            ctx.onMessage({ role: 'assistant', content: '用法: /mcp remove <name>' })
+            break
+          }
+          await removeMcpServer(name, ctx.workingDir)
+          ctx.onMessage({ role: 'assistant', content: `✅ 已移除 MCP 服务器 "${name}"。` })
+          break
+        }
+        default:
+          ctx.onMessage({ role: 'assistant', content: '可用子命令: list | status | add <name> <command> | remove <name>' })
+      }
+    },
+  },
+  {
     name: '/review',
     description: '代码审查 (本地 diff 或 PR)',
     getPrompt(args) {

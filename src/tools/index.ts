@@ -11,6 +11,7 @@ import { TodoWriteTool } from './TodoWriteTool'
 import { AgentTool } from './AgentTool'
 import { NotebookReadTool } from './NotebookReadTool'
 import { RepoMapTool } from './RepoMapTool'
+import { LspTool } from './LspTool'
 import type { Settings } from '../settings/schema'
 
 export function buildToolRegistry(settings: Settings): Map<string, Tool> {
@@ -24,6 +25,7 @@ export function buildToolRegistry(settings: Settings): Map<string, Tool> {
     AgentTool,
     NotebookReadTool,
     RepoMapTool,
+    LspTool,
   ]
 
   // Shell tools (platform-aware)

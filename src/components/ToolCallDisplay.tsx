@@ -1,6 +1,24 @@
 import React from 'react'
 import { Box, Text } from 'ink'
 import Spinner from 'ink-spinner'
+import { DiffView } from './DiffView'
+
+interface DiffMeta {
+  __diff: true
+  file_path: string
+  old_string: string
+  new_string: string
+}
+
+function parseDiffMeta(result: string): DiffMeta | null {
+  const m = result.match(/<!--DIFF:(.+?)-->/)
+  if (!m) return null
+  try {
+    return JSON.parse(m[1]) as DiffMeta
+  } catch {
+    return null
+  }
+}
 
 export interface ToolCallRecord {
   id: string
@@ -41,6 +59,9 @@ function formatDuration(start: number, end?: number): string {
 export function ToolCallDisplay({ toolCall }: Props) {
   const inputSummary = formatInput(toolCall.name, toolCall.input)
   const duration = toolCall.endTime ? formatDuration(toolCall.startTime, toolCall.endTime) : null
+  const diff = toolCall.status === 'done' && toolCall.result
+    ? parseDiffMeta(toolCall.result)
+    : null
 
   return (
     <Box flexDirection="column" marginLeft={2} marginBottom={0}>
@@ -65,12 +86,24 @@ export function ToolCallDisplay({ toolCall }: Props) {
         )}
       </Box>
 
-      {/* Show truncated result on error */}
+      {/* Diff view for FileEdit completions */}
+      {diff && (
+        <Box marginLeft={2}>
+          <DiffView
+            filePath={diff.file_path}
+            oldStr={diff.old_string}
+            newStr={diff.new_string}
+            maxLines={20}
+          />
+        </Box>
+      )}
+
+      {/* Error output */}
       {toolCall.status === 'error' && toolCall.result && (
         <Box marginLeft={3}>
           <Text color="red" dimColor>
-            {toolCall.result.slice(0, 100)}
-            {toolCall.result.length > 100 ? '...' : ''}
+            {toolCall.result.replace(/<!--DIFF:.+?-->/s, '').slice(0, 120)}
+            {toolCall.result.length > 120 ? '...' : ''}
           </Text>
         </Box>
       )}
