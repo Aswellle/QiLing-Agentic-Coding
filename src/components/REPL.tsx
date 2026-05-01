@@ -11,7 +11,7 @@ import { compactConversation } from '../compact/engine'
 import { BUILTIN_COMMANDS } from '../commands/index'
 import { formatModelList, resolveModel } from '../commands/model'
 import { createProvider } from '../providers/index'
-import { formatUsageLine } from '../utils/tokens'
+import { filterToolsForMode, buildModeSystemPrompt, type AppMode } from '../modes/planMode'
 import type { Message } from '../types/message'
 import type { Tool } from '../types/tool'
 import type { Provider } from '../types/provider'
@@ -56,6 +56,7 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
   const [error, setError] = useState<string | null>(null)
   const [notification, setNotification] = useState<string | null>(null)
   const [retryStatus, setRetryStatus] = useState<string | null>(null)
+  const [appMode, setAppMode] = useState<AppMode>('act')
 
   // AbortController for Ctrl+C during streaming
   const abortControllerRef = useRef<AbortController | null>(null)
@@ -105,10 +106,11 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
     const ac = new AbortController()
     abortControllerRef.current = ac
 
-    let queryTools = tools
+    // Apply mode filter first, then command-specific restrictions
+    let queryTools = filterToolsForMode(tools, appMode) as Map<string, Tool>
     if (restrictedToolNames) {
       queryTools = new Map(
-        Array.from(tools.entries()).filter(([name]) =>
+        Array.from(queryTools.entries()).filter(([name]) =>
           restrictedToolNames.some(allowed =>
             name === allowed || allowed.startsWith(`${name}(`)
           )
@@ -122,7 +124,7 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
         queryTools,
         currentProvider,
         permissions,
-        { systemPrompt: querySystemPrompt ?? systemPrompt, signal: ac.signal },
+        { systemPrompt: buildModeSystemPrompt(querySystemPrompt ?? systemPrompt, appMode), signal: ac.signal },
         {
           onTextDelta: (text) => setStreamingText(prev => prev + text),
           onToolStart: (id, name) => {
@@ -193,6 +195,14 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
       case '/quit':
         exit()
         return
+
+      case '/plan':
+        setAppMode('plan')
+        break  // fall through to builtin command for the message
+
+      case '/act':
+        setAppMode('act')
+        break  // fall through to builtin command for the message
 
       case '/clear':
         setMessages([])
@@ -392,6 +402,8 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
         contextWindow={contextWindow}
         isStreaming={isStreaming}
         rounds={rounds}
+        retryStatus={retryStatus}
+        mode={appMode}
       />
 
       <PromptInput

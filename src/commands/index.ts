@@ -49,8 +49,49 @@ export const BUILTIN_COMMANDS: Command[] = [
     name: '/commit',
     description: '创建 git commit',
     allowedTools: ['Bash', 'PowerShell'],
-    getPrompt(args, ctx) {
+    getPrompt(_args, _ctx) {
       return COMMIT_PROMPT
+    },
+  },
+  {
+    name: '/test',
+    description: '运行测试，失败时自动修复并重试（最多 3 次）',
+    getPrompt(args, ctx) {
+      return TEST_PROMPT(args, ctx.workingDir)
+    },
+  },
+  {
+    name: '/plan',
+    description: '进入计划模式（只读探索，不执行变更）— 输入 /act 退出',
+    execute(_args, ctx) {
+      ctx.onMessage({
+        role: 'assistant',
+        content: [
+          '已进入 **计划模式 (PLAN MODE)** 📋',
+          '',
+          '当前只允许读取文件和搜索代码，不会进行任何修改。',
+          '请描述你想要实现的功能，我会先充分探索代码库，然后给出详细执行计划。',
+          '',
+          '输入 `/act` 退出计划模式，进入执行模式。',
+        ].join('\n'),
+      })
+    },
+  },
+  {
+    name: '/act',
+    description: '退出计划模式，进入执行模式（允许所有工具）',
+    execute(_args, ctx) {
+      ctx.onMessage({
+        role: 'assistant',
+        content: '已进入 **执行模式 (ACT MODE)** ⚡ — 所有工具已恢复，可以开始执行变更。',
+      })
+    },
+  },
+  {
+    name: '/repomap',
+    description: '显示项目文件和符号结构（token 高效的仓库索引）',
+    getPrompt(_args, ctx) {
+      return `请使用 RepoMap 工具分析当前项目结构:\n\n工作目录: ${ctx.workingDir}\n\n调用 RepoMap 工具，然后基于结果给出项目架构摘要。`
     },
   },
   {
@@ -246,14 +287,56 @@ EOF
 
 ${args ? `额外要求: ${args}` : ''}`
 
+const TEST_PROMPT = (args: string, workingDir: string) => `运行项目测试，如果失败则自动修复并重试（最多 3 次）。
+
+## 工作目录
+${workingDir}
+
+## 执行流程
+
+1. **检测测试命令**（如果用户没有指定）：
+   - 检查 package.json 中的 "test" 脚本
+   - 检查 Makefile 中的 test 目标
+   - 检查 Cargo.toml（cargo test）
+   - 检查 pytest.ini 或 setup.py（pytest）
+   - 如果都没有，告知用户并停止
+
+2. **运行测试**：
+   \`\`\`bash
+   ${args || '使用检测到的测试命令'}
+   \`\`\`
+
+3. **如果测试失败**：
+   - 分析错误输出，找出根本原因
+   - 修复代码（使用 FileEdit）
+   - 重新运行测试
+   - 最多循环 3 次
+
+4. **如果所有 3 次都失败**：
+   - 报告无法自动修复的原因
+   - 列出需要人工干预的问题
+
+5. **如果测试全部通过**（或修复后通过）：
+   - 显示通过的测试数量
+   - 询问是否创建 commit（可选）
+
+## 安全规则
+- 只修改测试失败直接相关的代码
+- 不要修改测试文件本身（除非测试文件有明显 bug）
+- 每次修复后必须重新运行完整测试套件`.trim()
+
 const HELP_TEXT = `QiLing (启灵) — 编程代理工具
 
 ## 内置命令
 
   /help         显示此帮助
-  /commit       创建 git commit (AI 辅助)
+  /plan         进入计划模式（只读探索，安全分析）
+  /act          退出计划模式，进入执行模式
+  /commit       创建 git commit (AI 辅助，含安全协议)
+  /test [cmd]   运行测试并自动修复（最多 3 次循环）
   /review [PR#] 代码审查 (本地 diff 或 PR)
   /init         分析代码库，创建 QILING.md
+  /repomap      显示仓库文件和符号索引
   /memory       查看记忆文件
   /memory edit  编辑记忆文件
   /pr           创建 Pull Request

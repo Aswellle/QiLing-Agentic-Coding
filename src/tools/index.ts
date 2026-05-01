@@ -10,6 +10,7 @@ import { WebFetchTool } from './WebFetchTool'
 import { TodoWriteTool } from './TodoWriteTool'
 import { AgentTool } from './AgentTool'
 import { NotebookReadTool } from './NotebookReadTool'
+import { RepoMapTool } from './RepoMapTool'
 import type { Settings } from '../settings/schema'
 
 export function buildToolRegistry(settings: Settings): Map<string, Tool> {
@@ -22,6 +23,7 @@ export function buildToolRegistry(settings: Settings): Map<string, Tool> {
     TodoWriteTool,
     AgentTool,
     NotebookReadTool,
+    RepoMapTool,
   ]
 
   // Shell tools (platform-aware)

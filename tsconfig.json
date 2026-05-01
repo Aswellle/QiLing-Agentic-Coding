@@ -9,7 +9,8 @@
     "skipLibCheck": true,
     "types": ["bun-types"],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "react-devtools-core": ["./src/stubs/react-devtools-core"]
     }
   },
   "include": ["src/**/*"],

@@ -10,9 +10,10 @@ interface Props {
   isStreaming: boolean
   rounds: number
   retryStatus?: string | null
+  mode?: 'act' | 'plan'
 }
 
-export function StatusBar({ model, usage, contextWindow, isStreaming, rounds, retryStatus }: Props) {
+export function StatusBar({ model, usage, contextWindow, isStreaming, rounds, retryStatus, mode = 'act' }: Props) {
   const totalTokens = usage.inputTokens + usage.outputTokens
   const usagePct = contextWindow > 0 ? Math.round((totalTokens / contextWindow) * 100) : 0
   const usageColor = usagePct > 85 ? 'red' : usagePct > 70 ? 'yellow' : 'green'
@@ -27,8 +28,11 @@ export function StatusBar({ model, usage, contextWindow, isStreaming, rounds, re
         </Box>
       )}
       <Box flexDirection="row" justifyContent="space-between">
-        {/* Left: model + streaming status */}
+        {/* Left: mode badge + model + streaming status */}
         <Box flexDirection="row" gap={1}>
+          {mode === 'plan' && (
+            <Text color="cyan" bold>[PLAN]</Text>
+          )}
           <Text color="gray">{shortModel}</Text>
           {isStreaming && <Text color="yellow">⟳</Text>}
           {rounds > 0 && <Text color="gray">·{rounds}r</Text>}
