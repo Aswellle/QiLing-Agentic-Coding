@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react'
+import React, { useState, useCallback, useRef, useEffect } from 'react'
 import { Box, Text, useApp } from 'ink'
 import { MessageBubble } from './Message'
 import { ToolCallDisplay, type ToolCallRecord } from './ToolCallDisplay'
@@ -7,22 +7,26 @@ import { PromptInput, type SlashCommand } from './PromptInput'
 import { StatusBar } from './StatusBar'
 import { StartupBanner } from './StartupBanner'
 import { runQuery } from '../query'
+import { BUILTIN_COMMANDS } from '../commands/index'
 import { formatModelList, resolveModel } from '../commands/model'
+import { createProvider } from '../providers/index'
 import type { Message } from '../types/message'
 import type { Tool } from '../types/tool'
 import type { Provider } from '../types/provider'
 import type { PermissionManager } from '../types/tool'
 import type { TokenUsage } from '../types/message'
+import type { Settings } from '../settings/schema'
 
-const SLASH_COMMANDS: SlashCommand[] = [
-  { name: '/help', description: '显示帮助信息' },
+const SLASH_COMMANDS: SlashCommand[] = BUILTIN_COMMANDS.map(c => ({
+  name: c.name,
+  description: c.description,
+})).concat([
   { name: '/model', description: '切换 AI 模型' },
-  { name: '/config', description: '查看/修改配置' },
-  { name: '/memory', description: '查看/编辑记忆文件' },
-  { name: '/compact', description: '压缩对话上下文' },
+  { name: '/config', description: '查看当前配置' },
   { name: '/clear', description: '清空当前对话' },
+  { name: '/compact', description: '压缩对话上下文' },
   { name: '/exit', description: '退出' },
-]
+])
 
 interface Props {
   tools: Map<string, Tool>
@@ -31,10 +35,13 @@ interface Props {
   systemPrompt: string
   workingDir: string
   version: string
-  onModelChange?: (provider: string, model: string) => void
+  settings: Settings
 }
 
-export function REPL({ tools, provider, permissions, systemPrompt, workingDir, version, onModelChange }: Props) {
+const TOKEN_WARN_THRESHOLD = 0.75 // 75%
+const TOKEN_CRITICAL_THRESHOLD = 0.90 // 90%
+
+export function REPL({ tools, provider, permissions, systemPrompt, workingDir, version, settings }: Props) {
   const { exit } = useApp()
   const [messages, setMessages] = useState<Message[]>([])
   const [toolCalls, setToolCalls] = useState<ToolCallRecord[]>([])
@@ -45,47 +52,61 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
   const [rounds, setRounds] = useState(0)
   const [currentProvider, setCurrentProvider] = useState(provider)
   const [error, setError] = useState<string | null>(null)
+  const [notification, setNotification] = useState<string | null>(null)
 
   const messagesRef = useRef(messages)
   messagesRef.current = messages
 
-  const handleSubmit = useCallback(async (input: string) => {
-    // Handle slash commands
-    if (input.startsWith('/')) {
-      handleCommand(input.trim())
-      return
-    }
+  const contextWindow = currentProvider.getContextWindow()
+  const totalTokens = usage.inputTokens + usage.outputTokens
+  const usagePct = contextWindow > 0 ? totalTokens / contextWindow : 0
+  const isNearLimit = usagePct >= TOKEN_WARN_THRESHOLD
+  const isCritical = usagePct >= TOKEN_CRITICAL_THRESHOLD
 
+  // Auto-compact when critical
+  useEffect(() => {
+    if (isCritical && !isStreaming && messagesRef.current.length > 4) {
+      setNotification('⚠ Context approaching limit — auto-compacting...')
+      handleCompact()
+    }
+  }, [isCritical])
+
+  const runAIQuery = useCallback(async (
+    queryMessages: Message[],
+    querySystemPrompt?: string,
+    restrictedToolNames?: string[]
+  ) => {
     setError(null)
     setStreamingText('')
     setToolCalls([])
     setIsStreaming(true)
 
-    const userMessage: Message = { role: 'user', content: input }
-    const newMessages = [...messagesRef.current, userMessage]
-    setMessages(newMessages)
+    let queryTools = tools
+    if (restrictedToolNames) {
+      queryTools = new Map(
+        Array.from(tools.entries()).filter(([name]) =>
+          restrictedToolNames.some(allowed =>
+            name === allowed || allowed.startsWith(`${name}(`)
+          )
+        )
+      )
+    }
 
     try {
       const result = await runQuery(
-        newMessages,
-        tools,
+        queryMessages,
+        queryTools,
         currentProvider,
         permissions,
-        { systemPrompt },
+        { systemPrompt: querySystemPrompt ?? systemPrompt },
         {
-          onTextDelta: (text) => {
-            setStreamingText(prev => prev + text)
-          },
+          onTextDelta: (text) => setStreamingText(prev => prev + text),
           onToolStart: (id, name) => {
             setToolCalls(prev => [...prev, {
-              id,
-              name,
-              input: {},
-              status: 'running',
-              startTime: Date.now(),
+              id, name, input: {}, status: 'running', startTime: Date.now(),
             }])
           },
-          onToolComplete: (id, name, result, isError) => {
+          onToolComplete: (id, _name, result, isError) => {
             setToolCalls(prev => prev.map(tc =>
               tc.id === id
                 ? { ...tc, status: isError ? 'error' : 'done', result, endTime: Date.now() }
@@ -102,12 +123,8 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
               },
             })
           },
-          onUsageUpdate: (u) => {
-            setUsage(u)
-          },
-          onError: (err) => {
-            setError(err)
-          },
+          onUsageUpdate: setUsage,
+          onError: setError,
         }
       )
 
@@ -121,105 +138,140 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
     }
   }, [tools, currentProvider, permissions, systemPrompt])
 
-  function handleCommand(cmd: string) {
-    const parts = cmd.trim().split(/\s+/)
-    const name = parts[0]
-    const args = parts.slice(1).join(' ')
+  const handleSubmit = useCallback(async (input: string) => {
+    if (input.startsWith('/')) {
+      await handleCommand(input.trim())
+      return
+    }
 
+    const userMessage: Message = { role: 'user', content: input }
+    const newMessages = [...messagesRef.current, userMessage]
+    setMessages(newMessages)
+    await runAIQuery(newMessages)
+  }, [runAIQuery])
+
+  async function handleCommand(cmd: string) {
+    const spaceIdx = cmd.indexOf(' ')
+    const name = spaceIdx === -1 ? cmd : cmd.slice(0, spaceIdx)
+    const args = spaceIdx === -1 ? '' : cmd.slice(spaceIdx + 1).trim()
+
+    // Local UI commands
     switch (name) {
       case '/exit':
       case '/quit':
         exit()
-        break
+        return
+
       case '/clear':
         setMessages([])
         setToolCalls([])
         setStreamingText('')
         setError(null)
+        setNotification(null)
         setUsage({ inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0 })
-        break
-      case '/help':
-        setMessages(prev => [...prev, { role: 'assistant', content: HELP_TEXT }])
-        break
+        return
+
       case '/compact':
-        handleCompact()
-        break
-      case '/model': {
-        if (!args) {
-          setMessages(prev => [...prev, {
-            role: 'assistant',
-            content: formatModelList({ provider: currentProvider.config.name, model: currentProvider.config.model }),
-          }])
-        } else {
-          const opt = resolveModel(args)
-          if (!opt) {
-            setError(`Unknown model: ${args}. Use /model to list available models.`)
-          } else {
-            // Dynamic import to avoid circular deps
-            import('../providers/index').then(({ createProvider }) => {
-              const newProvider = createProvider({
-                ...{ provider: opt.provider, model: opt.model, maxTokens: 8096,
-                  permissions: { allow: [], deny: [] },
-                  tools: { bash: { enabled: true }, powershell: { enabled: true }, webFetch: { enabled: true }, agent: { enabled: true } },
-                  ui: { theme: 'auto' as const, language: 'zh-CN' as const, streamingOutput: true, showTokenUsage: true },
-                  memory: { enabled: true, files: [] },
-                  _version: 1,
-                  apiKey: currentProvider.config.apiKey,
-                  endpoint: undefined,
-                }
-              })
-              setCurrentProvider(newProvider)
-              onModelChange?.(opt.provider, opt.model)
-              setMessages(prev => [...prev, {
-                role: 'assistant',
-                content: `✓ 已切换到 ${opt.displayName} (${opt.provider})`,
-              }])
-            })
-          }
-        }
-        break
-      }
+        await handleCompact(args)
+        return
+
+      case '/model':
+        await handleModel(args)
+        return
+
       case '/config':
         setMessages(prev => [...prev, {
           role: 'assistant',
-          content: `当前配置:\n  Provider: ${currentProvider.config.name}\n  Model: ${currentProvider.config.model}\n  Context: ${Math.round(currentProvider.getContextWindow() / 1000)}K tokens\n\n配置文件: ~/.qiling/settings.json\n项目配置: .qiling/settings.json`,
+          content: [
+            `当前配置:`,
+            `  Provider:  ${currentProvider.config.name} (${currentProvider.config.displayName})`,
+            `  Model:     ${currentProvider.config.model}`,
+            `  Context:   ${Math.round(contextWindow / 1000)}K tokens`,
+            `  Working:   ${workingDir}`,
+            ``,
+            `配置文件: ~/.qiling/settings.json`,
+            `项目配置: .qiling/settings.json`,
+          ].join('\n'),
         }])
-        break
-      default:
-        setError(`Unknown command: ${name}. Type /help for available commands.`)
+        return
     }
+
+    // AI-driven built-in commands
+    const builtinCmd = BUILTIN_COMMANDS.find(
+      c => c.name === name || c.aliases?.includes(name)
+    )
+
+    if (builtinCmd) {
+      if (builtinCmd.execute) {
+        builtinCmd.execute(args, {
+          workingDir,
+          messages: messagesRef.current,
+          onMessage: (msg) => setMessages(prev => [...prev, msg]),
+          runQuery: async (msgs, sysPrompt, toolNames) => {
+            await runAIQuery(msgs, sysPrompt, toolNames)
+          },
+        })
+        return
+      }
+
+      if (builtinCmd.getPrompt) {
+        const prompt = await builtinCmd.getPrompt(args, {
+          workingDir,
+          messages: messagesRef.current,
+          onMessage: (msg) => setMessages(prev => [...prev, msg]),
+          runQuery: async (msgs, sysPrompt, toolNames) => {
+            await runAIQuery(msgs, sysPrompt, toolNames)
+          },
+        })
+
+        // Execute shell command substitutions in the prompt
+        const resolvedPrompt = await resolveShellCommands(prompt, workingDir)
+
+        const userMessage: Message = { role: 'user', content: resolvedPrompt }
+        const newMessages = [...messagesRef.current, userMessage]
+        setMessages(newMessages)
+        await runAIQuery(newMessages, undefined, builtinCmd.allowedTools)
+        return
+      }
+    }
+
+    setError(`Unknown command: ${name}. Type /help for available commands.`)
   }
 
-  async function handleCompact() {
-    if (messages.length < 4) {
+  async function handleCompact(customInstructions?: string) {
+    const msgs = messagesRef.current
+    if (msgs.length < 2) {
       setError('Not enough conversation history to compact.')
       return
     }
-    setIsStreaming(true)
-    try {
-      const compactPrompt = `Please summarize our conversation so far into a concise context summary.
-Preserve all important decisions, code changes made, and current state of the project.
-Format as bullet points.`
 
-      const compactResult = await runQuery(
-        [...messages, { role: 'user', content: compactPrompt }],
-        new Map(), // No tools needed for compaction
-        provider,
+    setIsStreaming(true)
+    setNotification(null)
+    try {
+      const contextSummary = customInstructions
+        ? `Summarize the conversation so far. Custom focus: ${customInstructions}`
+        : `Summarize the conversation so far. Preserve: key decisions, code changes made, current task state, and any important context needed to continue. Be concise — use bullet points.`
+
+      const result = await runQuery(
+        [...msgs, { role: 'user', content: contextSummary }],
+        new Map(), // No tools for compaction
+        currentProvider,
         permissions,
-        { systemPrompt: 'You are a helpful assistant that summarizes conversations.' },
+        { systemPrompt: 'You are a helpful assistant. Summarize conversations concisely.' },
         { onUsageUpdate: setUsage }
       )
 
-      const summary = compactResult.messages
-        .filter(m => m.role === 'assistant')
-        .slice(-1)[0]
-
+      const summary = result.messages.filter(m => m.role === 'assistant').slice(-1)[0]
       if (summary) {
-        setMessages([
-          { role: 'user', content: '[Conversation compacted. Summary:]' },
+        const originalCount = msgs.length
+        const compressedMessages: Message[] = [
+          { role: 'user', content: '[Context compacted — summary of previous conversation:]' },
           summary,
-        ])
+        ]
+        setMessages(compressedMessages)
         setToolCalls([])
+        setNotification(`✓ Compacted ${originalCount} messages → 2 (summary preserved)`)
+        setTimeout(() => setNotification(null), 5000)
       }
     } catch (err) {
       setError(`Compact failed: ${err instanceof Error ? err.message : String(err)}`)
@@ -228,74 +280,92 @@ Format as bullet points.`
     }
   }
 
-  const assistantMessages = messages.filter(m => m.role === 'assistant')
+  async function handleModel(args: string) {
+    if (!args) {
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: formatModelList({ provider: currentProvider.config.name, model: currentProvider.config.model }),
+      }])
+      return
+    }
+
+    const opt = resolveModel(args)
+    if (!opt) {
+      setError(`Unknown model: ${args}. Use /model to list available models.`)
+      return
+    }
+
+    const newProvider = createProvider({
+      ...settings,
+      provider: opt.provider,
+      model: opt.model,
+    })
+    setCurrentProvider(newProvider)
+    setMessages(prev => [...prev, {
+      role: 'assistant',
+      content: `✓ 已切换到 **${opt.displayName}** (${opt.provider})\n  Context window: ${opt.contextWindow}`,
+    }])
+  }
+
   const showBanner = messages.length === 0
 
   return (
-    <Box flexDirection="column" padding={0}>
-      {/* Startup banner — only show when no messages */}
+    <Box flexDirection="column" paddingX={0}>
       {showBanner && (
-        <StartupBanner
-          version={version}
-          provider={currentProvider.config}
-          workingDir={workingDir}
-        />
+        <StartupBanner version={version} provider={currentProvider.config} workingDir={workingDir} />
       )}
 
-      {/* Message history */}
       {messages.map((msg, i) => (
         <MessageBubble key={i} message={msg} />
       ))}
 
-      {/* Streaming text (in-progress assistant response) */}
-      {isStreaming && streamingText && (
-        <Box
-          flexDirection="column"
-          borderStyle="round"
-          borderColor="green"
-          marginBottom={1}
-          paddingLeft={1}
-          paddingRight={1}
-        >
+      {/* Streaming assistant response */}
+      {isStreaming && (streamingText || toolCalls.length > 0) && (
+        <Box flexDirection="column" borderStyle="round" borderColor="green" marginBottom={1} paddingX={1}>
           <Text color="green" bold>─ assistant </Text>
-          <Text>{streamingText}</Text>
+          {streamingText && <Text>{streamingText}</Text>}
           {toolCalls.map(tc => (
             <ToolCallDisplay key={tc.id} toolCall={tc} />
           ))}
         </Box>
       )}
 
-      {/* Tool calls outside streaming (after completion) */}
-      {!isStreaming && toolCalls.length > 0 && assistantMessages.length > 0 && (
-        <Box flexDirection="column" marginBottom={1} marginLeft={1}>
-          {toolCalls.map(tc => (
-            <ToolCallDisplay key={tc.id} toolCall={tc} />
-          ))}
+      {/* Tool calls after completion */}
+      {!isStreaming && toolCalls.length > 0 && messages.some(m => m.role === 'assistant') && (
+        <Box flexDirection="column" marginBottom={1} paddingLeft={1}>
+          {toolCalls.map(tc => <ToolCallDisplay key={tc.id} toolCall={tc} />)}
         </Box>
       )}
 
-      {/* Permission request dialog */}
-      {pendingPermission && (
-        <PermissionDialog request={pendingPermission} />
+      {pendingPermission && <PermissionDialog request={pendingPermission} />}
+
+      {/* Token warning */}
+      {isNearLimit && !isCritical && (
+        <Box marginBottom={0}>
+          <Text color="yellow">⚠ 上下文已用 {Math.round(usagePct * 100)}%，考虑运行 /compact</Text>
+        </Box>
       )}
 
-      {/* Error display */}
+      {notification && (
+        <Box marginBottom={0}>
+          <Text color="cyan">{notification}</Text>
+        </Box>
+      )}
+
       {error && (
-        <Box marginBottom={1}>
+        <Box marginBottom={0}>
           <Text color="red">⚠ {error}</Text>
         </Box>
       )}
 
-      {/* Status bar */}
       <StatusBar
         model={currentProvider.config.model}
         usage={usage}
-        contextWindow={currentProvider.getContextWindow()}
+        contextWindow={contextWindow}
         isStreaming={isStreaming}
         rounds={rounds}
       />
 
-      {/* Input */}
       <PromptInput
         onSubmit={handleSubmit}
         isDisabled={isStreaming || pendingPermission !== null}
@@ -305,20 +375,34 @@ Format as bullet points.`
   )
 }
 
-const HELP_TEXT = `
-启灵 (QiLing) — 可用命令
+/** Resolve $(shell command) substitutions in prompt strings */
+async function resolveShellCommands(prompt: string, cwd: string): Promise<string> {
+  const pattern = /\$\(([^)]+)\)/g
+  const matches = [...prompt.matchAll(pattern)]
 
-  /help      显示此帮助
-  /model     切换 AI 模型
-  /config    查看/修改配置
-  /memory    查看/编辑记忆文件
-  /compact   压缩对话上下文
-  /clear     清空当前对话
-  /exit      退出程序
+  let result = prompt
+  // On Windows use PowerShell, otherwise bash
+  const isWin = process.platform === 'win32'
 
-工具快捷键：
-  Ctrl+C     退出
-  /          显示命令菜单
-  ↑↓         命令菜单导航
-  Tab        自动补全命令
-`.trim()
+  for (const match of matches) {
+    const cmd = match[1]
+    try {
+      const shellArgs = isWin
+        ? ['powershell.exe', '-NonInteractive', '-NoProfile', '-Command', cmd]
+        : ['bash', '-c', cmd]
+
+      const proc = Bun.spawn(shellArgs, {
+        cwd,
+        stdout: 'pipe',
+        stderr: 'pipe',
+      })
+      const output = await new Response(proc.stdout).text()
+      await proc.exited
+      result = result.replace(match[0], output.trim())
+    } catch {
+      result = result.replace(match[0], `(failed: ${cmd})`)
+    }
+  }
+
+  return result
+}

@@ -46,6 +46,14 @@ export const settingsSchema = z.object({
   ui: uiConfigSchema.default({}),
   memory: memoryConfigSchema.default({}),
 
+  // MCP servers
+  mcpServers: z.record(z.object({
+    command: z.string().optional(),
+    args: z.array(z.string()).optional(),
+    url: z.string().optional(),
+    env: z.record(z.string()).optional(),
+  })).optional(),
+
   // Internal — not user-editable
   _version: z.number().default(1),
 })

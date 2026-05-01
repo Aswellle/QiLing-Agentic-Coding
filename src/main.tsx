@@ -8,6 +8,8 @@ import { createProvider } from './providers'
 import { buildToolRegistry } from './tools'
 import { PermissionsManager } from './permissions'
 import { buildSystemPrompt } from './utils/systemPrompt'
+import { configureAgentTool } from './tools/AgentTool'
+import { loadAllMcpTools } from './tools/McpTool'
 
 const VERSION = '0.1.0'
 
@@ -18,18 +20,20 @@ program
   .description('启灵 (QiLing) — AI Programming Agent for the terminal')
   .version(VERSION, '-v, --version')
   .option('-m, --model <model>', 'AI model to use')
-  .option('--provider <provider>', 'AI provider (anthropic, openai, gemini, ollama)')
-  .option('--api-key <key>', 'API key (or set ANTHROPIC_API_KEY env var)')
+  .option('--provider <provider>', 'AI provider (anthropic, openai, gemini, minimax, ollama)')
+  .option('--api-key <key>', 'API key (or set ANTHROPIC_API_KEY/MINIMAX_API_KEY env var)')
   .option('--endpoint <url>', 'Custom API endpoint URL')
   .option('--max-tokens <n>', 'Maximum tokens per response', parseInt)
   .option('--cwd <dir>', 'Set working directory')
   .option('--debug', 'Enable debug logging')
+  .option('--no-banner', 'Skip startup banner')
   .action(async (options) => {
     const workingDir = options.cwd
       ? (await import('path')).resolve(options.cwd)
       : process.cwd()
 
-    // Load and merge settings
+    process.chdir(workingDir)
+
     const settings = loadSettings(workingDir, {
       ...(options.model && { model: options.model }),
       ...(options.provider && { provider: options.provider }),
@@ -38,26 +42,43 @@ program
       ...(options.maxTokens && { maxTokens: options.maxTokens }),
     })
 
-    if (options.debug) {
-      process.env.QILING_DEBUG = '1'
-    }
+    if (options.debug) process.env.QILING_DEBUG = '1'
 
     // Validate API key
-    const needsKey = settings.provider === 'anthropic' || settings.provider === 'openai' || settings.provider === 'gemini'
-    const hasKey = settings.apiKey || process.env.ANTHROPIC_API_KEY || process.env.OPENAI_API_KEY || process.env.GEMINI_API_KEY
+    const needsKey = ['anthropic', 'openai', 'gemini', 'minimax'].includes(settings.provider)
+    const hasKey = settings.apiKey
+      || process.env.ANTHROPIC_API_KEY
+      || process.env.OPENAI_API_KEY
+      || process.env.MINIMAX_API_KEY
+      || process.env.GEMINI_API_KEY
+
     if (needsKey && !hasKey) {
       console.error(`\n⚠  No API key found for provider "${settings.provider}".`)
-      console.error(`   Set ANTHROPIC_API_KEY environment variable, or use --api-key.\n`)
+      console.error(`   Set ANTHROPIC_API_KEY / MINIMAX_API_KEY environment variable, or use --api-key.\n`)
       process.exit(1)
     }
 
-    // Build system components
     const provider = createProvider(settings)
     const tools = buildToolRegistry(settings)
     const permissions = new PermissionsManager(settings)
     const systemPrompt = buildSystemPrompt(workingDir, settings)
 
-    // Launch TUI
+    // Load MCP tools if configured
+    if (settings.mcpServers && Object.keys(settings.mcpServers).length > 0) {
+      try {
+        const mcpTools = await loadAllMcpTools({ mcpServers: settings.mcpServers })
+        for (const tool of mcpTools) tools.set(tool.name, tool)
+        if (options.debug) {
+          console.log(`Loaded ${mcpTools.length} MCP tools from ${Object.keys(settings.mcpServers).length} server(s)`)
+        }
+      } catch (err) {
+        console.error(`MCP initialization warning: ${err instanceof Error ? err.message : err}`)
+      }
+    }
+
+    // Wire up AgentTool with the current provider/permissions
+    configureAgentTool(provider, permissions, () => tools, systemPrompt)
+
     const { waitUntilExit } = render(
       <REPL
         tools={tools}
@@ -66,6 +87,7 @@ program
         systemPrompt={systemPrompt}
         workingDir={workingDir}
         version={VERSION}
+        settings={settings}
       />,
       {
         exitOnCtrlC: true,
@@ -77,13 +99,12 @@ program
     process.exit(0)
   })
 
-// Subcommand: version info
 program
   .command('version')
   .description('Show detailed version information')
   .action(() => {
     console.log(`QiLing (启灵) v${VERSION}`)
-    console.log(`Runtime: Bun ${Bun.version}`)
+    console.log(`Runtime: Bun ${typeof Bun !== 'undefined' ? Bun.version : 'N/A'}`)
     console.log(`Platform: ${process.platform} ${process.arch}`)
   })
 

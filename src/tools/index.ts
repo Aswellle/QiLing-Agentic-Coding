@@ -8,6 +8,8 @@ import { BashTool } from './BashTool'
 import { PowerShellTool } from './PowerShellTool'
 import { WebFetchTool } from './WebFetchTool'
 import { TodoWriteTool } from './TodoWriteTool'
+import { AgentTool } from './AgentTool'
+import { NotebookReadTool } from './NotebookReadTool'
 import type { Settings } from '../settings/schema'
 
 export function buildToolRegistry(settings: Settings): Map<string, Tool> {
@@ -18,9 +20,11 @@ export function buildToolRegistry(settings: Settings): Map<string, Tool> {
     GlobTool,
     GrepTool,
     TodoWriteTool,
+    AgentTool,
+    NotebookReadTool,
   ]
 
-  // Shell tool (platform-aware)
+  // Shell tools (platform-aware)
   if (process.platform === 'win32') {
     if (settings.tools.powershell.enabled) tools.push(PowerShellTool)
     if (settings.tools.bash.enabled) tools.push(BashTool) // WSL / Git Bash
@@ -39,13 +43,7 @@ export function buildToolRegistry(settings: Settings): Map<string, Tool> {
 }
 
 export {
-  FileReadTool,
-  FileEditTool,
-  FileWriteTool,
-  GlobTool,
-  GrepTool,
-  BashTool,
-  PowerShellTool,
-  WebFetchTool,
-  TodoWriteTool,
+  FileReadTool, FileEditTool, FileWriteTool,
+  GlobTool, GrepTool, BashTool, PowerShellTool,
+  WebFetchTool, TodoWriteTool, AgentTool,
 }

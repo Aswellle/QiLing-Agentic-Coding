@@ -1,6 +1,7 @@
 import React from 'react'
 import { Box, Text } from 'ink'
 import type { Message as MessageType, ContentBlock } from '../types/message'
+import { renderMarkdown } from '../utils/markdown'
 
 interface Props {
   message: MessageType
@@ -8,8 +9,18 @@ interface Props {
 
 function renderContentBlock(block: ContentBlock, key: number): React.ReactNode {
   switch (block.type) {
-    case 'text':
-      return <Text key={key}>{block.text}</Text>
+    case 'text': {
+      const rendered = renderMarkdown(block.text)
+      // Split on newlines and render each line
+      const lines = rendered.split('\n')
+      return (
+        <Box key={key} flexDirection="column">
+          {lines.map((line, i) => (
+            <Text key={i}>{line}</Text>
+          ))}
+        </Box>
+      )
+    }
     case 'tool_use':
       return (
         <Box key={key} flexDirection="row" marginTop={0}>
@@ -21,7 +32,7 @@ function renderContentBlock(block: ContentBlock, key: number): React.ReactNode {
         </Box>
       )
     case 'tool_result':
-      return null // Tool results are shown by ToolCallDisplay
+      return null
     case 'image':
       return <Text key={key} color="gray">[Image]</Text>
     default:
@@ -31,18 +42,30 @@ function renderContentBlock(block: ContentBlock, key: number): React.ReactNode {
 
 export function MessageBubble({ message }: Props) {
   const isUser = message.role === 'user'
-  const borderColor = isUser ? 'blue' : 'green'
-  const labelColor = isUser ? 'blue' : 'green'
-  const label = isUser ? 'user' : 'assistant'
 
-  // Don't render pure tool-result messages (internal plumbing)
+  // Don't render pure tool-result messages
   if (!isUser && Array.isArray(message.content)) {
+    const visible = message.content.filter(b => b.type !== 'tool_result')
+    if (visible.length === 0) return null
+  }
+
+  // Skip system-internal user messages (tool results)
+  if (isUser && Array.isArray(message.content)) {
     const allToolResults = message.content.every(b => b.type === 'tool_result')
     if (allToolResults) return null
   }
 
+  const borderColor = isUser ? 'blue' : 'green'
+  const label = isUser ? 'user' : 'assistant'
+
   const contentNode = typeof message.content === 'string'
-    ? <Text>{message.content}</Text>
+    ? (
+      <Box flexDirection="column">
+        {renderMarkdown(message.content).split('\n').map((line, i) => (
+          <Text key={i}>{line}</Text>
+        ))}
+      </Box>
+    )
     : Array.isArray(message.content)
       ? <>{message.content.map((block, i) => renderContentBlock(block, i))}</>
       : null
@@ -55,12 +78,9 @@ export function MessageBubble({ message }: Props) {
       borderStyle="round"
       borderColor={borderColor}
       marginBottom={1}
-      paddingLeft={1}
-      paddingRight={1}
-      paddingTop={0}
-      paddingBottom={0}
+      paddingX={1}
     >
-      <Text color={labelColor} bold>─ {label} </Text>
+      <Text color={borderColor} bold>─ {label} </Text>
       {contentNode}
     </Box>
   )
