@@ -27,10 +27,22 @@ export const BUILTIN_COMMANDS: Command[] = [
     name: '/help',
     description: '显示帮助信息',
     execute(_args, ctx) {
-      ctx.onMessage({
-        role: 'assistant',
-        content: HELP_TEXT,
-      })
+      ctx.onMessage({ role: 'assistant', content: HELP_TEXT })
+    },
+  },
+  {
+    name: '/doctor',
+    description: '诊断环境配置',
+    getPrompt(_args, ctx) {
+      return DOCTOR_PROMPT(ctx.workingDir)
+    },
+    allowedTools: ['Bash', 'PowerShell'],
+  },
+  {
+    name: '/cost',
+    description: '显示 token 使用成本统计',
+    execute(_args, ctx) {
+      ctx.onMessage({ role: 'assistant', content: '/cost 命令：请查看底部状态栏的实时成本显示。' })
     },
   },
   {
@@ -162,6 +174,36 @@ This file provides guidance to QiLing AI agent when working in this repository.
 
 如果已有 QILING.md，提出改进建议而不是直接覆盖。`.trim()
 
+const DOCTOR_PROMPT = (workingDir: string) => `诊断当前环境配置，检查以下各项并给出状态报告：
+
+## 检查项
+
+1. **Git 状态**: 检查是否在 git 仓库中，当前分支名
+   - 命令: \`git status\` 和 \`git branch --show-current\`
+
+2. **Node.js / Bun**: 检查运行时版本
+   - 命令: \`bun --version\` 或 \`node --version\`
+
+3. **ripgrep**: 检查 Grep 工具是否可用（影响搜索性能）
+   - 命令: \`rg --version\` 或 \`where rg\`
+
+4. **GitHub CLI**: 检查 /review 和 /pr 命令是否可用
+   - 命令: \`gh --version\`
+
+5. **记忆文件**: 检查 QILING.md / CLAUDE.md 是否存在
+   - 检查: ~/.qiling/QILING.md 和 ${workingDir}/QILING.md
+
+6. **项目配置**: 检查 .qiling/settings.json 是否存在
+   - 检查: ${workingDir}/.qiling/settings.json
+
+格式化输出为表格：
+| 检查项 | 状态 | 详情 |
+|---|---|---|
+| Git | ✅/❌ | ... |
+...
+
+最后给出改进建议。`.trim()
+
 const MEMORY_PROMPT = (args: string, workingDir: string) => {
   if (args === 'edit') {
     return `查找并展示以下记忆文件的内容，然后询问用户想要修改什么：
@@ -215,34 +257,47 @@ const HELP_TEXT = `QiLing (启灵) — 编程代理工具
   /memory       查看记忆文件
   /memory edit  编辑记忆文件
   /pr           创建 Pull Request
+  /doctor       诊断环境配置
   /model        切换 AI 模型
   /config       查看当前配置
+  /cost         显示 token 成本统计
   /compact      压缩对话上下文
   /clear        清空当前对话
   /exit         退出
 
 ## 工具能力
 
-  FileRead      读取文件 (支持图片)
-  FileEdit      精确字符串替换编辑
-  FileWrite     写入新文件
-  Glob          文件模式匹配
-  Grep          内容搜索 (ripgrep)
-  Bash          执行 shell 命令
+  FileRead      读取文件 (支持图片、Jupyter)
+  FileEdit      精确字符串替换编辑 (含 diff 展示)
+  FileWrite     写入新文件 (自动建父目录)
+  Glob          文件模式匹配 (尊重 .gitignore)
+  Grep          内容搜索 (ripgrep 优先)
+  Bash          执行 shell 命令 (含风险分类)
   PowerShell    执行 PS 命令 (Windows)
   Agent         启动子代理完成复杂任务
-  WebFetch      获取 URL 内容
+  WebFetch      获取 URL 内容 (自动剥离 HTML)
   TodoWrite     任务列表追踪
+  NotebookRead  读取 Jupyter .ipynb
 
 ## 快捷键
 
   /             显示命令菜单
   ↑↓            命令菜单导航
   Tab           命令补全
-  Ctrl+C        退出
+  Ctrl+C        中止流式输出 (或退出)
 
 ## 记忆文件 (自动加载)
 
   ~/.qiling/QILING.md    全局记忆
   ./QILING.md            项目记忆
-  ./CLAUDE.md            兼容 Claude Code 的项目记忆`.trim()
+  ./CLAUDE.md            兼容 Claude Code 的项目记忆
+
+## Provider 支持
+
+  MiniMax       MiniMax-Text-01 (默认)
+  通义千问       qwen-max / qwen-plus / qwen2.5-coder-32b
+  豆包           doubao-pro-128k / doubao-1.5-pro-256k
+  智谱 GLM       glm-4-plus / glm-4-flash (免费) / codegeex-4
+  Anthropic      claude-sonnet-4-6 / claude-opus-4-7
+  OpenAI         gpt-4o / gpt-4o-mini
+  Ollama         本地模型 (llama3.1 / qwen2.5-coder / deepseek-r1)`.trim()

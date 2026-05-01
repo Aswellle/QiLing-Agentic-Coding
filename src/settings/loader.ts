@@ -62,10 +62,20 @@ export function loadSettings(workingDir: string, cliOverrides?: Partial<Settings
 
   // Layer 4: env vars
   const envConfig: Partial<Settings> = {}
+  // API Key priority: CLI > Anthropic > MiniMax > Qwen > Doubao > GLM > OpenAI > Gemini
   if (process.env.ANTHROPIC_API_KEY) envConfig.apiKey = process.env.ANTHROPIC_API_KEY
-  if (process.env.OPENAI_API_KEY && !envConfig.apiKey) envConfig.apiKey = process.env.OPENAI_API_KEY
-  if (process.env.MINIMAX_API_KEY && !envConfig.apiKey) envConfig.apiKey = process.env.MINIMAX_API_KEY
-  if (process.env.GEMINI_API_KEY && !envConfig.apiKey) envConfig.apiKey = process.env.GEMINI_API_KEY
+  if (!envConfig.apiKey && process.env.MINIMAX_API_KEY) envConfig.apiKey = process.env.MINIMAX_API_KEY
+  if (!envConfig.apiKey && (process.env.DASHSCOPE_API_KEY ?? process.env.QWEN_API_KEY)) {
+    envConfig.apiKey = process.env.DASHSCOPE_API_KEY ?? process.env.QWEN_API_KEY
+  }
+  if (!envConfig.apiKey && (process.env.ARK_API_KEY ?? process.env.DOUBAO_API_KEY)) {
+    envConfig.apiKey = process.env.ARK_API_KEY ?? process.env.DOUBAO_API_KEY
+  }
+  if (!envConfig.apiKey && (process.env.ZHIPUAI_API_KEY ?? process.env.GLM_API_KEY)) {
+    envConfig.apiKey = process.env.ZHIPUAI_API_KEY ?? process.env.GLM_API_KEY
+  }
+  if (!envConfig.apiKey && process.env.OPENAI_API_KEY) envConfig.apiKey = process.env.OPENAI_API_KEY
+  if (!envConfig.apiKey && process.env.GEMINI_API_KEY) envConfig.apiKey = process.env.GEMINI_API_KEY
   if (process.env.QILING_MODEL) envConfig.model = process.env.QILING_MODEL
   if (process.env.QILING_PROVIDER) envConfig.provider = process.env.QILING_PROVIDER as Settings['provider']
 

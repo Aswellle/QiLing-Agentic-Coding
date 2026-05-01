@@ -9,9 +9,18 @@ export interface ModelOption {
 }
 
 export const MODEL_OPTIONS: ModelOption[] = [
-  // MiniMax
+  // 国产模型（首位展示）
   { provider: 'minimax', model: 'MiniMax-Text-01', displayName: 'MiniMax Text-01', contextWindow: '1M', note: '推荐' },
-  { provider: 'minimax', model: 'abab6.5s-chat', displayName: 'MiniMax abab6.5s', contextWindow: '245K' },
+  { provider: 'minimax', model: 'abab6.5s-chat', displayName: 'MiniMax abab6.5s', contextWindow: '245K', note: '快速' },
+  { provider: 'qwen', model: 'qwen-max', displayName: '通义千问 Max', contextWindow: '32K' },
+  { provider: 'qwen', model: 'qwen-plus', displayName: '通义千问 Plus', contextWindow: '131K', note: '推荐' },
+  { provider: 'qwen', model: 'qwen-turbo', displayName: '通义千问 Turbo', contextWindow: '131K', note: '快速' },
+  { provider: 'qwen', model: 'qwen2.5-coder-32b-instruct', displayName: 'Qwen2.5 Coder 32B', contextWindow: '131K', note: '编程' },
+  { provider: 'doubao', model: 'doubao-pro-128k', displayName: '豆包 Pro 128K', contextWindow: '128K' },
+  { provider: 'doubao', model: 'doubao-1-5-pro-256k', displayName: '豆包 1.5 Pro 256K', contextWindow: '256K', note: '推荐' },
+  { provider: 'glm', model: 'glm-4-plus', displayName: '智谱 GLM-4 Plus', contextWindow: '128K', note: '推荐' },
+  { provider: 'glm', model: 'glm-4-flash', displayName: '智谱 GLM-4 Flash', contextWindow: '128K', note: '免费' },
+  { provider: 'glm', model: 'codegeex-4', displayName: '智谱 CodeGeeX-4', contextWindow: '128K', note: '编程' },
   // Anthropic
   { provider: 'anthropic', model: 'claude-sonnet-4-6', displayName: 'Claude Sonnet 4.6', contextWindow: '200K', note: '推荐' },
   { provider: 'anthropic', model: 'claude-opus-4-7', displayName: 'Claude Opus 4.7', contextWindow: '200K' },
@@ -19,6 +28,10 @@ export const MODEL_OPTIONS: ModelOption[] = [
   // OpenAI
   { provider: 'openai', model: 'gpt-4o', displayName: 'GPT-4o', contextWindow: '128K' },
   { provider: 'openai', model: 'gpt-4o-mini', displayName: 'GPT-4o mini', contextWindow: '128K', note: '快速' },
+  // 本地
+  { provider: 'ollama', model: 'llama3.1', displayName: 'Ollama llama3.1', contextWindow: '128K', note: '本地' },
+  { provider: 'ollama', model: 'qwen2.5-coder', displayName: 'Ollama Qwen2.5 Coder', contextWindow: '32K', note: '本地' },
+  { provider: 'ollama', model: 'deepseek-r1', displayName: 'Ollama DeepSeek R1', contextWindow: '64K', note: '本地' },
 ]
 
 export function formatModelList(current: { provider: string; model: string }): string {
