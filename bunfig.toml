@@ -1,0 +1,11 @@
+[install]
+# Auto-install peer dependencies
+peer = true
+
+[run]
+# Allow shebangs in tsx files
+bun = true
+
+[build]
+# Default target for compile
+target = "bun"
