@@ -2,12 +2,21 @@ import type { Message, TokenUsage, ToolUseContent, ToolResultContent, ContentBlo
 import type { Tool, ToolContext, PermissionManager } from './types/tool'
 import type { Provider } from './types/provider'
 import { withRetry } from './retry/withRetry'
+import type { HooksConfig } from './hooks/index'
+
+// Read-only tools that are safe to execute in parallel
+const PARALLEL_SAFE_TOOLS = new Set([
+  'FileRead', 'Glob', 'Grep', 'RepoMap', 'NotebookRead', 'WebFetch',
+])
 
 export interface QueryOptions {
   systemPrompt?: string
   maxTokens?: number
   maxRounds?: number
   signal?: AbortSignal
+  hooks?: HooksConfig
+  enableParallelTools?: boolean  // default: true for read-only tools
+  thinkingBudget?: number        // >0 enables extended thinking for Claude
 }
 
 export interface QueryCallbacks {
@@ -43,6 +52,7 @@ export async function runQuery(
   const workingMessages = [...messages]
   const maxRounds = options.maxRounds ?? 20
   const signal = options.signal
+  const parallelEnabled = options.enableParallelTools !== false
   let totalUsage: TokenUsage = { inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0 }
   let finalStopReason = 'end_turn'
   let rounds = 0
@@ -53,36 +63,38 @@ export async function runQuery(
     sessionId: `session-${Date.now()}`,
   }
 
+  // Load hooks module once
+  const { runHooks } = await import('./hooks/index')
+
   while (rounds < maxRounds) {
     rounds++
-
-    if (signal?.aborted) {
-      finalStopReason = 'aborted'
-      break
-    }
+    if (signal?.aborted) { finalStopReason = 'aborted'; break }
 
     const pendingToolUses: ToolUseContent[] = []
     let currentAssistantText = ''
-    const toolInputs = new Map<string, string>() // tool_id → accumulated JSON
-
-    // Stream with retry on transient errors
+    const toolInputs = new Map<string, string>()
     let streamError: string | null = null
     let stopReasonThisRound = 'end_turn'
 
+    // ── Stream with retry ────────────────────────────────────────────────
     try {
       await withRetry(async () => {
-        // Reset per-attempt state
         pendingToolUses.length = 0
         currentAssistantText = ''
         toolInputs.clear()
 
-        const stream = provider.stream(workingMessages, toolDefinitions, {
+        const streamOpts = {
           systemPrompt: options.systemPrompt,
           maxTokens: options.maxTokens,
-        })
+          ...(options.thinkingBudget && options.thinkingBudget > 0 ? {
+            thinking: { type: 'enabled' as const, budget_tokens: options.thinkingBudget },
+          } : {}),
+        }
+
+        const stream = provider.stream(workingMessages, toolDefinitions, streamOpts)
 
         for await (const chunk of stream) {
-          if (signal?.aborted) return // exit inner loop, outer retry won't fire
+          if (signal?.aborted) return
 
           switch (chunk.type) {
             case 'text_delta':
@@ -97,23 +109,18 @@ export async function runQuery(
               break
 
             case 'tool_use_delta': {
-              // FIX: use chunk.id (the real tool_use id, not the array index)
-              const existing = toolInputs.get(chunk.id) ?? ''
-              toolInputs.set(chunk.id, existing + chunk.inputDelta)
+              const prev = toolInputs.get(chunk.id) ?? ''
+              toolInputs.set(chunk.id, prev + chunk.inputDelta)
               callbacks.onToolInputUpdate?.(chunk.id, chunk.inputDelta)
               break
             }
 
             case 'tool_use_stop': {
-              // FIX: use chunk.id to find the right tool_use
-              const rawInput = toolInputs.get(chunk.id) ?? '{}'
-              const toolUse = pendingToolUses.find(t => t.id === chunk.id)
-              if (toolUse) {
-                try {
-                  toolUse.input = JSON.parse(rawInput) as Record<string, unknown>
-                } catch {
-                  toolUse.input = { _raw: rawInput }
-                }
+              const raw = toolInputs.get(chunk.id) ?? '{}'
+              const tu = pendingToolUses.find(t => t.id === chunk.id)
+              if (tu) {
+                try { tu.input = JSON.parse(raw) as Record<string, unknown> }
+                catch { tu.input = { _raw: raw } }
               }
               break
             }
@@ -126,43 +133,29 @@ export async function runQuery(
               break
 
             case 'error':
-              // Throw so withRetry can catch and potentially retry
               throw new Error(chunk.error)
           }
         }
       }, {
-        maxRetries: 3,
-        baseDelay: 1_500,
-        maxDelay: 300_000,
-        signal,
+        maxRetries: 3, baseDelay: 1_500, maxDelay: 300_000, signal,
         onRetry: callbacks.onRetry,
       })
     } catch (error) {
-      if (
-        (error instanceof DOMException && error.name === 'AbortError') ||
-        (error instanceof Error && error.message === 'Aborted')
-      ) {
-        finalStopReason = 'aborted'
-        break
+      if ((error instanceof DOMException && error.name === 'AbortError') ||
+          (error instanceof Error && error.message === 'Aborted')) {
+        finalStopReason = 'aborted'; break
       }
       streamError = error instanceof Error ? error.message : String(error)
       callbacks.onError?.(streamError)
       break
     }
 
-    if (signal?.aborted) {
-      finalStopReason = 'aborted'
-      // Still preserve any text received before abort
-    }
+    if (signal?.aborted) { finalStopReason = 'aborted' }
 
-    // Build the assistant message
+    // ── Build assistant message ─────────────────────────────────────────
     const assistantContent: ContentBlock[] = []
-    if (currentAssistantText) {
-      assistantContent.push({ type: 'text', text: currentAssistantText })
-    }
-    for (const toolUse of pendingToolUses) {
-      assistantContent.push(toolUse)
-    }
+    if (currentAssistantText) assistantContent.push({ type: 'text', text: currentAssistantText })
+    for (const tu of pendingToolUses) assistantContent.push(tu)
 
     if (assistantContent.length > 0) {
       workingMessages.push({
@@ -173,18 +166,16 @@ export async function runQuery(
       })
     }
 
-    // max_tokens: auto-continue (up to 3 times)
+    // max_tokens: auto-continue
     if (stopReasonThisRound === 'max_tokens' && rounds <= 3) {
       workingMessages.push({ role: 'user', content: 'Please continue.' })
       continue
     }
 
-    // No tool calls → done
-    if (pendingToolUses.length === 0 || signal?.aborted || streamError) {
-      break
-    }
+    if (pendingToolUses.length === 0 || signal?.aborted || streamError) break
 
-    // Execute all tool calls and collect results
+    // ── Permission phase (sequential — requires UI input) ────────────────
+    const permittedToolUses: ToolUseContent[] = []
     const toolResults: ToolResultContent[] = []
 
     for (const toolUse of pendingToolUses) {
@@ -192,74 +183,105 @@ export async function runQuery(
 
       const tool = tools.get(toolUse.name)
       if (!tool) {
-        const errMsg = `Tool '${toolUse.name}' not found.`
-        toolResults.push({ type: 'tool_result', tool_use_id: toolUse.id, content: errMsg, is_error: true })
-        callbacks.onToolComplete?.(toolUse.id, toolUse.name, errMsg, true)
+        const err = `Tool '${toolUse.name}' not found.`
+        toolResults.push({ type: 'tool_result', tool_use_id: toolUse.id, content: err, is_error: true })
+        callbacks.onToolComplete?.(toolUse.id, toolUse.name, err, true)
         continue
       }
 
-      // Permission check
-      const permDecision = await permissions.check(toolUse.name, toolUse.input)
+      const perm = await permissions.check(toolUse.name, toolUse.input)
 
-      if (permDecision.type === 'deny') {
-        const errMsg = `Permission denied: ${permDecision.reason}`
-        toolResults.push({ type: 'tool_result', tool_use_id: toolUse.id, content: errMsg, is_error: true })
-        callbacks.onToolComplete?.(toolUse.id, toolUse.name, errMsg, true)
+      if (perm.type === 'deny') {
+        const err = `Permission denied: ${perm.reason}`
+        toolResults.push({ type: 'tool_result', tool_use_id: toolUse.id, content: err, is_error: true })
+        callbacks.onToolComplete?.(toolUse.id, toolUse.name, err, true)
         continue
       }
 
-      if (permDecision.type === 'ask') {
+      if (perm.type === 'ask') {
         if (!callbacks.onPermissionRequest) {
-          const errMsg = 'Permission denied (no UI).'
-          toolResults.push({ type: 'tool_result', tool_use_id: toolUse.id, content: errMsg, is_error: true })
-          callbacks.onToolComplete?.(toolUse.id, toolUse.name, errMsg, true)
+          toolResults.push({ type: 'tool_result', tool_use_id: toolUse.id, content: 'Permission denied (no UI).', is_error: true })
+          callbacks.onToolComplete?.(toolUse.id, toolUse.name, 'Denied.', true)
           continue
         }
-
-        const decision = await new Promise<{ allow: boolean; remember: 'session' | 'project' | 'global' | 'once' }>(
-          resolve => {
-            callbacks.onPermissionRequest!(
-              toolUse.name,
-              permDecision.description,
-              (dec, remember) => resolve({ allow: dec === 'allow', remember })
-            )
-          }
+        const dec = await new Promise<{ allow: boolean; remember: 'session' | 'project' | 'global' | 'once' }>(
+          resolve => callbacks.onPermissionRequest!(toolUse.name, perm.description, (d, r) => resolve({ allow: d === 'allow', remember: r }))
         )
-
-        if (!decision.allow) {
-          const errMsg = 'Permission denied by user.'
-          toolResults.push({ type: 'tool_result', tool_use_id: toolUse.id, content: errMsg, is_error: true })
-          callbacks.onToolComplete?.(toolUse.id, toolUse.name, errMsg, true)
+        if (!dec.allow) {
+          toolResults.push({ type: 'tool_result', tool_use_id: toolUse.id, content: 'Permission denied by user.', is_error: true })
+          callbacks.onToolComplete?.(toolUse.id, toolUse.name, 'Denied.', true)
           continue
         }
-
-        if (decision.remember !== 'once') {
-          permissions.recordDecision(toolUse.name, '*', 'allow', decision.remember)
-        }
+        if (dec.remember !== 'once') permissions.recordDecision(toolUse.name, '*', 'allow', dec.remember)
       }
 
-      // Execute
+      permittedToolUses.push(toolUse)
+    }
+
+    // ── Execution phase: parallel for read-only, serial for others ───────
+    const executeOne = async (toolUse: ToolUseContent): Promise<ToolResultContent> => {
+      const tool = tools.get(toolUse.name)!
       try {
-        const input = tool.inputSchema.parse(toolUse.input)
-        const result = await tool.call(input, context)
-        const resultText = result.content.map(c => c.text).join('\n')
-        toolResults.push({
-          type: 'tool_result',
-          tool_use_id: toolUse.id,
-          content: resultText,
-          is_error: result.isError,
+        await runHooks('PreToolUse', options.hooks, {
+          toolName: toolUse.name,
+          input: toolUse.input as Record<string, unknown>,
+          workingDir: context.workingDir,
+          sessionId: context.sessionId,
         })
-        callbacks.onToolComplete?.(toolUse.id, toolUse.name, resultText, result.isError ?? false)
-      } catch (error) {
-        const errMsg = error instanceof Error ? error.message : String(error)
-        toolResults.push({ type: 'tool_result', tool_use_id: toolUse.id, content: errMsg, is_error: true })
-        callbacks.onToolComplete?.(toolUse.id, toolUse.name, errMsg, true)
+
+        const parsedInput = tool.inputSchema.parse(toolUse.input)
+        const result = await tool.call(parsedInput, context)
+        const text = result.content.map(c => c.text).join('\n')
+
+        await runHooks('PostToolUse', options.hooks, {
+          toolName: toolUse.name,
+          input: toolUse.input as Record<string, unknown>,
+          workingDir: context.workingDir,
+          sessionId: context.sessionId,
+          result: { content: text, isError: result.isError },
+        })
+
+        callbacks.onToolComplete?.(toolUse.id, toolUse.name, text, result.isError ?? false)
+        return { type: 'tool_result', tool_use_id: toolUse.id, content: text, is_error: result.isError }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err)
+        callbacks.onToolComplete?.(toolUse.id, toolUse.name, msg, true)
+        return { type: 'tool_result', tool_use_id: toolUse.id, content: `Tool error: ${msg}`, is_error: true }
       }
+    }
+
+    // Split into parallel-safe and serial groups
+    const canParallel = parallelEnabled && permittedToolUses.length > 1
+    const parallelGroup = canParallel
+      ? permittedToolUses.filter(tu => PARALLEL_SAFE_TOOLS.has(tu.name))
+      : []
+    const serialGroup = canParallel
+      ? permittedToolUses.filter(tu => !PARALLEL_SAFE_TOOLS.has(tu.name))
+      : permittedToolUses
+
+    // Run parallel group concurrently
+    if (parallelGroup.length > 0) {
+      const results = await Promise.all(parallelGroup.map(executeOne))
+      toolResults.push(...results)
+    }
+
+    // Run serial group one at a time
+    for (const toolUse of serialGroup) {
+      if (signal?.aborted) break
+      toolResults.push(await executeOne(toolUse))
     }
 
     if (toolResults.length > 0) {
       workingMessages.push({ role: 'user', content: toolResults })
     }
+  }
+
+  // Stop hook
+  if (options.hooks?.Stop) {
+    const { runHooks } = await import('./hooks/index')
+    await runHooks('Stop', options.hooks, {
+      toolName: '', input: {}, workingDir: context.workingDir, sessionId: context.sessionId,
+    })
   }
 
   return { messages: workingMessages, usage: totalUsage, stopReason: finalStopReason, rounds }

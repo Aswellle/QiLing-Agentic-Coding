@@ -63,8 +63,36 @@ function readMemoryFiles(workingDir: string): string {
     : ''
 }
 
+/** Lightweight repo-map for system prompt injection (max 1k tokens) */
+async function buildRepoMapSection(workingDir: string): Promise<string> {
+  try {
+    const { RepoMapTool } = await import('../tools/RepoMapTool')
+    const result = await RepoMapTool.call(
+      { max_tokens: 1000 },
+      { workingDir, sessionId: 'init' }
+    )
+    const text = result.content[0]?.text ?? ''
+    if (!text || text.includes('No files found')) return ''
+    return `\n\n## Repository Overview\n\n${text}`
+  } catch {
+    return ''
+  }
+}
+
+export async function buildSystemPromptAsync(workingDir: string, settings: Settings): Promise<string> {
+  const [memoryContent, repoMapSection] = await Promise.all([
+    Promise.resolve(readMemoryFiles(workingDir)),
+    buildRepoMapSection(workingDir),
+  ])
+  return buildPromptFromParts(workingDir, settings, memoryContent + repoMapSection)
+}
+
 export function buildSystemPrompt(workingDir: string, settings: Settings): string {
   const memoryContent = readMemoryFiles(workingDir)
+  return buildPromptFromParts(workingDir, settings, memoryContent)
+}
+
+function buildPromptFromParts(workingDir: string, settings: Settings, extraContext: string): string {
   const platform = process.platform === 'win32' ? 'Windows' : process.platform === 'darwin' ? 'macOS' : 'Linux'
   const shell = process.platform === 'win32' ? 'PowerShell and bash (WSL/Git Bash)' : 'bash'
 
@@ -134,5 +162,12 @@ When reviewing code, check:
 - Be concise. Don't explain what you're about to do — just do it.
 - After completing file edits, summarize: what changed and why.
 - For multi-step tasks, use TodoWrite to track progress.
-- If you encounter an error, diagnose the root cause before trying a fix.${memoryContent}`
+- If you encounter an error, diagnose the root cause before trying a fix.
+
+## Context Injection (@mentions)
+
+The user may prefix messages with context blocks like:
+  <context mention="@file src/auth.ts">...</context>
+  <context mention="@url https://...">...</context>
+These are pre-resolved content injected automatically. Treat them as ground truth.${extraContext}`
 }

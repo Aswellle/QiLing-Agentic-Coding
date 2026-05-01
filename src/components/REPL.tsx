@@ -8,10 +8,13 @@ import { StatusBar } from './StatusBar'
 import { StartupBanner } from './StartupBanner'
 import { runQuery } from '../query'
 import { compactConversation } from '../compact/engine'
-import { BUILTIN_COMMANDS } from '../commands/index'
+import { BUILTIN_COMMANDS, type CommandContext } from '../commands/index'
 import { formatModelList, resolveModel } from '../commands/model'
 import { createProvider } from '../providers/index'
 import { filterToolsForMode, buildModeSystemPrompt, type AppMode } from '../modes/planMode'
+import { resolveMentions } from '../utils/mentions'
+import { loadAllSkills, formatSkillList } from '../skills/loader'
+import { loadLastSession, listSessions, formatSessionList } from '../session/resume'
 import type { Message } from '../types/message'
 import type { Tool } from '../types/tool'
 import type { Provider } from '../types/provider'
@@ -25,6 +28,9 @@ const SLASH_COMMANDS: SlashCommand[] = BUILTIN_COMMANDS.map(c => ({
 })).concat([
   { name: '/model', description: '切换 AI 模型' },
   { name: '/config', description: '查看当前配置' },
+  { name: '/skills', description: '列出已加载的 Skills' },
+  { name: '/resume', description: '恢复上次会话' },
+  { name: '/history', description: '查看历史会话列表' },
   { name: '/clear', description: '清空当前对话' },
   { name: '/compact', description: '压缩对话上下文' },
   { name: '/exit', description: '退出' },
@@ -38,14 +44,15 @@ interface Props {
   workingDir: string
   version: string
   settings: Settings
+  initialMessages?: Message[]   // for --resume
 }
 
 const TOKEN_WARN_THRESHOLD = 0.75 // 75%
 const TOKEN_CRITICAL_THRESHOLD = 0.90 // 90%
 
-export function REPL({ tools, provider, permissions, systemPrompt, workingDir, version, settings }: Props) {
+export function REPL({ tools, provider, permissions, systemPrompt, workingDir, version, settings, initialMessages }: Props) {
   const { exit } = useApp()
-  const [messages, setMessages] = useState<Message[]>([])
+  const [messages, setMessages] = useState<Message[]>(initialMessages ?? [])
   const [toolCalls, setToolCalls] = useState<ToolCallRecord[]>([])
   const [streamingText, setStreamingText] = useState('')
   const [isStreaming, setIsStreaming] = useState(false)
@@ -57,6 +64,12 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
   const [notification, setNotification] = useState<string | null>(null)
   const [retryStatus, setRetryStatus] = useState<string | null>(null)
   const [appMode, setAppMode] = useState<AppMode>('act')
+  const [skills, setSkills] = useState<ReturnType<typeof loadAllSkills>>([])
+
+  // Load skills on mount and when workingDir changes
+  useEffect(() => {
+    setSkills(loadAllSkills(workingDir))
+  }, [workingDir])
 
   // AbortController for Ctrl+C during streaming
   const abortControllerRef = useRef<AbortController | null>(null)
@@ -124,7 +137,12 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
         queryTools,
         currentProvider,
         permissions,
-        { systemPrompt: buildModeSystemPrompt(querySystemPrompt ?? systemPrompt, appMode), signal: ac.signal },
+        {
+          systemPrompt: buildModeSystemPrompt(querySystemPrompt ?? systemPrompt, appMode),
+          signal: ac.signal,
+          hooks: settings.hooks,
+          thinkingBudget: settings.thinkingBudget,
+        },
         {
           onTextDelta: (text) => setStreamingText(prev => prev + text),
           onToolStart: (id, name) => {
@@ -172,17 +190,39 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
     }
   }, [tools, currentProvider, permissions, systemPrompt])
 
-  const handleSubmit = useCallback(async (input: string) => {
-    if (input.startsWith('/')) {
-      await handleCommand(input.trim())
+  const handleSubmit = useCallback(async (rawInput: string) => {
+    if (rawInput.startsWith('/')) {
+      await handleCommand(rawInput.trim())
       return
     }
 
-    const userMessage: Message = { role: 'user', content: input }
-    const newMessages = [...messagesRef.current, userMessage]
+    // Check if it's a skill invocation (dynamic, loaded from files)
+    const skillMatch = rawInput.match(/^\/(\S+)(.*)$/)
+    if (skillMatch) {
+      const skillName = skillMatch[1]
+      const skill = skills.find(s => s.name === skillName)
+      if (skill) {
+        const userMsg: Message = { role: 'user', content: `/${skillName}${skillMatch[2]}` }
+        const skillPrompt = `${skill.instructions}\n\n${skillMatch[2].trim() ? `User arguments: ${skillMatch[2].trim()}` : ''}`.trim()
+        const newMessages = [...messagesRef.current, userMsg]
+        setMessages(newMessages)
+        await runAIQuery([...newMessages, { role: 'user', content: skillPrompt }])
+        return
+      }
+    }
+
+    // Resolve @mentions before sending to AI
+    let resolvedInput = rawInput
+    if (rawInput.includes('@')) {
+      const { text } = await resolveMentions(rawInput, workingDir)
+      resolvedInput = text
+    }
+
+    const userMessage: Message = { role: 'user', content: resolvedInput }
+    const newMessages = [...messagesRef.current, { role: 'user' as const, content: rawInput }]
     setMessages(newMessages)
-    await runAIQuery(newMessages)
-  }, [runAIQuery])
+    await runAIQuery([...messagesRef.current, userMessage])
+  }, [runAIQuery, workingDir, skills])
 
   async function handleCommand(cmd: string) {
     const spaceIdx = cmd.indexOf(' ')
@@ -230,10 +270,56 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
             `  Model:     ${currentProvider.config.model}`,
             `  Context:   ${Math.round(contextWindow / 1000)}K tokens`,
             `  Working:   ${workingDir}`,
+            `  Hooks:     ${settings.hooks ? '已配置' : '未配置'}`,
+            `  Thinking:  ${settings.thinkingBudget > 0 ? `${settings.thinkingBudget} tokens` : '未启用'}`,
             ``,
             `配置文件: ~/.qiling/settings.json`,
             `项目配置: .qiling/settings.json`,
           ].join('\n'),
+        }])
+        return
+
+      case '/skills':
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: `已加载的 Skills（${skills.length} 个）:\n\n${formatSkillList(skills)}`,
+        }])
+        return
+
+      case '/resume': {
+        if (args) {
+          // Resume specific session
+          const { loadSession } = await import('../session/resume')
+          const loaded = loadSession(args)
+          if (!loaded || loaded.length === 0) {
+            setError(`找不到会话: ${args}`)
+          } else {
+            setMessages(loaded)
+            setNotification(`✓ 已恢复会话 ${args.slice(-8)} (${loaded.length} 条消息)`)
+            setTimeout(() => setNotification(null), 4000)
+          }
+        } else {
+          const sessionData = loadLastSession(workingDir)
+          if (!sessionData) {
+            setMessages(prev => [...prev, {
+              role: 'assistant',
+              content: formatSessionList(listSessions()),
+            }])
+          } else {
+            const { messages: loaded, summary } = sessionData
+            setMessages(loaded)
+            const date = new Date(summary.startTime).toLocaleString('zh-CN')
+            setNotification(`✓ 已恢复最近会话 (${date}, ${loaded.length} 条消息)`)
+            setTimeout(() => setNotification(null), 5000)
+          }
+        }
+        return
+      }
+
+      case '/history':
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: formatSessionList(listSessions(workingDir)),
         }])
         return
     }

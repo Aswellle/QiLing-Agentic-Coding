@@ -28,7 +28,7 @@ const memoryConfigSchema = z.object({
 })
 
 export const settingsSchema = z.object({
-  provider: z.enum(['anthropic', 'openai', 'gemini', 'ollama', 'minimax', 'qwen', 'doubao', 'glm']).default('anthropic'),
+  provider: z.enum(['anthropic', 'openai', 'gemini', 'ollama', 'minimax', 'qwen', 'doubao', 'glm', 'bedrock', 'vertex']).default('anthropic'),
   model: z.string().default('claude-sonnet-4-6'),
   apiKey: z.string().optional(),
   endpoint: z.string().optional(),
@@ -45,6 +45,36 @@ export const settingsSchema = z.object({
 
   ui: uiConfigSchema.default({}),
   memory: memoryConfigSchema.default({}),
+
+  // Hooks system
+  hooks: z.object({
+    PreToolUse: z.array(z.object({
+      matcher: z.string().optional(),
+      hooks: z.array(z.object({
+        type: z.literal('command'),
+        command: z.string(),
+        timeout: z.number().optional(),
+      })),
+    })).optional(),
+    PostToolUse: z.array(z.object({
+      matcher: z.string().optional(),
+      hooks: z.array(z.object({
+        type: z.literal('command'),
+        command: z.string(),
+        timeout: z.number().optional(),
+      })),
+    })).optional(),
+    Stop: z.array(z.object({
+      hooks: z.array(z.object({
+        type: z.literal('command'),
+        command: z.string(),
+        timeout: z.number().optional(),
+      })),
+    })).optional(),
+  }).optional(),
+
+  // Thinking / extended reasoning
+  thinkingBudget: z.number().int().min(0).default(0),  // 0 = disabled
 
   // MCP servers
   mcpServers: z.record(z.object({

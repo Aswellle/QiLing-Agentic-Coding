@@ -13,6 +13,10 @@ interface Props {
   placeholder?: string
 }
 
+// Session-level input history (persists in memory while REPL is open)
+const inputHistory: string[] = []
+let historyIndex = -1
+
 export function PromptInput({ onSubmit, isDisabled, commands, placeholder }: Props) {
   const [value, setValue] = useState('')
   const [showCommands, setShowCommands] = useState(false)
@@ -70,6 +74,12 @@ export function PromptInput({ onSubmit, isDisabled, commands, placeholder }: Pro
       if (key.return) {
         const trimmed = value.trim()
         if (trimmed) {
+          // Save to history
+          if (inputHistory[0] !== trimmed) {
+            inputHistory.unshift(trimmed)
+            if (inputHistory.length > 100) inputHistory.pop()
+          }
+          historyIndex = -1
           onSubmit(trimmed)
           setValue('')
           setCursorPos(0)
@@ -77,6 +87,32 @@ export function PromptInput({ onSubmit, isDisabled, commands, placeholder }: Pro
           setCommandFilter('')
         }
         return
+      }
+
+      // Input history navigation (↑↓ when not in command menu)
+      if (!showCommands) {
+        if (key.upArrow && inputHistory.length > 0) {
+          const newIdx = Math.min(historyIndex + 1, inputHistory.length - 1)
+          historyIndex = newIdx
+          const hist = inputHistory[newIdx]
+          setValue(hist)
+          setCursorPos(hist.length)
+          return
+        }
+        if (key.downArrow) {
+          if (historyIndex > 0) {
+            const newIdx = historyIndex - 1
+            historyIndex = newIdx
+            const hist = inputHistory[newIdx]
+            setValue(hist)
+            setCursorPos(hist.length)
+          } else {
+            historyIndex = -1
+            setValue('')
+            setCursorPos(0)
+          }
+          return
+        }
       }
 
       if (key.backspace || key.delete) {

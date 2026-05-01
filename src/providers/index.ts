@@ -5,6 +5,7 @@ import { createQwenProvider } from './qwen'
 import { createDoubaoProvider } from './doubao'
 import { createGlmProvider } from './glm'
 import { createOllamaProvider } from './ollama'
+import { BedrockProvider } from './bedrock'
 import type { Settings } from '../settings/schema'
 
 const MINIMAX_ENDPOINT = 'https://api.minimax.io/v1'
@@ -80,8 +81,24 @@ export function createProvider(settings: Settings): Provider {
     case 'ollama':
       return createOllamaProvider({
         ...config,
-        apiKey: 'ollama', // not needed
+        apiKey: 'ollama',
         model: isDefaultModel(config.model) ? 'llama3.1' : config.model,
+      })
+
+    case 'bedrock':
+      return new BedrockProvider({
+        ...config,
+        displayName: 'AWS Bedrock',
+        model: isDefaultModel(config.model) ? 'claude-sonnet-4-6' : config.model,
+      })
+
+    case 'vertex':
+      return new OpenAICompatProvider({
+        ...config,
+        displayName: 'Google Cloud Vertex AI',
+        apiKey: config.apiKey ?? process.env.GOOGLE_CLOUD_ACCESS_TOKEN,
+        endpoint: config.endpoint ?? `https://${process.env.CLOUD_ML_REGION ?? 'us-east5'}-aiplatform.googleapis.com/v1/projects/${process.env.GOOGLE_CLOUD_PROJECT ?? ''}/locations/${process.env.CLOUD_ML_REGION ?? 'us-east5'}/endpoints/openapi`,
+        model: isDefaultModel(config.model) ? 'google/gemini-2.0-flash-001' : config.model,
       })
 
     default:
@@ -103,6 +120,8 @@ function getDisplayName(provider: string): string {
     qwen: '阿里云通义千问',
     doubao: '字节跳动豆包',
     glm: '智谱 GLM',
+    bedrock: 'AWS Bedrock',
+    vertex: 'Google Cloud Vertex',
   }
   return names[provider] ?? provider
 }

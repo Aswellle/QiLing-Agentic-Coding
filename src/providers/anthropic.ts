@@ -35,14 +35,21 @@ export class AnthropicProvider implements Provider {
     })) as Anthropic.MessageParam[]
 
     try {
+      // Extended thinking support (Claude 3.5+ / 3 Opus)
+      const thinkingConfig = (options as { thinking?: { type: string; budget_tokens: number } }).thinking
+      const supportsThinking = this.config.model.includes('opus') || this.config.model.includes('sonnet-4')
+
       const stream = await this.client.messages.stream({
         model: this.config.model,
         max_tokens: options.maxTokens ?? this.config.maxTokens ?? 8096,
         system: options.systemPrompt,
         messages: anthropicMessages,
         tools: tools.length > 0 ? (tools as Anthropic.Tool[]) : undefined,
-        temperature: options.temperature,
-      })
+        temperature: thinkingConfig ? undefined : options.temperature,
+        ...(thinkingConfig && supportsThinking ? {
+          thinking: { type: 'enabled', budget_tokens: thinkingConfig.budget_tokens },
+        } : {}),
+      } as Parameters<typeof this.client.messages.stream>[0])
 
       // BUG FIX: Anthropic SDK sends content_block_delta with event.index (not id).
       // We must map index → tool_use_id to correctly correlate delta/stop events.

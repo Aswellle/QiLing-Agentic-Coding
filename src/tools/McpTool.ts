@@ -137,6 +137,91 @@ class StdioMcpClient implements McpClient {
   }
 }
 
+/** SSE-based MCP client (for HTTP server-sent events transport) */
+class SseMcpClient implements McpClient {
+  private sessionUrl: string | null = null
+  private nextId = 1
+  private config: McpServerConfig
+
+  constructor(config: McpServerConfig) {
+    this.config = config
+  }
+
+  async connect(): Promise<void> {
+    // POST to /mcp endpoint to initialize session
+    const initResponse = await fetch(this.config.url!, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: this.nextId++, method: 'initialize',
+        params: {
+          protocolVersion: '2024-11-05',
+          capabilities: {},
+          clientInfo: { name: 'qiling', version: '0.1.0' },
+        },
+      }),
+      signal: AbortSignal.timeout(10_000),
+    })
+
+    if (!initResponse.ok) {
+      throw new Error(`MCP SSE init failed: ${initResponse.status} ${await initResponse.text()}`)
+    }
+
+    const location = initResponse.headers.get('location')
+    this.sessionUrl = location ?? this.config.url!
+
+    // Send initialized notification
+    await fetch(this.sessionUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized', params: {} }),
+    }).catch(() => {})
+  }
+
+  private async rpc(method: string, params: unknown): Promise<unknown> {
+    const id = this.nextId++
+    const response = await fetch(this.sessionUrl ?? this.config.url!, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', id, method, params }),
+      signal: AbortSignal.timeout(30_000),
+    })
+
+    if (!response.ok) {
+      throw new Error(`MCP RPC failed: ${response.status}`)
+    }
+
+    const text = await response.text()
+
+    // Handle SSE-wrapped response
+    if (text.startsWith('data:')) {
+      const line = text.split('\n').find(l => l.startsWith('data:'))
+      if (line) {
+        const data = JSON.parse(line.slice(5)) as { result?: unknown; error?: { message: string } }
+        if (data.error) throw new Error(data.error.message)
+        return data.result
+      }
+    }
+
+    const data = JSON.parse(text) as { result?: unknown; error?: { message: string } }
+    if (data.error) throw new Error(data.error.message)
+    return data.result
+  }
+
+  async listTools(): Promise<McpToolInfo[]> {
+    const result = await this.rpc('tools/list', {}) as { tools: McpToolInfo[] }
+    return result.tools ?? []
+  }
+
+  async callTool(name: string, args: Record<string, unknown>): Promise<{ content: Array<{ type: string; text?: string }> }> {
+    return this.rpc('tools/call', { name, arguments: args }) as Promise<{ content: Array<{ type: string; text?: string }> }>
+  }
+
+  async close(): Promise<void> {
+    // SSE sessions are closed server-side via timeout
+  }
+}
+
 /** Create QiLing Tool wrappers for all tools from an MCP server */
 export async function loadMcpTools(config: McpServerConfig): Promise<Tool[]> {
   let client: McpClient
@@ -145,8 +230,13 @@ export async function loadMcpTools(config: McpServerConfig): Promise<Tool[]> {
     const stdioClient = new StdioMcpClient(config)
     await stdioClient.connect()
     client = stdioClient
+  } else if (config.transport === 'sse') {
+    if (!config.url) throw new Error('SSE MCP transport requires url')
+    const sseClient = new SseMcpClient(config)
+    await sseClient.connect()
+    client = sseClient
   } else {
-    throw new Error(`MCP transport '${config.transport}' not yet supported`)
+    throw new Error(`Unknown MCP transport: ${(config as { transport: string }).transport}`)
   }
 
   const mcpTools = await client.listTools()

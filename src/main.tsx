@@ -7,10 +7,11 @@ import { loadSettings } from './settings'
 import { createProvider } from './providers'
 import { buildToolRegistry } from './tools'
 import { PermissionsManager } from './permissions'
-import { buildSystemPrompt } from './utils/systemPrompt'
+import { buildSystemPromptAsync } from './utils/systemPrompt'
 import { configureAgentTool } from './tools/AgentTool'
 import { loadAllMcpTools } from './tools/McpTool'
 import { checkForUpdates } from './utils/updater'
+import { loadLastSession } from './session/resume'
 
 const VERSION = '0.1.0'
 
@@ -31,6 +32,8 @@ program
   .option('--yolo', 'Skip all permission confirmations (dangerous!)')
   .option('--readonly', 'Read-only mode: disable all write/execute tools')
   .option('--no-update-check', 'Skip startup update check')
+  .option('--resume [session-id]', 'Resume last session (or specific session by ID)')
+  .option('--thinking <tokens>', 'Enable extended thinking with token budget', parseInt)
   .action(async (options) => {
     const workingDir = options.cwd
       ? (await import('path')).resolve(options.cwd)
@@ -60,9 +63,10 @@ program
       ...(options.maxTokens && { maxTokens: options.maxTokens }),
     })
 
-    if (options.debug) process.env.QILING_DEBUG = '1'
-    if (options.yolo)  process.env.QILING_YOLO = '1'
+    if (options.debug)    process.env.QILING_DEBUG = '1'
+    if (options.yolo)     process.env.QILING_YOLO = '1'
     if (options.readonly) process.env.QILING_READONLY = '1'
+    if (options.thinking) settings.thinkingBudget = options.thinking
 
     // ─── API key validation ────────────────────────────────────────────────
     const needsKey = !['ollama'].includes(settings.provider)
@@ -99,7 +103,31 @@ program
     const provider    = createProvider(settings)
     const tools       = buildToolRegistry(settings)
     const permissions = new PermissionsManager(settings)
-    const systemPrompt = buildSystemPrompt(workingDir, settings)
+    // Build system prompt async (includes RepoMap injection for larger projects)
+    const systemPrompt = await buildSystemPromptAsync(workingDir, settings)
+
+    // ─── Session resume ────────────────────────────────────────────────────
+    let initialMessages = undefined
+    if (options.resume !== undefined) {
+      const sessionId = typeof options.resume === 'string' ? options.resume : undefined
+      if (sessionId) {
+        const { loadSession } = await import('./session/resume')
+        const loaded = loadSession(sessionId)
+        if (loaded) {
+          initialMessages = loaded
+          process.stderr.write(`✓ 已恢复会话 ${sessionId.slice(-8)} (${loaded.length} 条消息)\n`)
+        } else {
+          process.stderr.write(`⚠ 找不到会话: ${sessionId}\n`)
+        }
+      } else {
+        const sessionData = loadLastSession(workingDir)
+        if (sessionData) {
+          initialMessages = sessionData.messages
+          const date = new Date(sessionData.summary.startTime).toLocaleString('zh-CN')
+          process.stderr.write(`✓ 已恢复最近会话 (${date}, ${sessionData.messages.length} 条消息)\n`)
+        }
+      }
+    }
 
     // ─── Load MCP tools ───────────────────────────────────────────────────
     if (settings.mcpServers && Object.keys(settings.mcpServers).length > 0) {
@@ -127,6 +155,7 @@ program
         workingDir={workingDir}
         version={VERSION}
         settings={settings}
+        initialMessages={initialMessages}
       />,
       {
         exitOnCtrlC: false,  // REPL handles Ctrl+C (abort stream vs exit)
