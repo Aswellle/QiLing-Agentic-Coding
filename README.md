@@ -33,17 +33,17 @@
 
 **Linux / macOS:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YOUR_GITHUB_USER/qiling/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Aswellle/QiLing-Agentic-Coding/main/scripts/install.sh | bash
 ```
 
 **Windows (PowerShell):**
 ```powershell
-irm https://raw.githubusercontent.com/YOUR_GITHUB_USER/qiling/main/scripts/install.ps1 | iex
+irm https://raw.githubusercontent.com/Aswellle/QiLing-Agentic-Coding/main/scripts/install.ps1 | iex
 ```
 
 **从源码运行 (需要 Bun 1.x):**
 ```bash
-git clone https://github.com/YOUR_GITHUB_USER/qiling
+git clone https://github.com/Aswellle/QiLing-Agentic-Coding
 cd qiling
 bun install
 bun run dev

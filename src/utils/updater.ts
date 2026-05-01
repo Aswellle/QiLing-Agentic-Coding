@@ -8,7 +8,7 @@ import { join } from 'path'
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs'
 import { getGlobalConfigDir } from '../settings/loader'
 
-const GITHUB_REPO = 'YOUR_GITHUB_USER/qiling'
+const GITHUB_REPO = 'Aswellle/QiLing-Agentic-Coding'
 const CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000  // 24 hours
 const REQUEST_TIMEOUT_MS = 3_000
 

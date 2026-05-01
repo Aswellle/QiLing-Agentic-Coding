@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # 启灵 (QiLing) 安装脚本
-# 用法: curl -fsSL https://raw.githubusercontent.com/YOUR_USER/qiling/main/scripts/install.sh | bash
+# 用法: curl -fsSL https://raw.githubusercontent.com/Aswellle/QiLing-Agentic-Coding/main/scripts/install.sh | bash
 # 或:   bash install.sh [--version v0.2.0] [--dir /usr/local/bin]
 
 set -euo pipefail
 
 # ─── 配置 ──────────────────────────────────────────────────────────────────
-REPO="${QILING_REPO:-YOUR_GITHUB_USER/qiling}"
+REPO="${QILING_REPO:-Aswellle/QiLing-Agentic-Coding}"
 INSTALL_DIR="${QILING_INSTALL_DIR:-$HOME/.local/bin}"
 REQUESTED_VERSION="${QILING_VERSION:-}"
 BINARY_NAME="qiling"

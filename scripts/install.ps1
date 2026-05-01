@@ -1,12 +1,12 @@
 # 启灵 (QiLing) Windows 安装脚本
-# 用法: irm https://raw.githubusercontent.com/YOUR_USER/qiling/main/scripts/install.ps1 | iex
+# 用法: irm https://raw.githubusercontent.com/Aswellle/QiLing-Agentic-Coding/main/scripts/install.ps1 | iex
 # 或:   .\install.ps1 [-Version v0.2.0] [-InstallDir C:\Tools]
 
 [CmdletBinding()]
 param(
     [string]$Version = "",
     [string]$InstallDir = "$env:LOCALAPPDATA\qiling\bin",
-    [string]$Repo = "YOUR_GITHUB_USER/qiling"
+    [string]$Repo = "Aswellle/QiLing-Agentic-Coding"
 )
 
 $ErrorActionPreference = "Stop"

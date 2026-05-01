@@ -60,5 +60,5 @@
 - [开发路线图](docs/05-DEVELOPMENT-ROADMAP.md)
 - [安全模型](docs/06-SECURITY-MODEL.md)、[测试策略](docs/07-TESTING-STRATEGY.md)
 
-[Unreleased]: https://github.com/YOUR_GITHUB_USER/qiling/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/YOUR_GITHUB_USER/qiling/releases/tag/v0.1.0
+[Unreleased]: https://github.com/Aswellle/QiLing-Agentic-Coding/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/Aswellle/QiLing-Agentic-Coding/releases/tag/v0.1.0
