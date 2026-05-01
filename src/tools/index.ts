@@ -6,6 +6,8 @@ import { GlobTool } from './GlobTool'
 import { GrepTool } from './GrepTool'
 import { BashTool } from './BashTool'
 import { PowerShellTool } from './PowerShellTool'
+import { WebFetchTool } from './WebFetchTool'
+import { TodoWriteTool } from './TodoWriteTool'
 import type { Settings } from '../settings/schema'
 
 export function buildToolRegistry(settings: Settings): Map<string, Tool> {
@@ -15,16 +17,19 @@ export function buildToolRegistry(settings: Settings): Map<string, Tool> {
     FileWriteTool,
     GlobTool,
     GrepTool,
+    TodoWriteTool,
   ]
 
-  // Platform-appropriate shell tool
+  // Shell tool (platform-aware)
   if (process.platform === 'win32') {
     if (settings.tools.powershell.enabled) tools.push(PowerShellTool)
-    // Also include Bash on Windows if WSL/Git Bash is available
-    if (settings.tools.bash.enabled) tools.push(BashTool)
+    if (settings.tools.bash.enabled) tools.push(BashTool) // WSL / Git Bash
   } else {
     if (settings.tools.bash.enabled) tools.push(BashTool)
   }
+
+  // Network tools
+  if (settings.tools.webFetch.enabled) tools.push(WebFetchTool)
 
   const registry = new Map<string, Tool>()
   for (const tool of tools) {
@@ -41,4 +46,6 @@ export {
   GrepTool,
   BashTool,
   PowerShellTool,
+  WebFetchTool,
+  TodoWriteTool,
 }

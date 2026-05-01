@@ -28,7 +28,7 @@ const memoryConfigSchema = z.object({
 })
 
 export const settingsSchema = z.object({
-  provider: z.enum(['anthropic', 'openai', 'gemini', 'ollama']).default('anthropic'),
+  provider: z.enum(['anthropic', 'openai', 'gemini', 'ollama', 'minimax']).default('anthropic'),
   model: z.string().default('claude-sonnet-4-6'),
   apiKey: z.string().optional(),
   endpoint: z.string().optional(),

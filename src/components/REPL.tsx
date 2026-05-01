@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef } from 'react'
-import { Box, Text, useApp, useStdout } from 'ink'
+import { Box, Text, useApp } from 'ink'
 import { MessageBubble } from './Message'
 import { ToolCallDisplay, type ToolCallRecord } from './ToolCallDisplay'
 import { PermissionDialog, type PermissionRequest } from './PermissionDialog'
@@ -7,6 +7,7 @@ import { PromptInput, type SlashCommand } from './PromptInput'
 import { StatusBar } from './StatusBar'
 import { StartupBanner } from './StartupBanner'
 import { runQuery } from '../query'
+import { formatModelList, resolveModel } from '../commands/model'
 import type { Message } from '../types/message'
 import type { Tool } from '../types/tool'
 import type { Provider } from '../types/provider'
@@ -30,9 +31,10 @@ interface Props {
   systemPrompt: string
   workingDir: string
   version: string
+  onModelChange?: (provider: string, model: string) => void
 }
 
-export function REPL({ tools, provider, permissions, systemPrompt, workingDir, version }: Props) {
+export function REPL({ tools, provider, permissions, systemPrompt, workingDir, version, onModelChange }: Props) {
   const { exit } = useApp()
   const [messages, setMessages] = useState<Message[]>([])
   const [toolCalls, setToolCalls] = useState<ToolCallRecord[]>([])
@@ -41,6 +43,7 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
   const [pendingPermission, setPendingPermission] = useState<PermissionRequest | null>(null)
   const [usage, setUsage] = useState<TokenUsage>({ inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0 })
   const [rounds, setRounds] = useState(0)
+  const [currentProvider, setCurrentProvider] = useState(provider)
   const [error, setError] = useState<string | null>(null)
 
   const messagesRef = useRef(messages)
@@ -66,7 +69,7 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
       const result = await runQuery(
         newMessages,
         tools,
-        provider,
+        currentProvider,
         permissions,
         { systemPrompt },
         {
@@ -116,10 +119,13 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
       setIsStreaming(false)
       setStreamingText('')
     }
-  }, [tools, provider, permissions, systemPrompt])
+  }, [tools, currentProvider, permissions, systemPrompt])
 
   function handleCommand(cmd: string) {
-    const [name] = cmd.split(' ')
+    const parts = cmd.trim().split(/\s+/)
+    const name = parts[0]
+    const args = parts.slice(1).join(' ')
+
     switch (name) {
       case '/exit':
       case '/quit':
@@ -133,13 +139,51 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
         setUsage({ inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0 })
         break
       case '/help':
-        setMessages(prev => [...prev, {
-          role: 'assistant',
-          content: HELP_TEXT,
-        }])
+        setMessages(prev => [...prev, { role: 'assistant', content: HELP_TEXT }])
         break
       case '/compact':
         handleCompact()
+        break
+      case '/model': {
+        if (!args) {
+          setMessages(prev => [...prev, {
+            role: 'assistant',
+            content: formatModelList({ provider: currentProvider.config.name, model: currentProvider.config.model }),
+          }])
+        } else {
+          const opt = resolveModel(args)
+          if (!opt) {
+            setError(`Unknown model: ${args}. Use /model to list available models.`)
+          } else {
+            // Dynamic import to avoid circular deps
+            import('../providers/index').then(({ createProvider }) => {
+              const newProvider = createProvider({
+                ...{ provider: opt.provider, model: opt.model, maxTokens: 8096,
+                  permissions: { allow: [], deny: [] },
+                  tools: { bash: { enabled: true }, powershell: { enabled: true }, webFetch: { enabled: true }, agent: { enabled: true } },
+                  ui: { theme: 'auto' as const, language: 'zh-CN' as const, streamingOutput: true, showTokenUsage: true },
+                  memory: { enabled: true, files: [] },
+                  _version: 1,
+                  apiKey: currentProvider.config.apiKey,
+                  endpoint: undefined,
+                }
+              })
+              setCurrentProvider(newProvider)
+              onModelChange?.(opt.provider, opt.model)
+              setMessages(prev => [...prev, {
+                role: 'assistant',
+                content: `✓ 已切换到 ${opt.displayName} (${opt.provider})`,
+              }])
+            })
+          }
+        }
+        break
+      }
+      case '/config':
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: `当前配置:\n  Provider: ${currentProvider.config.name}\n  Model: ${currentProvider.config.model}\n  Context: ${Math.round(currentProvider.getContextWindow() / 1000)}K tokens\n\n配置文件: ~/.qiling/settings.json\n项目配置: .qiling/settings.json`,
+        }])
         break
       default:
         setError(`Unknown command: ${name}. Type /help for available commands.`)
@@ -193,7 +237,7 @@ Format as bullet points.`
       {showBanner && (
         <StartupBanner
           version={version}
-          provider={provider.config}
+          provider={currentProvider.config}
           workingDir={workingDir}
         />
       )}
@@ -244,9 +288,9 @@ Format as bullet points.`
 
       {/* Status bar */}
       <StatusBar
-        model={provider.config.model}
+        model={currentProvider.config.model}
         usage={usage}
-        contextWindow={provider.getContextWindow()}
+        contextWindow={currentProvider.getContextWindow()}
         isStreaming={isStreaming}
         rounds={rounds}
       />

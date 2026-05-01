@@ -64,6 +64,8 @@ export function loadSettings(workingDir: string, cliOverrides?: Partial<Settings
   const envConfig: Partial<Settings> = {}
   if (process.env.ANTHROPIC_API_KEY) envConfig.apiKey = process.env.ANTHROPIC_API_KEY
   if (process.env.OPENAI_API_KEY && !envConfig.apiKey) envConfig.apiKey = process.env.OPENAI_API_KEY
+  if (process.env.MINIMAX_API_KEY && !envConfig.apiKey) envConfig.apiKey = process.env.MINIMAX_API_KEY
+  if (process.env.GEMINI_API_KEY && !envConfig.apiKey) envConfig.apiKey = process.env.GEMINI_API_KEY
   if (process.env.QILING_MODEL) envConfig.model = process.env.QILING_MODEL
   if (process.env.QILING_PROVIDER) envConfig.provider = process.env.QILING_PROVIDER as Settings['provider']
 
