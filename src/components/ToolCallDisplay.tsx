@@ -91,9 +91,9 @@ export function ToolCallDisplay({ toolCall }: Props) {
         <Box marginLeft={2}>
           <DiffView
             filePath={diff.file_path}
-            oldStr={diff.old_string}
-            newStr={diff.new_string}
-            maxLines={20}
+            oldString={diff.old_string}
+            newString={diff.new_string}
+            contextLines={3}
           />
         </Box>
       )}

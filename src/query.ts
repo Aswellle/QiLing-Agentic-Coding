@@ -29,6 +29,7 @@ import { shouldAutoCompact } from './compact/autoCompact'
 import { isPromptTooLong, isMediaSizeError, tryReactiveCompact } from './compact/reactiveCompact'
 import { createBudgetTracker, checkTokenBudget } from './compact/tokenBudget'
 import { generateToolUseSummary, extractToolInfoFromResults } from './services/toolUseSummary/generator'
+import { applyCollapsesIfNeeded } from './services/contextCollapse/index'
 
 // ─── Tools safe to run concurrently during AI streaming ──────────────────────
 // These always have permission=allow and no destructive side effects.
@@ -185,9 +186,20 @@ export async function runQuery(
       }
     }
 
-    // ── 2. Microcompact: truncate verbose old tool_results ─────────────────
-    //    Reduces token waste from large file reads / grep output in older turns.
-    //    Runs every iteration; no-ops if nothing to truncate.
+    // ── 2a. ContextCollapse: fold old tool rounds into summary text ────────
+    //    Cheaper than autoCompact (no AI calls) — collapses rounds beyond
+    //    KEEP_FULL_ROUNDS threshold. Mirrors CC's contextCollapse service.
+    if (rounds > 1) {
+      const collapsed = applyCollapsesIfNeeded(workingMessages)
+      if (collapsed !== workingMessages) {
+        workingMessages.length = 0
+        workingMessages.push(...collapsed)
+      }
+    }
+
+    // ── 2b. Microcompact: truncate verbose old tool_results ────────────────
+    //    Runs after collapse (complementary — collapse removes structure,
+    //    microcompact truncates remaining verbose content).
     if (rounds > 0) {
       const compacted = microcompact(workingMessages)
       workingMessages.length = 0

@@ -24,8 +24,8 @@ export interface MentionContext {
   error?: string        // 解析失败原因
 }
 
-// Regex: @keyword followed by optional argument
-const MENTION_RE = /@(file|folder|url|code|git|repomap)(?:\s+(\S+))?/g
+// Regex: @keyword followed by optional argument, OR bare @https?://...
+const MENTION_RE = /@(file|folder|url|code|git|repomap)(?:\s+(\S+))?|@(https?:\/\/\S+)/g
 
 export async function resolveMentions(
   input: string,
@@ -38,11 +38,16 @@ export async function resolveMentions(
   const seen = new Set<string>()
 
   while ((match = MENTION_RE.exec(input)) !== null) {
-    const key = `${match[1]}:${match[2] ?? ''}`
+    // Handle bare @https?://... syntax
+    const bareUrl = match[3]
+    const type = bareUrl ? 'url' : match[1]
+    const arg = bareUrl ? bareUrl.replace(/^@/, '') : match[2]
+
+    const key = `${type}:${arg ?? ''}`
     if (seen.has(key)) continue
     seen.add(key)
 
-    const ctx = await resolveMention(match[1], match[2], workingDir)
+    const ctx = await resolveMention(type, arg, workingDir)
     contexts.push({ mention: match[0], resolved: ctx.content, error: ctx.error })
     mentionBlocks.push(
       ctx.error

@@ -1,7 +1,7 @@
 import React from 'react'
 import { Box, Text } from 'ink'
 import type { Message as MessageType, ContentBlock } from '../types/message'
-import { renderMarkdown } from '../utils/markdown'
+import { markdownToText } from '../utils/renderMarkdown'
 
 interface Props {
   message: MessageType
@@ -10,7 +10,7 @@ interface Props {
 function renderContentBlock(block: ContentBlock, key: number): React.ReactNode {
   switch (block.type) {
     case 'text': {
-      const rendered = renderMarkdown(block.text)
+      const rendered = markdownToText(block.text)
       // Split on newlines and render each line
       const lines = rendered.split('\n')
       return (
@@ -61,7 +61,7 @@ export function MessageBubble({ message }: Props) {
   const contentNode = typeof message.content === 'string'
     ? (
       <Box flexDirection="column">
-        {renderMarkdown(message.content).split('\n').map((line, i) => (
+        {markdownToText(message.content).split('\n').map((line: string, i: number) => (
           <Text key={i}>{line}</Text>
         ))}
       </Box>

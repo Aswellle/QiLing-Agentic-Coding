@@ -14,6 +14,8 @@ import { BUILTIN_COMMANDS, type CommandContext } from '../commands/index'
 import { formatModelList, resolveModel } from '../commands/model'
 import { createProvider } from '../providers/index'
 import { filterToolsForMode, buildModeSystemPrompt, type AppMode } from '../modes/planMode'
+import { getBrief } from '../services/brief/store'
+import { readMemories } from '../services/memory/store'
 import { resolveMentions } from '../utils/mentions'
 import { loadAllSkills, formatSkillList } from '../skills/loader'
 import { loadLastSession, listSessions, formatSessionList } from '../session/resume'
@@ -172,7 +174,14 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
         currentProvider,
         permissions,
         {
-          systemPrompt: buildModeSystemPrompt(querySystemPrompt ?? systemPrompt, appMode),
+          systemPrompt: (() => {
+            const base = buildModeSystemPrompt(querySystemPrompt ?? systemPrompt, appMode)
+            const brief = getBrief()
+            const memories = readMemories(workingDir)
+            const briefSection = brief ? `## Current Task Brief\n\n${brief}\n\n` : ''
+            const memSection = memories ? `## Persistent Memories (QILING.md)\n\n${memories}\n\n` : ''
+            return briefSection || memSection ? `${briefSection}${memSection}---\n\n${base}` : base
+          })(),
           signal: ac.signal,
           hooks: settings.hooks,
           thinkingBudget: settings.thinkingBudget,

@@ -12,6 +12,9 @@ import { AgentTool } from './AgentTool'
 import { NotebookReadTool } from './NotebookReadTool'
 import { RepoMapTool } from './RepoMapTool'
 import { LspTool } from './LspTool'
+import { NotebookEditTool } from './NotebookEditTool'
+import { ConfigTool } from './ConfigTool'
+import { BriefTool } from './BriefTool'
 import { AskUserQuestionTool } from './AskUserQuestionTool'
 import { WebSearchTool } from './WebSearchTool'
 import { EnterPlanModeTool } from './EnterPlanModeTool'
@@ -51,6 +54,9 @@ export function buildToolRegistry(settings: Settings): Map<string, Tool> {
     NotebookReadTool,
     RepoMapTool,
     LspTool,
+    NotebookEditTool,
+    ConfigTool,
+    BriefTool,
     AskUserQuestionTool,
     EnterPlanModeTool,
     ExitPlanModeTool,

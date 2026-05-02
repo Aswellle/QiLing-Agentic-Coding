@@ -50,6 +50,9 @@ export const settingsSchema = z.object({
     agent: toolConfigSchema.default({}),
   }).default({}),
 
+  // Markdown rendering in TUI (disable for raw text output)
+  markdownRendering: z.boolean().default(true),
+
   ui: uiConfigSchema.default({}),
   memory: memoryConfigSchema.default({}),
 

@@ -10,7 +10,9 @@
       "Read(//d/Git Clone/**)",
       "Bash(dir \"CC-SRC\\\\claude-code-sourcemap\\\\restored-src\\\\src\\\\services\\\\compact\\\\\" 2>&1 | head -20)",
       "PowerShell(head *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)"
     ]
   }
 }

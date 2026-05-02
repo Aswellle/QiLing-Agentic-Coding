@@ -159,9 +159,45 @@ export const BUILTIN_COMMANDS: Command[] = [
   },
   {
     name: '/memory',
-    description: '查看/编辑记忆文件 (QILING.md)',
-    getPrompt(args, ctx) {
-      return MEMORY_PROMPT(args, ctx.workingDir)
+    description: '管理记忆：/memory list | /memory add "xxx" | /memory clear',
+    execute(args, ctx) {
+      const { listMemories, appendMemory, clearMemories } = require('../services/memory/store')
+      const trimmed = args.trim()
+
+      if (!trimmed || trimmed === 'list') {
+        const memories: string[] = listMemories(ctx.workingDir)
+        if (memories.length === 0) {
+          ctx.onMessage({ role: 'assistant', content: '暂无记忆条目。使用 `/memory add "xxx"` 添加。' })
+        } else {
+          ctx.onMessage({
+            role: 'assistant',
+            content: `已存储的记忆（${memories.length} 条）：\n\n${memories.map((m: string, i: number) => `${i + 1}. ${m}`).join('\n')}`,
+          })
+        }
+        return
+      }
+
+      if (trimmed.startsWith('add ')) {
+        const text = trimmed.slice(4).replace(/^["']|["']$/g, '').trim()
+        if (!text) {
+          ctx.onMessage({ role: 'assistant', content: '用法：/memory add "要记住的内容"' })
+          return
+        }
+        appendMemory(text, ctx.workingDir, 'project')
+        ctx.onMessage({ role: 'assistant', content: `✓ 已添加记忆：${text}` })
+        return
+      }
+
+      if (trimmed === 'clear') {
+        clearMemories(ctx.workingDir, 'project')
+        ctx.onMessage({ role: 'assistant', content: '✓ 项目记忆已清除。' })
+        return
+      }
+
+      ctx.onMessage({
+        role: 'assistant',
+        content: '用法：\n  /memory list   — 查看所有记忆\n  /memory add "xxx"  — 添加记忆\n  /memory clear  — 清除记忆',
+      })
     },
   },
   {
