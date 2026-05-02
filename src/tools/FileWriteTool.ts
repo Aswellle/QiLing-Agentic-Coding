@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { writeFileSync, mkdirSync, existsSync } from 'fs'
 import { resolve, dirname } from 'path'
 import type { Tool, ToolResult, ToolContext, ToolDefinition, PermissionDecision } from '../types/tool'
+import { backupFile } from '../utils/fileHistory'
 
 const inputSchema = z.object({
   file_path: z.string().describe('Path to the file to write'),
@@ -29,6 +30,9 @@ export const FileWriteTool: Tool<Input> = {
   async call(input: Input, context: ToolContext): Promise<ToolResult> {
     const filePath = resolve(context.workingDir, input.file_path)
     const dir = dirname(filePath)
+
+    // Backup before overwriting (no-op if file is new or already backed up this session)
+    await backupFile(filePath, context.workingDir)
 
     mkdirSync(dir, { recursive: true })
     writeFileSync(filePath, input.content, 'utf-8')

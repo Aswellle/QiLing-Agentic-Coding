@@ -12,6 +12,7 @@ import { configureAgentTool } from './tools/AgentTool'
 import { loadAllMcpTools } from './tools/McpTool'
 import { checkForUpdates } from './utils/updater'
 import { loadLastSession } from './session/resume'
+import { initFileHistory } from './utils/fileHistory'
 
 const VERSION = '0.3.0'
 
@@ -107,6 +108,10 @@ program
     const provider    = createProvider(settings)
     const tools       = buildToolRegistry(settings)
     const permissions = new PermissionsManager(settings)
+
+    // ─── Init file history (session-scoped backup system) ─────────────────
+    const sessionId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`
+    initFileHistory(sessionId)
 
     // ─── Load plugins (non-blocking, merge tools & commands) ──────────────
     const { loadPlugins } = await import('./plugins/loader')

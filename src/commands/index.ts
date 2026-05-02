@@ -2,6 +2,7 @@ import type { Message } from '../types/message'
 import { fetchGitDiff, formatDiffStats } from '../utils/gitDiff'
 import { resolve as resolvePath } from 'path'
 import { openFileInExternalEditor, getEditorDisplayName } from '../utils/editor'
+import { listBackedUpFiles, restoreFile } from '../utils/fileHistory'
 
 export interface CommandContext {
   workingDir: string
@@ -337,6 +338,33 @@ export const BUILTIN_COMMANDS: Command[] = [
     },
   },
   {
+    name: '/restore',
+    description: '将文件恢复到本次会话开始前的状态（撤销 AI 的所有修改）',
+    async execute(args, ctx) {
+      const trimmed = args.trim()
+
+      if (!trimmed) {
+        // List all backed-up files
+        const backups = listBackedUpFiles(ctx.workingDir)
+        if (backups.length === 0) {
+          ctx.onMessage({ role: 'assistant', content: '本次会话中没有文件被修改（无备份可恢复）。' })
+          return
+        }
+        const lines = ['**本次会话修改的文件：**', '']
+        for (const b of backups) {
+          lines.push(`  ${b.existed ? 'M' : '+'} ${b.relPath}`)
+        }
+        lines.push('')
+        lines.push('恢复用法：`/restore <文件路径>`')
+        ctx.onMessage({ role: 'assistant', content: lines.join('\n') })
+        return
+      }
+
+      const result = await restoreFile(trimmed, ctx.workingDir)
+      ctx.onMessage({ role: 'assistant', content: result })
+    },
+  },
+  {
     name: '/open',
     description: '在外部编辑器中打开文件（VSCode/Cursor/vim 等）',
     execute(args, ctx) {
@@ -590,6 +618,7 @@ const HELP_TEXT = `QiLing (启灵) — 编程代理工具
   /act          退出计划模式，进入执行模式
   /commit       创建 git commit (AI 辅助，含安全协议)
   /diff         显示当前 git 变更统计（文件级，不启动 AI）
+  /restore [file] 恢复文件到会话前状态（不带参数列出所有已修改文件）
   /open <file>  在外部编辑器中打开文件（VSCode/Cursor/vim 等）
   /test [cmd]   运行测试并自动修复（最多 3 次循环）
   /review [PR#] 代码审查 (本地 diff 或 PR)

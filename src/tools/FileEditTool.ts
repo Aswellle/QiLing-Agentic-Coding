@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { readFileSync, writeFileSync, existsSync } from 'fs'
 import { resolve } from 'path'
 import type { Tool, ToolResult, ToolContext, ToolDefinition } from '../types/tool'
+import { backupFile } from '../utils/fileHistory'
 
 const inputSchema = z.object({
   file_path: z.string().describe('Path to the file to edit'),
@@ -30,6 +31,9 @@ export const FileEditTool: Tool<Input> = {
         isError: true,
       }
     }
+
+    // Backup before modification (no-op on second call for same file in session)
+    await backupFile(filePath, context.workingDir)
 
     const content = readFileSync(filePath, 'utf-8')
 
