@@ -88,6 +88,7 @@
 **技术栈**: Rust, Apache-2.0
 
 **架构特点**:
+
 - Rust 实现带来极低内存占用和快速启动
 - 2026 年引入多代理 v2 架构，子代理通过路径寻址（`/root/agent_a`）
 - `~/.codex/config.toml` 管理 MCP 集成

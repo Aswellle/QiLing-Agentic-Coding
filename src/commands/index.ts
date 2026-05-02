@@ -40,9 +40,10 @@ export const BUILTIN_COMMANDS: Command[] = [
   },
   {
     name: '/cost',
-    description: '显示 token 使用成本统计',
+    description: '显示本次会话的 token 使用和 USD 成本统计',
     execute(_args, ctx) {
-      ctx.onMessage({ role: 'assistant', content: '/cost 命令：请查看底部状态栏的实时成本显示。' })
+      const { formatCostSummary } = require('../cost-tracker')
+      ctx.onMessage({ role: 'assistant', content: formatCostSummary() })
     },
   },
   {

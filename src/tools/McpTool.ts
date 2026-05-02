@@ -26,10 +26,38 @@ interface McpToolInfo {
   }
 }
 
+export interface McpResource {
+  uri: string
+  name: string
+  description?: string
+  mimeType?: string
+}
+
+export interface McpResourceContent {
+  uri: string
+  mimeType?: string
+  text?: string
+  blob?: string
+}
+
 interface McpClient {
+  serverName: string
   listTools(): Promise<McpToolInfo[]>
   callTool(name: string, args: Record<string, unknown>): Promise<{ content: Array<{ type: string; text?: string }> }>
+  listResources(): Promise<McpResource[]>
+  readResource(uri: string): Promise<McpResourceContent[]>
   close(): Promise<void>
+}
+
+// ─── Client registry (populated by loadMcpTools) ─────────────────────────────
+const _clientRegistry = new Map<string, McpClient>()
+
+export function getRegisteredMcpClient(serverName: string): McpClient | undefined {
+  return _clientRegistry.get(serverName)
+}
+
+export function listRegisteredMcpServers(): string[] {
+  return Array.from(_clientRegistry.keys())
 }
 
 /** Simple stdio MCP client using line-delimited JSON-RPC */
@@ -39,8 +67,11 @@ class StdioMcpClient implements McpClient {
   private pending = new Map<number, { resolve: (v: unknown) => void; reject: (e: Error) => void }>()
   private buffer = ''
   private ready = false
+  readonly serverName: string
 
-  constructor(private config: McpServerConfig) {}
+  constructor(private config: McpServerConfig) {
+    this.serverName = config.name
+  }
 
   async connect(): Promise<void> {
     const { command, args = [], env } = this.config
@@ -132,9 +163,32 @@ class StdioMcpClient implements McpClient {
     return result
   }
 
+  async listResources(): Promise<McpResource[]> {
+    try {
+      const result = await this.request('resources/list', {}) as { resources?: McpResource[] }
+      return result.resources ?? []
+    } catch {
+      return []  // server may not support resources
+    }
+  }
+
+  async readResource(uri: string): Promise<McpResourceContent[]> {
+    const result = await this.request('resources/read', { uri }) as { contents?: McpResourceContent[] }
+    return result.contents ?? []
+  }
+
   async close(): Promise<void> {
     this.proc?.kill()
   }
+}
+
+// Module-level auth token store (per server name, set by McpAuthTool)
+const _authTokens = new Map<string, string>()
+export function setMcpAuthToken(serverName: string, token: string): void {
+  _authTokens.set(serverName, token)
+}
+export function getMcpAuthToken(serverName: string): string | undefined {
+  return _authTokens.get(serverName)
 }
 
 /** SSE-based MCP client (for HTTP server-sent events transport) */
@@ -142,16 +196,23 @@ class SseMcpClient implements McpClient {
   private sessionUrl: string | null = null
   private nextId = 1
   private config: McpServerConfig
+  readonly serverName: string
 
   constructor(config: McpServerConfig) {
     this.config = config
+    this.serverName = config.name
+  }
+
+  private authHeaders(): Record<string, string> {
+    const token = getMcpAuthToken(this.config.name)
+    return token ? { Authorization: `Bearer ${token}` } : {}
   }
 
   async connect(): Promise<void> {
     // POST to /mcp endpoint to initialize session
     const initResponse = await fetch(this.config.url!, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream', ...this.authHeaders() },
       body: JSON.stringify({
         jsonrpc: '2.0', id: this.nextId++, method: 'initialize',
         params: {
@@ -182,7 +243,7 @@ class SseMcpClient implements McpClient {
     const id = this.nextId++
     const response = await fetch(this.sessionUrl ?? this.config.url!, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...this.authHeaders() },
       body: JSON.stringify({ jsonrpc: '2.0', id, method, params }),
       signal: AbortSignal.timeout(30_000),
     })
@@ -217,6 +278,20 @@ class SseMcpClient implements McpClient {
     return this.rpc('tools/call', { name, arguments: args }) as Promise<{ content: Array<{ type: string; text?: string }> }>
   }
 
+  async listResources(): Promise<McpResource[]> {
+    try {
+      const result = await this.rpc('resources/list', {}) as { resources?: McpResource[] }
+      return result.resources ?? []
+    } catch {
+      return []
+    }
+  }
+
+  async readResource(uri: string): Promise<McpResourceContent[]> {
+    const result = await this.rpc('resources/read', { uri }) as { contents?: McpResourceContent[] }
+    return result.contents ?? []
+  }
+
   async close(): Promise<void> {
     // SSE sessions are closed server-side via timeout
   }
@@ -238,6 +313,9 @@ export async function loadMcpTools(config: McpServerConfig): Promise<Tool[]> {
   } else {
     throw new Error(`Unknown MCP transport: ${(config as { transport: string }).transport}`)
   }
+
+  // Register client so resource tools can use it later
+  _clientRegistry.set(config.name, client)
 
   const mcpTools = await client.listTools()
   const qilingTools: Tool[] = []

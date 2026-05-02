@@ -40,6 +40,13 @@ export const settingsSchema = z.object({
     bash: toolConfigSchema.default({}),
     powershell: toolConfigSchema.default({}),
     webFetch: toolConfigSchema.default({}),
+    webSearch: z.object({
+      enabled: z.boolean().default(true),
+      // Brave Search API key — https://api.search.brave.com
+      // Also reads BRAVE_SEARCH_API_KEY env var. Leave empty for DuckDuckGo fallback.
+      apiKey: z.string().optional(),
+      maxResults: z.number().int().min(1).max(10).default(5),
+    }).default({}),
     agent: toolConfigSchema.default({}),
   }).default({}),
 
@@ -72,6 +79,9 @@ export const settingsSchema = z.object({
       })),
     })).optional(),
   }).optional(),
+
+  // Vim keybindings in prompt input
+  vimMode: z.boolean().default(false),
 
   // Thinking / extended reasoning
   thinkingBudget: z.number().int().min(0).default(0),  // 0 = disabled

@@ -22,9 +22,18 @@ export const PLAN_MODE_TOOLS = new Set([
   'Glob',
   'Grep',
   'WebFetch',
+  'WebSearch',
   'TodoWrite',
   'NotebookRead',
-  'Agent',
+  'AskUserQuestion',
+  // AI can exit plan mode from within plan mode
+  'ExitPlanMode',
+  // Task tracking available in plan mode (create task list during planning)
+  'TaskCreate',
+  'TaskGet',
+  'TaskList',
+  'TaskUpdate',
+  'TaskOutput',
 ])
 
 export const PLAN_MODE_SYSTEM_SUFFIX = `
@@ -35,7 +44,7 @@ export const PLAN_MODE_SYSTEM_SUFFIX = `
 - 只能读取文件、搜索代码、分析架构
 - 不允许修改任何文件、执行任何 shell 命令
 - 你的任务是：充分探索和分析，制定详细的执行计划
-- 计划完成后，告知用户运行 /act 进入执行模式
+- 计划完成后，调用 ExitPlanMode 工具提交计划并请求用户审批
 
 在计划模式下，请：
 1. 全面探索相关代码文件（FileRead、Glob、Grep）

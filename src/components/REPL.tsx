@@ -3,6 +3,8 @@ import { Box, Text, useApp, useInput } from 'ink'
 import { MessageBubble } from './Message'
 import { ToolCallDisplay, type ToolCallRecord } from './ToolCallDisplay'
 import { PermissionDialog, type PermissionRequest } from './PermissionDialog'
+import { AskUserQuestionDialog, type UserQuestionRequest } from './AskUserQuestionDialog'
+import { PlanApprovalDialog, type PlanApprovalRequest } from './PlanApprovalDialog'
 import { PromptInput, type SlashCommand } from './PromptInput'
 import { StatusBar } from './StatusBar'
 import { StartupBanner } from './StartupBanner'
@@ -17,6 +19,8 @@ import { loadAllSkills, formatSkillList } from '../skills/loader'
 import { loadLastSession, listSessions, formatSessionList } from '../session/resume'
 import { HistoryManager } from '../history/manager'
 import { formatErrorMessage } from '../utils/errorMessages'
+import { addUsage, getTotalCostUSD, formatCostSummary, resetSession } from '../cost-tracker'
+import { getAndFireDueJobs } from '../services/cron/scheduler'
 import type { Message } from '../types/message'
 import type { Tool } from '../types/tool'
 import type { Provider } from '../types/provider'
@@ -59,8 +63,11 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
   const [streamingText, setStreamingText] = useState('')
   const [isStreaming, setIsStreaming] = useState(false)
   const [pendingPermission, setPendingPermission] = useState<PermissionRequest | null>(null)
+  const [pendingUserQuestion, setPendingUserQuestion] = useState<UserQuestionRequest | null>(null)
+  const [pendingPlanApproval, setPendingPlanApproval] = useState<PlanApprovalRequest | null>(null)
   const [usage, setUsage] = useState<TokenUsage>({ inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0 })
   const [rounds, setRounds] = useState(0)
+  const [totalCostUSD, setTotalCostUSD] = useState(0)
   const [currentProvider, setCurrentProvider] = useState(provider)
   const [error, setError] = useState<string | null>(null)
   const [notification, setNotification] = useState<string | null>(null)
@@ -80,8 +87,24 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
     setSkills(loadAllSkills(workingDir))
   }, [workingDir])
 
+  // Cron scheduler — poll every 30s, fire due jobs as user messages
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (isStreaming) return  // don't interrupt active query
+      const due = getAndFireDueJobs()
+      for (const { id, prompt } of due) {
+        setNotification(`⏰ Cron job fired: ${prompt.slice(0, 60)}`)
+        setTimeout(() => setNotification(null), 4000)
+        handleSubmit(`[cron:${id}] ${prompt}`)
+      }
+    }, 30_000)
+    return () => clearInterval(interval)
+  }, [isStreaming])
+
   // AbortController for Ctrl+C during streaming
   const abortControllerRef = useRef<AbortController | null>(null)
+  // Track last reported usage to compute delta for cost tracking
+  const lastUsageRef = useRef({ inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0 })
 
   // Ctrl+C handler: abort if streaming, else exit
   useInput((_input, key) => {
@@ -123,6 +146,8 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
     setStreamingText('')
     setToolCalls([])
     setIsStreaming(true)
+    // Reset usage delta tracker for this query run
+    lastUsageRef.current = { inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0 }
 
     // Fresh AbortController for this query
     const ac = new AbortController()
@@ -180,7 +205,42 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
               },
             })
           },
-          onUsageUpdate: setUsage,
+          onAskUserQuestion: (questions, resolve) => {
+            setPendingUserQuestion({
+              questions,
+              resolve: (answers) => {
+                setPendingUserQuestion(null)
+                resolve(answers)
+              },
+            })
+          },
+          onEnterPlanMode: () => {
+            setAppMode('plan')
+          },
+          onExitPlanMode: (plan, resolve) => {
+            setPendingPlanApproval({
+              plan,
+              resolve: (approved) => {
+                setPendingPlanApproval(null)
+                if (approved) setAppMode('act')
+                resolve(approved)
+              },
+            })
+          },
+          onUsageUpdate: (u) => {
+            // Compute delta vs last-reported (onUsageUpdate gives cumulative per-query total)
+            const prev = lastUsageRef.current
+            const di = u.inputTokens - prev.inputTokens
+            const dout = u.outputTokens - prev.outputTokens
+            const dcr = u.cacheReadTokens - prev.cacheReadTokens
+            const dcw = u.cacheWriteTokens - prev.cacheWriteTokens
+            if (di > 0 || dout > 0) {
+              addUsage(currentProvider.config.model, di, dout, dcr, dcw)
+              setTotalCostUSD(getTotalCostUSD())
+            }
+            lastUsageRef.current = u
+            setUsage(u)
+          },
           onError: (err) => setError(formatErrorMessage(err, currentProvider.config.name)),
         }
       )
@@ -478,6 +538,8 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
       )}
 
       {pendingPermission && <PermissionDialog request={pendingPermission} />}
+      {pendingUserQuestion && <AskUserQuestionDialog request={pendingUserQuestion} />}
+      {pendingPlanApproval && <PlanApprovalDialog request={pendingPlanApproval} />}
 
       {/* Token warning */}
       {isNearLimit && !isCritical && (
@@ -506,12 +568,14 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
         rounds={rounds}
         retryStatus={retryStatus}
         mode={appMode}
+        totalCostUSD={totalCostUSD}
       />
 
       <PromptInput
         onSubmit={handleSubmit}
-        isDisabled={isStreaming || pendingPermission !== null}
+        isDisabled={isStreaming || pendingPermission !== null || pendingUserQuestion !== null || pendingPlanApproval !== null}
         commands={SLASH_COMMANDS}
+        vimMode={settings.vimMode}
       />
     </Box>
   )

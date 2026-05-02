@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem *)",
+      "Bash(awk '{print $9, \"\\(\"$5\"\\)\"}')",
+      "Bash(grep -v \"^$\")",
+      "Bash(bun run *)",
+      "Bash(bun test *)",
+      "Bash(xargs wc *)",
+      "Read(//d/Git Clone/**)",
+      "Bash(dir \"CC-SRC\\\\claude-code-sourcemap\\\\restored-src\\\\src\\\\services\\\\compact\\\\\" 2>&1 | head -20)",
+      "PowerShell(head *)",
+      "Bash(git add *)"
+    ]
+  }
+}

@@ -2,6 +2,7 @@ import React from 'react'
 import { Box, Text } from 'ink'
 import type { TokenUsage } from '../types/message'
 import { formatUsageLine, formatTokenCount } from '../utils/tokens'
+import { formatCostUSD } from '../cost-tracker'
 
 interface Props {
   model: string
@@ -11,14 +12,19 @@ interface Props {
   rounds: number
   retryStatus?: string | null
   mode?: 'act' | 'plan'
+  totalCostUSD?: number
 }
 
-export function StatusBar({ model, usage, contextWindow, isStreaming, rounds, retryStatus, mode = 'act' }: Props) {
+export function StatusBar({
+  model, usage, contextWindow, isStreaming, rounds,
+  retryStatus, mode = 'act', totalCostUSD,
+}: Props) {
   const totalTokens = usage.inputTokens + usage.outputTokens
   const usagePct = contextWindow > 0 ? Math.round((totalTokens / contextWindow) * 100) : 0
   const usageColor = usagePct > 85 ? 'red' : usagePct > 70 ? 'yellow' : 'green'
 
   const shortModel = model.length > 24 ? model.slice(0, 22) + '…' : model
+  const showCost = totalCostUSD !== undefined && totalCostUSD > 0
 
   return (
     <Box flexDirection="column">
@@ -38,15 +44,21 @@ export function StatusBar({ model, usage, contextWindow, isStreaming, rounds, re
           {rounds > 0 && <Text color="gray">·{rounds}r</Text>}
         </Box>
 
-        {/* Right: cost + context usage */}
+        {/* Right: cost + tokens + context usage */}
         <Box flexDirection="row" gap={1}>
+          {showCost && (
+            <>
+              <Text color="green">{formatCostUSD(totalCostUSD!)}</Text>
+              <Text color="gray">·</Text>
+            </>
+          )}
           {totalTokens > 0 && (
             <>
               <Text color="gray">{formatUsageLine(usage, model)}</Text>
               <Text color="gray">·</Text>
             </>
           )}
-          {(usage.cacheReadTokens > 0) && (
+          {usage.cacheReadTokens > 0 && (
             <>
               <Text color="blue">cache↓{formatTokenCount(usage.cacheReadTokens)}</Text>
               <Text color="gray">·</Text>
