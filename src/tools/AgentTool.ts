@@ -3,6 +3,7 @@ import type { Tool, ToolResult, ToolContext, ToolDefinition } from '../types/too
 import { runQuery } from '../query'
 import type { Provider } from '../types/provider'
 import type { PermissionManager } from '../types/tool'
+import { BUILT_IN_AGENTS, getBuiltInAgent } from './AgentTool/builtInAgents'
 
 // Shared provider/permissions injected at startup
 let _provider: Provider | null = null
@@ -22,29 +23,51 @@ export function configureAgentTool(
   _systemPrompt = systemPrompt
 }
 
+// Build dynamic subagent_type enum from built-in agents
+const SUBAGENT_TYPES = BUILT_IN_AGENTS.map(a => a.agentType) as [string, ...string[]]
+
 const inputSchema = z.object({
   prompt: z.string().describe('The task for the agent to perform. Be specific and include all context needed — the agent starts with no prior conversation history.'),
   description: z.string().optional().describe('Short description (3-5 words) of what the agent will do'),
-  system_prompt: z.string().optional().describe('Override the agent\'s system prompt'),
+  subagent_type: z.string().optional().describe(
+    'Select a specialized built-in agent type. Available types:\n' +
+    BUILT_IN_AGENTS.map(a => `- "${a.agentType}": ${a.whenToUse}`).join('\n') +
+    '\nOmit to use the general-purpose agent.'
+  ),
+  system_prompt: z.string().optional().describe('Override the agent\'s system prompt (ignored when subagent_type is set)'),
   isolation: z.enum(['none', 'worktree']).default('none').describe(
     '"worktree": run in an isolated git worktree (safe for risky changes). ' +
     '"none": run in current working directory (default).'
   ),
+  mode: z.enum(['acceptEdits', 'auto', 'bypassPermissions', 'default', 'dontAsk', 'plan']).optional()
+    .describe('Permission mode override for this agent (default: inherits parent)'),
 })
 
 type Input = z.infer<typeof inputSchema>
 
-const AGENT_SYSTEM_PROMPT = `You are a specialized sub-agent of QiLing. You are given a specific task to complete autonomously.
+const DEFAULT_AGENT_SYSTEM_PROMPT = `You are a specialized sub-agent of QiLing. You are given a specific task to complete autonomously.
 Complete the task efficiently and report back. Be concise in your response — include only the results, not the reasoning process.
 You have access to all standard tools (FileRead, FileEdit, FileWrite, Glob, Grep, Bash/PowerShell, WebFetch).`
 
+function buildAgentDescription(): string {
+  const builtInLines = BUILT_IN_AGENTS.map(a =>
+    `- "${a.agentType}": ${a.whenToUse}`
+  ).join('\n')
+
+  return (
+    'Launch a new agent to handle complex, multi-step tasks. Each agent type has specific capabilities:\n' +
+    builtInLines + '\n\n' +
+    'When calling, specify a subagent_type parameter to select which agent type to use. ' +
+    'If omitted, the general-purpose agent is used.\n\n' +
+    'Always include a short description summarizing what the agent will do. ' +
+    'The agent starts fresh with no conversation history — provide ALL necessary context in the prompt. ' +
+    'NOT for: simple file reads, single glob/grep queries — use those tools directly instead.'
+  )
+}
+
 export const AgentTool: Tool<Input> = {
   name: 'Agent',
-  description:
-    'Launch a sub-agent to handle a complex, multi-step task autonomously. ' +
-    'The agent starts fresh with no conversation history — provide ALL necessary context in the prompt. ' +
-    'Use for: tasks that require many tool calls, parallel research, or operations that would clutter the main context. ' +
-    'NOT for: simple file reads, single glob/grep queries — use those tools directly instead.',
+  description: buildAgentDescription(),
   inputSchema,
 
   async call(input: Input, context: ToolContext): Promise<ToolResult> {
@@ -60,7 +83,15 @@ export const AgentTool: Tool<Input> = {
     const agentToolsNoSelf = new Map(agentTools)
     agentToolsNoSelf.delete('Agent') // Prevent infinite recursion
 
-    const agentSystemPrompt = input.system_prompt ?? AGENT_SYSTEM_PROMPT
+    // ── Built-in agent type dispatch ──────────────────────────────────────
+    const builtIn = input.subagent_type ? getBuiltInAgent(input.subagent_type) : null
+    if (builtIn) {
+      for (const disallowed of builtIn.disallowedTools) {
+        agentToolsNoSelf.delete(disallowed)
+      }
+    }
+
+    const agentSystemPrompt = builtIn?.systemPrompt ?? input.system_prompt ?? DEFAULT_AGENT_SYSTEM_PROMPT
     const taskDesc = input.description ?? input.prompt.slice(0, 50)
 
     // ── Worktree isolation ────────────────────────────────────────────────
@@ -178,8 +209,14 @@ export const AgentTool: Tool<Input> = {
         properties: {
           prompt: { type: 'string', description: 'Complete task description with all necessary context' },
           description: { type: 'string', description: 'Short description (3-5 words) of what the agent will do' },
-          system_prompt: { type: 'string', description: 'Override agent system prompt' },
+          subagent_type: {
+            type: 'string',
+            enum: SUBAGENT_TYPES,
+            description: 'Built-in agent type specialization',
+          },
+          system_prompt: { type: 'string', description: 'Override agent system prompt (ignored when subagent_type is set)' },
           isolation: { type: 'string', enum: ['none', 'worktree'], default: 'none', description: 'Run in git worktree for safe isolation' },
+          mode: { type: 'string', enum: ['acceptEdits', 'auto', 'bypassPermissions', 'default', 'dontAsk', 'plan'], description: 'Permission mode override' },
         },
         required: ['prompt'],
       },
