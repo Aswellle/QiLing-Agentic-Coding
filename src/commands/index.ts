@@ -163,6 +163,48 @@ export const BUILTIN_COMMANDS: Command[] = [
     },
   },
   {
+    name: '/bg',
+    description: '查看后台会话列表，/bg <id> 切换到指定会话',
+    execute(args, ctx) {
+      const { listBackgroundSessions, removeBackgroundSession } = require('../services/background/sessions')
+      const sessions = listBackgroundSessions()
+
+      if (sessions.length === 0) {
+        ctx.onMessage({ role: 'assistant', content: '当前没有后台会话。\n使用 Ctrl+B 在查询运行时将其推入后台。' })
+        return
+      }
+
+      if (args.trim()) {
+        const id = args.trim()
+        const s = sessions.find((s: { id: string }) => s.id === id || s.id.endsWith(id))
+        if (!s) {
+          ctx.onMessage({ role: 'assistant', content: `找不到后台会话 ${id}` })
+          return
+        }
+        // Foreground: inject session messages into current conversation
+        const msgs = s.messages as { role: string; content: unknown }[]
+        for (const m of msgs) {
+          ctx.onMessage({ role: m.role as 'user' | 'assistant', content: String(m.content) })
+        }
+        removeBackgroundSession(s.id)
+        ctx.onMessage({ role: 'assistant', content: `✓ 已切换到后台会话 ${s.description}（已从后台移除）` })
+        return
+      }
+
+      const lines = sessions.map((s: { id: string; description: string; status: string; toolCallCount: number; startedAt: number; completedAt?: number }) => {
+        const dur = s.completedAt
+          ? `${Math.round((s.completedAt - s.startedAt) / 1000)}s`
+          : `运行 ${Math.round((Date.now() - s.startedAt) / 1000)}s`
+        const status = s.status === 'running' ? '⟳' : s.status === 'completed' ? '✓' : '✗'
+        return `${status} ${s.id.slice(-8)}  ${s.description}  [${dur}, ${s.toolCallCount} 工具]`
+      })
+      ctx.onMessage({
+        role: 'assistant',
+        content: `后台会话 (${sessions.length} 个):\n\n${lines.join('\n')}\n\n使用 /bg <id> 切换到指定会话`,
+      })
+    },
+  },
+  {
     name: '/memory',
     description: '管理记忆：/memory list | /memory add "xxx" | /memory clear',
     execute(args, ctx) {

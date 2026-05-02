@@ -13,11 +13,12 @@ interface Props {
   retryStatus?: string | null
   mode?: 'act' | 'plan'
   totalCostUSD?: number
+  bgSessionCount?: number
 }
 
 export function StatusBar({
   model, usage, contextWindow, isStreaming, rounds,
-  retryStatus, mode = 'act', totalCostUSD,
+  retryStatus, mode = 'act', totalCostUSD, bgSessionCount = 0,
 }: Props) {
   const totalTokens = usage.inputTokens + usage.outputTokens
   const usagePct = contextWindow > 0 ? Math.round((totalTokens / contextWindow) * 100) : 0
@@ -38,7 +39,7 @@ export function StatusBar({
         </Box>
       )}
       <Box flexDirection="row" justifyContent="space-between">
-        {/* Left: mode badge + model + streaming status */}
+        {/* Left: mode badge + model + streaming status + bg pill */}
         <Box flexDirection="row" gap={1}>
           {mode === 'plan' && (
             <Text color="cyan" bold>[PLAN]</Text>
@@ -46,6 +47,9 @@ export function StatusBar({
           <Text color="gray">{shortModel}</Text>
           {isStreaming && <Text color="yellow">⟳</Text>}
           {rounds > 0 && <Text color="gray">·{rounds}r</Text>}
+          {bgSessionCount > 0 && (
+            <Text color="magenta">⬤ {bgSessionCount}bg</Text>
+          )}
         </Box>
 
         {/* Right: cost + cache rate + tokens + context usage */}

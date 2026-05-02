@@ -23,6 +23,10 @@ import { HistoryManager } from '../history/manager'
 import { formatErrorMessage } from '../utils/errorMessages'
 import { addUsage, getTotalCostUSD, formatCostSummary, resetSession } from '../cost-tracker'
 import { getAndFireDueJobs } from '../services/cron/scheduler'
+import {
+  createBackgroundSession, appendBackgroundMessage, completeBackgroundSession,
+  removeBackgroundSession, listBackgroundSessions, runningSessionCount, totalSessionCount,
+} from '../services/background/sessions'
 import type { Message } from '../types/message'
 import type { Tool } from '../types/tool'
 import type { Provider } from '../types/provider'
@@ -39,6 +43,7 @@ const SLASH_COMMANDS: SlashCommand[] = BUILTIN_COMMANDS.map(c => ({
   { name: '/skills', description: '列出已加载的 Skills' },
   { name: '/resume', description: '恢复上次会话' },
   { name: '/history', description: '查看历史会话列表' },
+  { name: '/bg', description: '查看后台会话列表，/bg <id> 切换' },
   { name: '/clear', description: '清空当前对话' },
   { name: '/compact', description: '压缩对话上下文' },
   { name: '/exit', description: '退出' },
@@ -79,6 +84,8 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
   // Scroll viewport — how many messages to show from the bottom
   const VIEWPORT_SIZE = 50
   const [scrollOffset, setScrollOffset] = useState(0)  // 0 = bottom, N = N messages up
+  // Background session tracker (re-render on changes)
+  const [bgSessionCount, setBgSessionCount] = useState(0)
 
   // History manager — created once per REPL session
   const historyRef = useRef<HistoryManager | null>(null)
@@ -129,6 +136,36 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
 
     const totalMsgs = messagesRef.current.length
     const maxOffset = Math.max(0, totalMsgs - VIEWPORT_SIZE)
+
+    // Ctrl+B: background the current streaming query
+    if (key.ctrl && _input === 'b' && isStreaming && abortControllerRef.current) {
+      const lastUserMsg = messagesRef.current.filter(m => m.role === 'user').at(-1)
+      const desc = typeof lastUserMsg?.content === 'string'
+        ? lastUserMsg.content.slice(0, 60)
+        : '后台任务'
+      // Detach current query: create background session, clear UI
+      const bgAc = abortControllerRef.current
+      const bgSession = createBackgroundSession(desc, bgAc)
+
+      // Don't abort — let it keep running; just clear the foreground
+      abortControllerRef.current = null
+      setIsStreaming(false)
+      setStreamingText('')
+      setToolCalls([])
+      setMessages([])
+      setScrollOffset(0)
+      setBgSessionCount(totalSessionCount())
+      setNotification(`⬤ 后台运行中：${bgSession.description}`)
+      setTimeout(() => setNotification(null), 4000)
+
+      // Attach a completion callback to notify when done
+      bgSession.onComplete = (s) => {
+        setBgSessionCount(totalSessionCount())
+        setNotification(`✓ 后台完成：${s.description} (${s.toolCallCount} 个工具调用)`)
+        setTimeout(() => setNotification(null), 8000)
+      }
+      return
+    }
 
     if (key.pageUp || (key.ctrl && _input === 'u')) {
       setScrollOffset(o => Math.min(o + Math.floor(VIEWPORT_SIZE / 2), maxOffset))
@@ -643,6 +680,7 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
         retryStatus={retryStatus}
         mode={appMode}
         totalCostUSD={totalCostUSD}
+        bgSessionCount={bgSessionCount}
       />
 
       <PromptInput
