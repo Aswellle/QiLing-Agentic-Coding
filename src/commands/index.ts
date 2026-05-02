@@ -1,4 +1,5 @@
 import type { Message } from '../types/message'
+import { fetchGitDiff, formatDiffStats } from '../utils/gitDiff'
 
 export interface CommandContext {
   workingDir: string
@@ -83,8 +84,12 @@ export const BUILTIN_COMMANDS: Command[] = [
     name: '/commit',
     description: '创建 git commit',
     allowedTools: ['Bash', 'PowerShell'],
-    getPrompt(_args, _ctx) {
-      return COMMIT_PROMPT
+    async getPrompt(_args, ctx) {
+      const diff = await fetchGitDiff(ctx.workingDir)
+      const statsLine = diff
+        ? `\n- 变更统计: ${formatDiffStats(diff.stats)}${diff.stats.filesCount > 0 ? `（${diff.stats.filesCount} 个文件，+${diff.stats.linesAdded} -${diff.stats.linesRemoved} 行）` : ''}`
+        : ''
+      return COMMIT_PROMPT.replace('## 上下文', `## 上下文${statsLine}`)
     },
   },
   {
@@ -291,6 +296,42 @@ export const BUILTIN_COMMANDS: Command[] = [
         role: 'assistant',
         content: '用法：\n  /memory list   — 查看所有记忆\n  /memory add "xxx"  — 添加记忆\n  /memory clear  — 清除记忆',
       })
+    },
+  },
+  {
+    name: '/diff',
+    description: '显示当前 git 变更统计（不启动 AI）',
+    async execute(_args, ctx) {
+      const diff = await fetchGitDiff(ctx.workingDir)
+      if (!diff) {
+        ctx.onMessage({ role: 'assistant', content: '⚠ 当前目录不是 git 仓库或无法获取 diff 信息。' })
+        return
+      }
+      if (diff.stats.filesCount === 0) {
+        ctx.onMessage({ role: 'assistant', content: '✓ 工作区干净，没有未提交的变更。' })
+        return
+      }
+
+      const lines: string[] = [
+        `**Git 变更统计** — ${formatDiffStats(diff.stats)}`,
+        '',
+      ]
+      if (diff.perFileStats.size > 0) {
+        for (const [file, stats] of diff.perFileStats) {
+          if (stats.isUntracked) {
+            lines.push(`  + ${file} (未追踪)`)
+          } else if (stats.isBinary) {
+            lines.push(`  ~ ${file} (二进制)`)
+          } else {
+            const add = stats.added > 0 ? `+${stats.added}` : ''
+            const rem = stats.removed > 0 ? `-${stats.removed}` : ''
+            const stat = [add, rem].filter(Boolean).join(' ')
+            lines.push(`  M ${file}  ${stat}`)
+          }
+        }
+      }
+
+      ctx.onMessage({ role: 'assistant', content: lines.join('\n') })
     },
   },
   {
@@ -511,6 +552,7 @@ const HELP_TEXT = `QiLing (启灵) — 编程代理工具
   /plan         进入计划模式（只读探索，安全分析）
   /act          退出计划模式，进入执行模式
   /commit       创建 git commit (AI 辅助，含安全协议)
+  /diff         显示当前 git 变更统计（文件级，不启动 AI）
   /test [cmd]   运行测试并自动修复（最多 3 次循环）
   /review [PR#] 代码审查 (本地 diff 或 PR)
   /init         分析代码库，创建 QILING.md
