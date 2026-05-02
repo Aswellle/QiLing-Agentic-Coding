@@ -1,5 +1,7 @@
 import type { Message } from '../types/message'
 import { fetchGitDiff, formatDiffStats } from '../utils/gitDiff'
+import { resolve as resolvePath } from 'path'
+import { openFileInExternalEditor, getEditorDisplayName } from '../utils/editor'
 
 export interface CommandContext {
   workingDir: string
@@ -335,6 +337,41 @@ export const BUILTIN_COMMANDS: Command[] = [
     },
   },
   {
+    name: '/open',
+    description: '在外部编辑器中打开文件（VSCode/Cursor/vim 等）',
+    execute(args, ctx) {
+      const trimmed = args.trim()
+      if (!trimmed) {
+        const editorName = getEditorDisplayName()
+        ctx.onMessage({
+          role: 'assistant',
+          content: `用法：/open <文件路径> [行号]\n当前编辑器：${editorName}\n（通过 $VISUAL 或 $EDITOR 环境变量配置）`,
+        })
+        return
+      }
+
+      const parts = trimmed.split(/\s+/)
+      const filePath = parts[0]!
+      const line = parts[1] ? parseInt(parts[1], 10) : undefined
+      const absPath = filePath.startsWith('/')
+        || /^[A-Za-z]:/.test(filePath)
+        ? filePath
+        : resolvePath(ctx.workingDir, filePath)
+
+      const ok = openFileInExternalEditor(absPath, Number.isFinite(line) ? line : undefined)
+      if (ok) {
+        const lineHint = line ? `:${line}` : ''
+        const editorName = getEditorDisplayName()
+        ctx.onMessage({ role: 'assistant', content: `✓ 已在 ${editorName} 中打开 ${filePath}${lineHint}` })
+      } else {
+        ctx.onMessage({
+          role: 'assistant',
+          content: '⚠ 未找到可用的外部编辑器。\n请设置 $VISUAL 或 $EDITOR 环境变量（如：export VISUAL=code）',
+        })
+      }
+    },
+  },
+  {
     name: '/pr',
     description: '创建 Pull Request (需要 gh CLI)',
     getPrompt(args) {
@@ -553,6 +590,7 @@ const HELP_TEXT = `QiLing (启灵) — 编程代理工具
   /act          退出计划模式，进入执行模式
   /commit       创建 git commit (AI 辅助，含安全协议)
   /diff         显示当前 git 变更统计（文件级，不启动 AI）
+  /open <file>  在外部编辑器中打开文件（VSCode/Cursor/vim 等）
   /test [cmd]   运行测试并自动修复（最多 3 次循环）
   /review [PR#] 代码审查 (本地 diff 或 PR)
   /init         分析代码库，创建 QILING.md
