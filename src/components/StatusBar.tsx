@@ -2,7 +2,7 @@ import React from 'react'
 import { Box, Text } from 'ink'
 import type { TokenUsage } from '../types/message'
 import { formatUsageLine, formatTokenCount } from '../utils/tokens'
-import { formatCostUSD } from '../cost-tracker'
+import { formatCostUSD, getCacheHitRate } from '../cost-tracker'
 
 interface Props {
   model: string
@@ -26,6 +26,10 @@ export function StatusBar({
   const shortModel = model.length > 24 ? model.slice(0, 22) + '…' : model
   const showCost = totalCostUSD !== undefined && totalCostUSD > 0
 
+  // Cache hit rate — from accumulated session data
+  const cacheHitPct = Math.round(getCacheHitRate() * 100)
+  const showCache = cacheHitPct > 0
+
   return (
     <Box flexDirection="column">
       {retryStatus && (
@@ -44,11 +48,19 @@ export function StatusBar({
           {rounds > 0 && <Text color="gray">·{rounds}r</Text>}
         </Box>
 
-        {/* Right: cost + tokens + context usage */}
+        {/* Right: cost + cache rate + tokens + context usage */}
         <Box flexDirection="row" gap={1}>
           {showCost && (
             <>
               <Text color="green">{formatCostUSD(totalCostUSD!)}</Text>
+              <Text color="gray">·</Text>
+            </>
+          )}
+          {showCache && (
+            <>
+              <Text color={cacheHitPct >= 50 ? 'green' : 'blue'}>
+                cache {cacheHitPct}%
+              </Text>
               <Text color="gray">·</Text>
             </>
           )}
@@ -58,7 +70,7 @@ export function StatusBar({
               <Text color="gray">·</Text>
             </>
           )}
-          {usage.cacheReadTokens > 0 && (
+          {usage.cacheReadTokens > 0 && !showCache && (
             <>
               <Text color="blue">cache↓{formatTokenCount(usage.cacheReadTokens)}</Text>
               <Text color="gray">·</Text>

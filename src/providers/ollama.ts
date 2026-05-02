@@ -48,8 +48,11 @@ export function createOllamaProvider(config: ProviderConfig): Provider {
   })
 
   // Override context window from our lookup table
-  const originalGetContextWindow = provider.getContextWindow.bind(provider)
   provider.getContextWindow = () => contextWindow
+
+  // Wire up model discovery
+  const baseEndpoint = normalizedEndpoint
+  provider.getModels = async () => listOllamaModels(baseEndpoint)
 
   return provider
 }

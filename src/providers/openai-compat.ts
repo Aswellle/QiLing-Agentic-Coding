@@ -181,6 +181,24 @@ export class OpenAICompatProvider implements Provider {
     }
   }
 
+  async getModels(): Promise<string[]> {
+    try {
+      const baseUrl = this.config.endpoint ?? 'https://api.openai.com/v1'
+      const res = await fetch(`${baseUrl.replace(/\/$/, '')}/models`, {
+        headers: {
+          'Authorization': `Bearer ${this.config.apiKey ?? ''}`,
+          'Content-Type': 'application/json',
+        },
+        signal: AbortSignal.timeout(5_000),
+      })
+      if (!res.ok) return []
+      const data = await res.json() as { data?: Array<{ id: string }> }
+      return (data.data ?? []).map(m => m.id).sort()
+    } catch {
+      return []
+    }
+  }
+
   countTokens(messages: Message[]): number {
     const text = messages
       .map(m => (typeof m.content === 'string' ? m.content : JSON.stringify(m.content)))

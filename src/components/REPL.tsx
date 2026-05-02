@@ -76,6 +76,9 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
   const [retryStatus, setRetryStatus] = useState<string | null>(null)
   const [appMode, setAppMode] = useState<AppMode>('act')
   const [skills, setSkills] = useState<ReturnType<typeof loadAllSkills>>([])
+  // Scroll viewport — how many messages to show from the bottom
+  const VIEWPORT_SIZE = 50
+  const [scrollOffset, setScrollOffset] = useState(0)  // 0 = bottom, N = N messages up
 
   // History manager — created once per REPL session
   const historyRef = useRef<HistoryManager | null>(null)
@@ -108,7 +111,7 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
   // Track last reported usage to compute delta for cost tracking
   const lastUsageRef = useRef({ inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0 })
 
-  // Ctrl+C handler: abort if streaming, else exit
+  // Ctrl+C + scroll handler
   useInput((_input, key) => {
     if (key.ctrl && _input === 'c') {
       if (isStreaming && abortControllerRef.current) {
@@ -118,6 +121,28 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
       } else if (!pendingPermission) {
         exit()
       }
+      return
+    }
+
+    // Scroll only when not typing (no pending dialogs, not streaming)
+    if (isStreaming || pendingPermission || pendingUserQuestion || pendingPlanApproval) return
+
+    const totalMsgs = messagesRef.current.length
+    const maxOffset = Math.max(0, totalMsgs - VIEWPORT_SIZE)
+
+    if (key.pageUp || (key.ctrl && _input === 'u')) {
+      setScrollOffset(o => Math.min(o + Math.floor(VIEWPORT_SIZE / 2), maxOffset))
+    } else if (key.pageDown || (key.ctrl && _input === 'd')) {
+      setScrollOffset(o => Math.max(0, o - Math.floor(VIEWPORT_SIZE / 2)))
+    } else if (key.ctrl && _input === 'b') {
+      setScrollOffset(o => Math.min(o + VIEWPORT_SIZE, maxOffset))
+    } else if (key.ctrl && _input === 'f') {
+      setScrollOffset(o => Math.max(0, o - VIEWPORT_SIZE))
+    } else if (_input === 'g' && !isStreaming) {
+      // 'g' = go to top (only when not in text input)
+      setScrollOffset(maxOffset)
+    } else if (_input === 'G' && !isStreaming) {
+      setScrollOffset(0)
     }
   })
 
@@ -256,6 +281,7 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
 
       setMessages(result.messages)
       setRounds(result.rounds)
+      setScrollOffset(0)  // auto-scroll to bottom after each query
 
       // Save new messages to history
       if (historyRef.current) {
@@ -491,10 +517,26 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
 
   async function handleModel(args: string) {
     if (!args) {
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: formatModelList({ provider: currentProvider.config.name, model: currentProvider.config.model }),
-      }])
+      // Show static list immediately
+      const staticList = formatModelList({ provider: currentProvider.config.name, model: currentProvider.config.model })
+      setMessages(prev => [...prev, { role: 'assistant', content: staticList }])
+
+      // Then try to fetch dynamic models from current provider in background
+      if (currentProvider.getModels) {
+        const dynamicModels = await currentProvider.getModels().catch(() => null)
+        if (dynamicModels && dynamicModels.length > 0) {
+          const providerName = currentProvider.config.name
+          const newModels = dynamicModels.filter(m =>
+            !staticList.includes(m)  // only show ones not already in static list
+          )
+          if (newModels.length > 0) {
+            setMessages(prev => [...prev, {
+              role: 'assistant',
+              content: `API 动态发现 (${providerName}) — 额外可用模型:\n${newModels.slice(0, 20).map(m => `  ${m}`).join('\n')}`,
+            }])
+          }
+        }
+      }
       return
     }
 
@@ -518,15 +560,38 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
 
   const showBanner = messages.length === 0
 
+  // Viewport: render at most VIEWPORT_SIZE messages, scrollable by scrollOffset
+  const totalMsgs = messages.length
+  const visibleEnd = Math.max(0, totalMsgs - scrollOffset)
+  const visibleStart = Math.max(0, visibleEnd - VIEWPORT_SIZE)
+  const visibleMessages = messages.slice(visibleStart, visibleEnd)
+  const hiddenAbove = visibleStart
+  const hiddenBelow = totalMsgs - visibleEnd
+  const isScrolled = scrollOffset > 0
+
   return (
     <Box flexDirection="column" paddingX={0}>
       {showBanner && (
         <StartupBanner version={version} provider={currentProvider.config} workingDir={workingDir} />
       )}
 
-      {messages.map((msg, i) => (
-        <MessageBubble key={i} message={msg} />
+      {/* Scroll indicator — messages above viewport */}
+      {hiddenAbove > 0 && (
+        <Box marginBottom={0}>
+          <Text color="gray" dimColor>↑ {hiddenAbove} 条消息在上方  [Ctrl+U/PageUp 向上滚动]</Text>
+        </Box>
+      )}
+
+      {visibleMessages.map((msg, i) => (
+        <MessageBubble key={visibleStart + i} message={msg} />
       ))}
+
+      {/* Scroll indicator — currently scrolled up */}
+      {isScrolled && hiddenBelow === 0 && (
+        <Box marginBottom={0}>
+          <Text color="gray" dimColor>↓ [Ctrl+D/PageDown 回到底部]</Text>
+        </Box>
+      )}
 
       {/* Streaming assistant response */}
       {isStreaming && (streamingText || toolCalls.length > 0) && (

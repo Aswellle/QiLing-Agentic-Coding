@@ -42,8 +42,13 @@ export const BUILTIN_COMMANDS: Command[] = [
     name: '/cost',
     description: '显示本次会话的 token 使用和 USD 成本统计',
     execute(_args, ctx) {
-      const { formatCostSummary } = require('../cost-tracker')
-      ctx.onMessage({ role: 'assistant', content: formatCostSummary() })
+      const { formatCostSummary, getCacheHitRate, getCacheSavingsUSD, formatCostUSD } = require('../cost-tracker')
+      const cacheRate = Math.round(getCacheHitRate() * 100)
+      const savings = getCacheSavingsUSD()
+      const cacheSection = cacheRate > 0
+        ? `\n缓存命中率: ${cacheRate}%\n缓存节省: ${formatCostUSD(savings)}`
+        : ''
+      ctx.onMessage({ role: 'assistant', content: formatCostSummary() + cacheSection })
     },
   },
   {

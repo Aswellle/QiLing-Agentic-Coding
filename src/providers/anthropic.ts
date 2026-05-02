@@ -147,6 +147,16 @@ export class AnthropicProvider implements Provider {
     }
   }
 
+  async getModels(): Promise<string[]> {
+    try {
+      // Anthropic API: GET /v1/models
+      const response = await this.client.models.list()
+      return response.data.map(m => m.id).sort()
+    } catch {
+      return []
+    }
+  }
+
   countTokens(messages: Message[]): number {
     const text = messages
       .map(m => (typeof m.content === 'string' ? m.content : JSON.stringify(m.content)))

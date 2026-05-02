@@ -114,6 +114,31 @@ export function getTotalCostUSD(): number {
   return total
 }
 
+/** Cache hit rate = cacheReadTokens / (inputTokens + cacheReadTokens) */
+export function getCacheHitRate(): number {
+  let totalInput = 0
+  let totalCacheRead = 0
+  for (const usage of usageByModel.values()) {
+    totalInput += usage.inputTokens
+    totalCacheRead += usage.cacheReadTokens
+  }
+  const denominator = totalInput + totalCacheRead
+  return denominator > 0 ? totalCacheRead / denominator : 0
+}
+
+/** Estimated cost saved from cache (cache reads ~10% of full input price → 90% saved) */
+export function getCacheSavingsUSD(): number {
+  let savings = 0
+  for (const [model, usage] of usageByModel.entries()) {
+    const [inRate] = getPricing(model)
+    // Full input cost that would have been charged without cache
+    const fullCost = (usage.cacheReadTokens * inRate) / 1_000_000
+    // Cache read is ~10% → save ~90%
+    savings += fullCost * 0.9
+  }
+  return savings
+}
+
 export function getUsageByModel(): Map<string, ModelUsage> {
   return new Map(usageByModel)
 }

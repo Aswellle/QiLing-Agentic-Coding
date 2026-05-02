@@ -27,6 +27,9 @@ export type StreamChunkType =
 export interface Provider {
   config: ProviderConfig
 
+  /** Optionally list available models from this provider's API */
+  getModels?(): Promise<string[]>
+
   stream(
     messages: Message[],
     tools: ToolDefinition[],
