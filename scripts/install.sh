@@ -5,6 +5,29 @@
 
 set -euo pipefail
 
+# ─── Homebrew 优先 ─────────────────────────────────────────────────────────
+# 如果系统安装了 Homebrew，优先推荐使用更易维护的 brew 安装方式
+if command -v brew &>/dev/null && [[ "${QILING_SKIP_BREW:-}" != "1" ]]; then
+  echo ""
+  echo "  检测到 Homebrew，推荐使用:"
+  echo ""
+  echo "    brew tap Aswellle/qiling"
+  echo "    brew install qiling"
+  echo ""
+  read -r -p "  是否使用 Homebrew 安装? [Y/n] " BREW_REPLY
+  BREW_REPLY="${BREW_REPLY:-Y}"
+  if [[ "$BREW_REPLY" =~ ^[Yy]$ ]]; then
+    brew tap Aswellle/qiling 2>/dev/null || true
+    brew install qiling
+    echo ""
+    echo "✨ 通过 Homebrew 安装完成！"
+    echo "   升级: brew upgrade qiling"
+    exit 0
+  fi
+  echo "  跳过 Homebrew，继续使用直接安装方式..."
+  echo ""
+fi
+
 # ─── 配置 ──────────────────────────────────────────────────────────────────
 REPO="${QILING_REPO:-Aswellle/QiLing-Agentic-Coding}"
 INSTALL_DIR="${QILING_INSTALL_DIR:-$HOME/.local/bin}"

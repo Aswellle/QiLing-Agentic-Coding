@@ -52,6 +52,34 @@ export const BUILTIN_COMMANDS: Command[] = [
     },
   },
   {
+    name: '/update',
+    description: '检查并安装最新版本',
+    async execute(_args, ctx) {
+      const { checkForUpdates, downloadAndApplyUpdate } = require('../utils/updater')
+      const pkgJson = require('../../package.json') as { version: string }
+      const currentVersion = pkgJson.version
+
+      ctx.onMessage({ role: 'assistant', content: '正在检查更新…' })
+      const info = await checkForUpdates(currentVersion, {})
+
+      if (!info?.hasUpdate) {
+        ctx.onMessage({ role: 'assistant', content: `✓ 当前版本 v${currentVersion} 已是最新` })
+        return
+      }
+
+      ctx.onMessage({
+        role: 'assistant',
+        content: `发现新版本 v${info.latestVersion}（当前 v${info.currentVersion}）\n正在下载…`,
+      })
+
+      const messages: string[] = []
+      await downloadAndApplyUpdate(info, (msg: string) => {
+        messages.push(msg)
+        ctx.onMessage({ role: 'assistant', content: messages.join('\n') })
+      })
+    },
+  },
+  {
     name: '/commit',
     description: '创建 git commit',
     allowedTools: ['Bash', 'PowerShell'],
@@ -160,6 +188,24 @@ export const BUILTIN_COMMANDS: Command[] = [
     description: '分析代码库，创建 QILING.md 记忆文件',
     getPrompt(_args, ctx) {
       return INIT_PROMPT(ctx.workingDir)
+    },
+  },
+  {
+    name: '/setup',
+    description: '首次配置向导 — 选择 Provider、设置 API Key',
+    execute(_args, ctx) {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { formatSetupGuide } = require('./setup') as { formatSetupGuide: () => string }
+      ctx.onMessage({ role: 'assistant', content: formatSetupGuide() })
+    },
+  },
+  {
+    name: '/plugins',
+    description: '列出已加载的插件',
+    async execute(_args, ctx) {
+      const { loadPlugins, formatPluginList } = require('../plugins/loader')
+      const plugins = await loadPlugins(ctx.workingDir)
+      ctx.onMessage({ role: 'assistant', content: formatPluginList(plugins) })
     },
   },
   {

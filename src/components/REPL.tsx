@@ -27,6 +27,7 @@ import {
   createBackgroundSession, appendBackgroundMessage, completeBackgroundSession,
   removeBackgroundSession, listBackgroundSessions, runningSessionCount, totalSessionCount,
 } from '../services/background/sessions'
+import { checkForUpdates, type UpdateInfo } from '../utils/updater'
 import type { Message } from '../types/message'
 import type { Tool } from '../types/tool'
 import type { Provider } from '../types/provider'
@@ -86,6 +87,8 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
   const [scrollOffset, setScrollOffset] = useState(0)  // 0 = bottom, N = N messages up
   // Background session tracker (re-render on changes)
   const [bgSessionCount, setBgSessionCount] = useState(0)
+  // Update availability notification
+  const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null)
 
   // History manager — created once per REPL session
   const historyRef = useRef<HistoryManager | null>(null)
@@ -98,6 +101,13 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
   useEffect(() => {
     setSkills(loadAllSkills(workingDir))
   }, [workingDir])
+
+  // Background update check on mount (non-blocking, cached 24h)
+  useEffect(() => {
+    checkForUpdates(version).then(info => {
+      if (info?.hasUpdate) setUpdateInfo(info)
+    }).catch(() => { /* silently ignore */ })
+  }, [])
 
   // Cron scheduler — poll every 30s, fire due jobs as user messages
   useEffect(() => {
@@ -651,6 +661,15 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
       {pendingPermission && <PermissionDialog request={pendingPermission} />}
       {pendingUserQuestion && <AskUserQuestionDialog request={pendingUserQuestion} />}
       {pendingPlanApproval && <PlanApprovalDialog request={pendingPlanApproval} />}
+
+      {/* Update available banner */}
+      {updateInfo?.hasUpdate && (
+        <Box marginBottom={0}>
+          <Text color="magenta">
+            ↑ 新版本 v{updateInfo.latestVersion} 可用（当前 v{updateInfo.currentVersion}）— 运行 /update 升级
+          </Text>
+        </Box>
+      )}
 
       {/* Token warning */}
       {isNearLimit && !isCritical && (

@@ -86,6 +86,111 @@ export interface UpdateInfo {
   releaseUrl: string
 }
 
+// ─── Download & apply ─────────────────────────────────────────────────────────
+
+function getPlatformAssetName(): string {
+  const os = process.platform
+  const arch = process.arch
+  if (os === 'linux'  && arch === 'x64')   return 'qiling-linux-x64'
+  if (os === 'linux'  && arch === 'arm64') return 'qiling-linux-arm64'
+  if (os === 'darwin' && arch === 'x64')   return 'qiling-macos-x64'
+  if (os === 'darwin' && arch === 'arm64') return 'qiling-macos-arm64'
+  if (os === 'win32')                       return 'qiling-windows-x64.exe'
+  return ''
+}
+
+async function getDownloadUrl(version: string): Promise<string | null> {
+  const asset = getPlatformAssetName()
+  if (!asset) return null
+  // Try to get the exact download URL from the release assets
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${GITHUB_REPO}/releases/tags/${version}`,
+      { headers: { 'User-Agent': 'qiling-updater', Accept: 'application/vnd.github+json' },
+        signal: AbortSignal.timeout(5_000) }
+    )
+    if (!res.ok) {
+      // Fallback to predictable URL pattern
+      return `https://github.com/${GITHUB_REPO}/releases/download/${version}/${asset}`
+    }
+    const data = await res.json() as { assets?: Array<{ name: string; browser_download_url: string }> }
+    const found = data.assets?.find(a => a.name === asset)
+    return found?.browser_download_url
+      ?? `https://github.com/${GITHUB_REPO}/releases/download/${version}/${asset}`
+  } catch {
+    return `https://github.com/${GITHUB_REPO}/releases/download/${version}/${asset}`
+  }
+}
+
+/**
+ * Download the latest version and replace the current binary.
+ * onProgress is called with status messages.
+ * Returns true on success.
+ */
+export async function downloadAndApplyUpdate(
+  info: UpdateInfo,
+  onProgress: (msg: string) => void
+): Promise<boolean> {
+  const url = await getDownloadUrl(info.latestVersion)
+  if (!url) {
+    onProgress('⚠ 无法确定下载地址（当前平台可能不支持自动更新）')
+    onProgress(`请手动下载: ${info.releaseUrl}`)
+    return false
+  }
+
+  onProgress(`正在下载 QiLing ${info.latestVersion}…`)
+  try {
+    const res = await fetch(url, {
+      headers: { 'User-Agent': 'qiling-updater' },
+      signal: AbortSignal.timeout(120_000),
+    })
+    if (!res.ok) {
+      onProgress(`✗ 下载失败: HTTP ${res.status}`)
+      return false
+    }
+
+    const buf = await res.arrayBuffer()
+    const { tmpdir } = await import('os')
+    const { join: pathJoin } = await import('path')
+    const { writeFileSync, copyFileSync, renameSync, chmodSync } = await import('fs')
+
+    const tmpPath = pathJoin(tmpdir(), `qiling-update-${Date.now()}`)
+    writeFileSync(tmpPath, new Uint8Array(buf))
+
+    if (process.platform !== 'win32') chmodSync(tmpPath, 0o755)
+
+    // Verify the new binary runs
+    const test = Bun.spawn([tmpPath, '--version'], { stdout: 'pipe', stderr: 'pipe' })
+    const code = await test.exited
+    if (code !== 0) {
+      onProgress('✗ 验证新版本失败，更新已中止（文件可能损坏）')
+      return false
+    }
+
+    const currentBin = process.execPath
+    onProgress('正在替换二进制文件…')
+
+    if (process.platform === 'win32') {
+      // Windows: can't replace running exe; place next to current
+      const newPath = currentBin.replace(/\.exe$/i, `-v${info.latestVersion}.exe`)
+      renameSync(tmpPath, newPath)
+      onProgress(`✓ 已下载到: ${newPath}`)
+      onProgress('请关闭当前会话并手动将新文件重命名替换旧文件。')
+      return true
+    }
+
+    copyFileSync(currentBin, `${currentBin}.backup`)
+    renameSync(tmpPath, currentBin)
+
+    onProgress(`✓ 已从 v${info.currentVersion} 升级到 v${info.latestVersion}`)
+    onProgress('请重启 QiLing 以使用新版本。备份: ' + currentBin + '.backup')
+    return true
+  } catch (err) {
+    onProgress(`✗ 更新失败: ${err instanceof Error ? err.message : String(err)}`)
+    return false
+  }
+}
+
 /**
  * Check for updates in the background.
  * Returns update info if a newer version is available, null otherwise.

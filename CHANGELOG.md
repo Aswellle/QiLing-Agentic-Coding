@@ -8,10 +8,88 @@
 ## [Unreleased]
 
 ### 待开发
-- 键位自定义 (`~/.qiling/keybindings.json`)
-- Vim 键位模式
+- 插件市场 (v0.5)
+- VSCode 扩展 (v0.5)
 - 语音输入支持
 - 团队记忆共享
+
+---
+
+## [0.3.0] - 2026-05-02
+
+### 亮点
+
+v0.3 实现了与 Claude Code 引擎层的全面对齐，工具总数从 15 个扩展到 38 个，
+并在 TUI 渲染、Provider 覆盖、记忆系统等维度达到生产可用水准。
+
+### 新工具（+23 个，合计 38 个）
+
+**AI 交互原语**
+- `AskUserQuestion` — AI 主动向用户提问，支持多选/多题/multiSelect
+- `EnterPlanMode / ExitPlanMode` — AI 可自主切换规划/执行模式，计划审批对话框
+- `WebSearch` — Brave Search API + DuckDuckGo 双路搜索
+
+**任务与多代理协调**
+- `TaskCreate / TaskGet / TaskList / TaskUpdate / TaskStop / TaskOutput` — 完整任务状态机（pending→in_progress→completed）
+- `SendMessage / TeamCreate / TeamDelete` — 多代理消息总线与团队管理
+- `CronCreate / CronDelete / CronList / Sleep` — 定时任务与等待
+
+**工具发现与执行环境**
+- `ToolSearch` — 多策略评分工具搜索（select:/keyword/+required）
+- `Skill` — 按名调用 .qiling/skills/*.md 技能文件
+- `EnterWorktree / ExitWorktree` — AI 可调用 git worktree 隔离实验性修改
+- `Brief` — 会话任务简报工具（system prompt 注入，压缩后保留）
+- `Config` — AI 自主读写 settings.json（apiKey 安全保护）
+- `NotebookEdit` — Jupyter notebook 编辑（insert/replace/delete/set_type）
+
+**MCP 生态**
+- `ListMcpResources / ReadMcpResource` — MCP Resources 协议（text + blob 二进制）
+- `McpAuth` — 完整 OAuth 2.0 PKCE 授权码流程 + 本地回调服务器
+- `RemoteTrigger` — Webhook CRUD + HTTP 执行（支持 Bearer 认证）
+
+### Query 引擎升级（对齐 Claude Code）
+
+- **StreamingToolExecutor** — AI 流式输出时并发执行安全工具，预期 2–4× 加速
+- **reactiveCompact** — prompt-too-long 自动压缩后重试，消除崩溃
+- **autoCompact** — 阈值触发上下文压缩（contextWindow − 13k buffer）
+- **contextCollapse** — 折叠旧 tool 轮次为紧凑摘要（零 AI 调用）
+- **microcompact** — 每轮截断旧 tool_result 节省 token
+- **toolUseSummary** — Haiku 后台摘要生成（非阻塞）
+- **tokenBudget** — 收益递减检测 + nudge 消息机制
+- **max_tokens 两阶段恢复** — 8k→16k escalate + CC 精确 recovery message
+
+### TUI 体验（v0.4）
+
+- **Markdown 富文本渲染** — 代码块语法高亮（TS/Python/Bash）、表格、标题、列表
+- **彩色 Diff** — LCS 算法 unified diff（红色删除/绿色新增/行号）
+- **长对话滚动** — PageUp/Down/Ctrl+U/D，g/G 顶底，50 条视口窗口
+- **工具结果折叠** — >8 行自动折叠为 4 行预览，Enter 展开
+- **后台 Agent 会话** — Ctrl+B 推入后台，⬤Nbg pill 指示，/bg 命令管理
+- **Prompt Cache 命中率** — StatusBar 显示 cache HIT%（绿色≥50%）
+
+### Provider 升级
+
+- **Vertex AI** — 完整 GCP ADC 认证（google-auth-library / gcloud / VERTEX_ACCESS_TOKEN）
+- **模型动态发现** — Provider.getModels() 接口，/model 后台补充 API 实际可用模型
+
+### 记忆与上下文系统
+
+- **extractMemories** — 会话结束自动提炼持久化记忆到 QILING.md
+- **/memory 命令** — list/add/clear 三操作，REPL 自动注入 QILING.md 到 system prompt
+- **Brief system prompt** — 任务简报跨压缩边界保留
+- **@mention URL** — 支持裸 `@https://...` 语法自动 Fetch 展开
+
+### 安全与权限
+
+- **pathValidation** — 6 步安全校验（tilde/shell 扩展/危险路径/目录穿越）
+- **shadowedRuleDetection** — 规则冲突检测与修复建议
+- **高级 wildcard 匹配** — CC shellRuleMatching 算法，支持 `\*` 转义和尾部可选 ` *`
+
+### 其他
+
+- **Vim 模式** — Normal/Insert + 30+ 命令（h/l/w/b/e/d/c/y/x/p/r/~等）
+- **CostTracker** — 跨会话 USD 精确成本追踪（22 种模型定价）
+- **Cron 调度器** — 标准 5 字段表达式解析，REPL 30s 轮询自动触发
 
 ---
 

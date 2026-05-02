@@ -13,7 +13,7 @@ import { loadAllMcpTools } from './tools/McpTool'
 import { checkForUpdates } from './utils/updater'
 import { loadLastSession } from './session/resume'
 
-const VERSION = '0.2.0'
+const VERSION = '0.3.0'
 
 const program = new Command()
 
@@ -95,8 +95,11 @@ program
       }
       const envVar = envVarMap[settings.provider] ?? 'API_KEY'
       console.error(`\n⚠  未找到 ${settings.provider} 的 API Key。`)
-      console.error(`   请设置环境变量: ${envVar}=your-key`)
-      console.error(`   或使用参数: --api-key your-key\n`)
+      console.error(`   选项一: 设置环境变量: export ${envVar}=your-key`)
+      console.error(`   选项二: 使用参数:   qiling --api-key your-key`)
+      console.error(`   选项三: 运行向导:   qiling（启动后运行 /setup 命令）`)
+      console.error(`\n   Homebrew: brew tap Aswellle/qiling && brew install qiling`)
+      console.error(`   快速安装: curl -fsSL https://raw.githubusercontent.com/Aswellle/QiLing-Agentic-Coding/main/scripts/install.sh | bash\n`)
       process.exit(1)
     }
 
@@ -104,6 +107,26 @@ program
     const provider    = createProvider(settings)
     const tools       = buildToolRegistry(settings)
     const permissions = new PermissionsManager(settings)
+
+    // ─── Load plugins (non-blocking, merge tools & commands) ──────────────
+    const { loadPlugins } = await import('./plugins/loader')
+    const plugins = await loadPlugins(workingDir).catch(() => [])
+    for (const plugin of plugins) {
+      for (const tool of plugin.tools) tools.set(tool.name, tool)
+      // Commands from plugins are merged into BUILTIN_COMMANDS in-place
+      const { BUILTIN_COMMANDS } = await import('./commands/index')
+      for (const cmd of plugin.commands) {
+        if (!BUILTIN_COMMANDS.find(c => c.name === cmd.name)) {
+          BUILTIN_COMMANDS.push(cmd)
+        }
+      }
+    }
+    if (plugins.length > 0) {
+      const loaded = plugins.filter(p => !p.error)
+      const failed = plugins.filter(p => p.error)
+      if (loaded.length > 0) process.stderr.write(`✓ 插件: ${loaded.map(p => p.name).join(', ')}\n`)
+      if (failed.length > 0) process.stderr.write(`⚠ 插件加载失败: ${failed.map(p => p.id).join(', ')}\n`)
+    }
 
     // Sync prompt first (no RepoMap) so TUI appears fast
     const { buildSystemPrompt } = await import('./utils/systemPrompt')
