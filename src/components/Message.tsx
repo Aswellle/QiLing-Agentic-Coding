@@ -43,6 +43,9 @@ function renderContentBlock(block: ContentBlock, key: number): React.ReactNode {
 export function MessageBubble({ message }: Props) {
   const isUser = message.role === 'user'
 
+  // CC's isMeta: true — recovery, budget nudge, tool summary injections are hidden from display
+  if (message.isMeta) return null
+
   // Don't render pure tool-result messages
   if (!isUser && Array.isArray(message.content)) {
     const visible = message.content.filter(b => b.type !== 'tool_result')

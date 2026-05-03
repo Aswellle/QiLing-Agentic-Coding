@@ -200,10 +200,11 @@ export async function runQuery(
       pendingToolUseSummary = undefined
       if (summary) {
         callbacks.onToolUseSummary?.(summary)
-        // Inject summary as a context message so the model knows what happened
+        // isMeta: true — internal context, not shown to user in conversation display
         workingMessages.push({
           role: 'user',
           content: `[Tool summary] ${summary}`,
+          isMeta: true,
         })
       }
     }
@@ -416,6 +417,7 @@ export async function runQuery(
           content:
             'Output token limit hit. Resume directly — no apology, no recap of what you were doing. ' +
             'Pick up mid-thought if that is where the cut happened. Break remaining work into smaller pieces.',
+          isMeta: true,  // CC: recovery messages are not shown in conversation display
         })
         lastTransition = { reason: 'max_output_tokens_recovery', attempt: maxTokensRecoveryCount }
         continue
@@ -567,7 +569,7 @@ export async function runQuery(
       const turnTokens = totalUsage.inputTokens + totalUsage.outputTokens
       const decision = checkTokenBudget(budgetTracker, options.taskBudgetTokens, turnTokens)
       if (decision.action === 'continue') {
-        workingMessages.push({ role: 'user', content: decision.nudgeMessage })
+        workingMessages.push({ role: 'user', content: decision.nudgeMessage, isMeta: true })
         lastTransition = { reason: 'token_budget_continuation' }
       } else if (decision.completionEvent) {
         finalStopReason = `budget_${decision.completionEvent.reason}`

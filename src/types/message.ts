@@ -33,6 +33,23 @@ export type ContentBlock = TextContent | ImageContent | ToolUseContent | ToolRes
 export interface Message {
   role: Role
   content: string | ContentBlock[]
+  /**
+   * Internal loop messages (recovery messages, tool summaries, budget nudges)
+   * that should NOT be displayed to the user in the conversation.
+   * Mirrors CC's isMeta: true pattern on createUserMessage.
+   */
+  isMeta?: true
+  /**
+   * Unique message identifier for session storage and file history checkpoints.
+   * Auto-assigned by the loop or by message creation helpers.
+   */
+  uuid?: string
+  /**
+   * Set on assistant messages that represent API error conditions
+   * (max_tokens, prompt_too_long). Allows the UI to display them differently.
+   */
+  isApiErrorMessage?: boolean
+  apiError?: 'max_output_tokens' | 'prompt_too_long' | 'invalid_request'
 }
 
 export interface TokenUsage {
