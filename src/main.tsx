@@ -59,6 +59,7 @@ program
   .option('--no-update-check', 'Skip startup update check')
   .option('--no-repo-map', 'Skip automatic repository map injection into system prompt')
   .option('--resume [session-id]', 'Resume last session (or specific session by ID)')
+  .option('-c, --continue', 'Continue the most recent conversation (alias for --resume)')
   .option('--thinking <tokens>', 'Enable extended thinking with token budget', parseInt)
   .option('--coordinator', 'Enable coordinator mode: orchestrate parallel worker agents')
   .option('-p, --print', 'Print response and exit (non-interactive, useful for pipes and scripts)')
@@ -208,8 +209,12 @@ program
         }).catch(() => {})
       : Promise.resolve()
 
-    // ─── Session resume ────────────────────────────────────────────────────
+    // ─── Session resume (-c / --continue / --resume) ─────────────────────
     let initialMessages = undefined
+    const shouldResume = options.resume !== undefined || options.continue
+    if (shouldResume) {
+      options.resume = options.resume ?? true  // treat -c as --resume
+    }
     if (options.resume !== undefined) {
       const sessionId = typeof options.resume === 'string' ? options.resume : undefined
       if (sessionId) {
@@ -368,6 +373,12 @@ program
         process.stderr.write(`\n✗ Fatal: ${err instanceof Error ? err.message : String(err)}\n`)
         process.exit(1)
       }
+    }
+
+    // ─── Set terminal title (CC's session title pattern) ─────────────────
+    if (process.stdout.isTTY) {
+      const titleModel = settings.model.split('-').slice(0, 2).join('-')
+      process.stdout.write(`\x1b]0;QiLing (${titleModel})\x07`)
     }
 
     // ─── Launch TUI ───────────────────────────────────────────────────────
