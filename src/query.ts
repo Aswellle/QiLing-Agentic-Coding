@@ -441,6 +441,20 @@ export async function runQuery(
 
       streamError = errMsg
       callbacks.onError?.(streamError)
+
+      // CC's yieldMissingToolResultBlocks: generate synthetic tool_results
+      // for any tool_use blocks that didn't get results. Prevents API errors
+      // on next call (tool_use without matching tool_result).
+      if (pendingToolUses.length > 0) {
+        const errorContent: ToolResultContent[] = pendingToolUses.map(tu => ({
+          type: 'tool_result' as const,
+          tool_use_id: tu.id,
+          content: `Tool execution interrupted: ${errMsg}`,
+          is_error: true,
+        }))
+        workingMessages.push({ role: 'user', content: errorContent })
+      }
+
       break
     }
 
