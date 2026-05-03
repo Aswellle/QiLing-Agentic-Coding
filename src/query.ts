@@ -35,6 +35,8 @@ import { isPromptTooLong, isMediaSizeError, tryReactiveCompact } from './compact
 import { createBudgetTracker, checkTokenBudget } from './compact/tokenBudget'
 import { generateToolUseSummary, extractToolInfoFromResults } from './services/toolUseSummary/generator'
 import { applyCollapsesIfNeeded, recoverFromOverflow } from './services/contextCollapse/index'
+import { calculateTokenWarningState } from './compact/autoCompact'
+import { roughTokenCountEstimationForMessages } from './utils/tokens'
 
 // ─── Context injection (CC's prependUserContext pattern) ──────────────────────
 // Wraps userContext as a <system-reminder> block prepended to messages.
@@ -277,6 +279,23 @@ export async function runQuery(
     let streamError: string | null = null
     let stopReasonThisRound = 'end_turn'
     let executor = new StreamingToolExecutor(STREAMING_SAFE_TOOLS, signal)
+
+    // ── 3a. Blocking limit preemption (CC's isAtBlockingLimit check) ──────────
+    // When DISABLE_AUTO_COMPACT=1, preempt the API call if we're clearly over limit.
+    // When autocompact is enabled, let the API call fail → reactiveCompact handles it.
+    if (process.env.DISABLE_AUTO_COMPACT === '1' && rounds === 1) {
+      const estimatedTokens = roughTokenCountEstimationForMessages(workingMessages)
+      const checkUsage = totalUsage.inputTokens > 0
+        ? totalUsage
+        : { inputTokens: estimatedTokens, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0 }
+      const warningState = calculateTokenWarningState(checkUsage, modelName)
+      if (warningState.level === 'blocked') {
+        streamError = '上下文窗口已满。请使用 /compact 压缩对话，或开始新会话。'
+        callbacks.onError?.(streamError)
+        finalStopReason = 'blocking_limit'
+        break
+      }
+    }
 
     // ── 3. Stream with retry ───────────────────────────────────────────────────
     try {
