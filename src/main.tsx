@@ -15,6 +15,28 @@ import { loadLastSession } from './session/resume'
 import { initFileHistory } from './utils/fileHistory'
 import { isCoordinatorMode, getCoordinatorSystemPrompt } from './coordinator/coordinatorMode'
 
+// ─── Terminal cursor restoration on exit (CC's resetCursor pattern) ───────────
+// If the process exits while the cursor is hidden (Ink does this), the terminal
+// is left broken. Always restore on exit — idempotent and fast.
+const SHOW_CURSOR = '\x1b[?25h'
+function resetCursor(): void {
+  const term = process.stderr.isTTY ? process.stderr : process.stdout.isTTY ? process.stdout : undefined
+  term?.write(SHOW_CURSOR)
+}
+process.on('exit', resetCursor)
+
+// ─── Windows: prevent current-dir PATH injection (CC's security fix) ─────────
+if (process.platform === 'win32') {
+  process.env.NoDefaultCurrentDirectoryInExePath = '1'
+}
+
+// ─── Unhandled promise rejection → stderr (non-fatal, surface for debugging) ──
+process.on('unhandledRejection', (reason) => {
+  if (process.env.QILING_DEBUG === '1') {
+    process.stderr.write(`[unhandledRejection] ${reason instanceof Error ? reason.stack : String(reason)}\n`)
+  }
+})
+
 const VERSION = '0.3.0'
 
 const program = new Command()
@@ -22,6 +44,7 @@ const program = new Command()
 program
   .name('qiling')
   .description('启灵 (QiLing) — AI Programming Agent for the terminal')
+  .argument('[prompt]', 'Prompt for non-interactive mode (use with -p)', String)
   .version(VERSION, '-v, --version')
   .option('-m, --model <model>', 'AI model to use')
   .option('--provider <provider>', 'AI provider (anthropic, minimax, qwen, doubao, glm, openai, gemini, ollama)')
@@ -38,7 +61,11 @@ program
   .option('--resume [session-id]', 'Resume last session (or specific session by ID)')
   .option('--thinking <tokens>', 'Enable extended thinking with token budget', parseInt)
   .option('--coordinator', 'Enable coordinator mode: orchestrate parallel worker agents')
-  .action(async (options) => {
+  .option('-p, --print', 'Print response and exit (non-interactive, useful for pipes and scripts)')
+  .option('--output-format <format>', 'Output format with -p: "text" (default) or "json"', 'text')
+  .option('--max-turns <n>', 'Maximum number of agent turns (non-interactive mode)', parseInt)
+  .option('--system-prompt <prompt>', 'Override system prompt')
+  .action(async (prompt: string | undefined, options) => {
     const workingDir = options.cwd
       ? (await import('path')).resolve(options.cwd)
       : process.cwd()
@@ -199,6 +226,92 @@ program
       configureAgentTool(provider, permissions, () => tools, systemPrompt)
     })
 
+    // ─── Print mode (-p / --print): headless non-interactive ──────────────
+    //     Mirrors CC's headless path: run query, stream to stdout, exit.
+    //     Usage: qiling -p "your prompt"
+    //            echo "prompt" | qiling -p
+    const isPrint = options.print || (prompt && !process.stdout.isTTY)
+    const finalPrompt = prompt
+      || (isPrint && !process.stdin.isTTY ? await readStdin() : undefined)
+      || (options.systemPrompt ? '' : undefined)
+
+    if (isPrint && finalPrompt !== undefined) {
+      await enrichPromptAsync  // ensure RepoMap is ready
+      const { runQuery } = await import('./query')
+      const { getUserContext, getSystemContext } = await import('./context')
+
+      const [userCtx, sysCtx] = await Promise.all([
+        getUserContext(workingDir).catch(() => ({} as Record<string, string>)),
+        getSystemContext(workingDir).catch(() => ({} as Record<string, string>)),
+      ])
+
+      const startMessages = initialMessages ?? []
+      if (finalPrompt) startMessages.push({ role: 'user', content: finalPrompt })
+
+      const outputFormat = options.outputFormat ?? 'text'
+      const textChunks: string[] = []
+
+      try {
+        const result = await runQuery(
+          startMessages,
+          tools,
+          provider,
+          permissions,
+          {
+            systemPrompt: systemPrompt,
+            maxRounds: options.maxTurns ?? 20,
+            thinkingBudget: settings.thinkingBudget,
+            userContext: userCtx,
+            systemContext: sysCtx,
+          },
+          {
+            onTextDelta: (text) => {
+              if (outputFormat === 'text') process.stdout.write(text)
+              else textChunks.push(text)
+            },
+            onToolStart: (_id, name) => {
+              if (outputFormat === 'text') process.stderr.write(`\n⚡ ${name}…\n`)
+            },
+            onToolComplete: (_id, name, _result, isError) => {
+              if (outputFormat === 'text' && isError) process.stderr.write(`✗ ${name} failed\n`)
+            },
+            onError: (err) => { process.stderr.write(`\n⚠ Error: ${err}\n`) },
+            onRetry: (attempt, total, _err, delay) => {
+              process.stderr.write(`⟳ Retry ${attempt}/${total} (${delay}ms)…\n`)
+            },
+          }
+        )
+
+        if (outputFormat === 'text') {
+          // Text already streamed; add newline if needed
+          if (!textChunks.join('').endsWith('\n') && textChunks.length === 0) {
+            // streaming already done
+          }
+          process.stdout.write('\n')
+        } else if (outputFormat === 'json') {
+          const lastAssistant = [...result.messages].reverse().find(m => m.role === 'assistant')
+          const text = lastAssistant
+            ? typeof lastAssistant.content === 'string'
+              ? lastAssistant.content
+              : (lastAssistant.content as Array<{type: string; text?: string}>)
+                  .filter(b => b.type === 'text').map(b => b.text ?? '').join('')
+            : ''
+          process.stdout.write(JSON.stringify({
+            type: 'result',
+            result: text,
+            stop_reason: result.stopReason,
+            num_turns: result.rounds,
+            usage: result.usage,
+          }) + '\n')
+        }
+
+        process.exit(0)
+      } catch (err) {
+        process.stderr.write(`\n✗ Fatal: ${err instanceof Error ? err.message : String(err)}\n`)
+        process.exit(1)
+      }
+    }
+
     // ─── Launch TUI ───────────────────────────────────────────────────────
     const { waitUntilExit } = render(
       <REPL
@@ -232,7 +345,20 @@ program
     process.exit(0)
   })
 
-// ─── Subcommands ────────────────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+async function readStdin(): Promise<string> {
+  return new Promise((resolve) => {
+    const chunks: Buffer[] = []
+    process.stdin.on('data', (c: Buffer) => chunks.push(c))
+    process.stdin.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8').trim()))
+    process.stdin.on('error', () => resolve(''))
+    // Timeout: if stdin has no data within 50ms, resolve empty (TTY pipe)
+    setTimeout(() => resolve(''), 50)
+  })
+}
+
+// ─── Subcommands ─────────────────────────────────────────────────────────────
 program
   .command('version')
   .description('Show detailed version information')
