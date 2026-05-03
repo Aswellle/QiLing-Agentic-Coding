@@ -18,6 +18,7 @@ import { getBrief } from '../services/brief/store'
 import { readMemories } from '../services/memory/store'
 import { resolveMentions } from '../utils/mentions'
 import { loadAllSkills, formatSkillList } from '../skills/loader'
+import { getUserContext, getSystemContext } from '../context'
 import { loadLastSession, listSessions, formatSessionList } from '../session/resume'
 import { HistoryManager } from '../history/manager'
 import { formatErrorMessage } from '../utils/errorMessages'
@@ -240,6 +241,12 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
     }
 
     try {
+      // Fetch per-session context (git status, date, CLAUDE.md) — memoized
+      const [userCtx, sysCtx] = await Promise.all([
+        getUserContext(workingDir).catch(() => ({} as Record<string, string>)),
+        getSystemContext(workingDir).catch(() => ({} as Record<string, string>)),
+      ])
+
       const result = await runQuery(
         queryMessages,
         queryTools,
@@ -257,6 +264,8 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
           signal: ac.signal,
           hooks: settings.hooks,
           thinkingBudget: settings.thinkingBudget,
+          userContext: userCtx,
+          systemContext: sysCtx,
         },
         {
           onTextDelta: (text) => setStreamingText(prev => prev + text),

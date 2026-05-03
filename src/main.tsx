@@ -217,7 +217,18 @@ program
       }
     )
 
+    // ─── Graceful shutdown (CC's process.once('SIGTERM') pattern) ────────────
+    // SIGTERM: sent by process managers (Docker, systemd, etc.) for clean exit
+    // SIGINT:  sent by Ctrl+C — REPL handles it for abort-vs-exit, but if
+    //          the REPL is not up yet, fall back to normal exit here.
+    const shutdown = () => {
+      process.stderr.write('\n⚡ 收到退出信号，正在保存会话…\n')
+      process.exit(0)
+    }
+    process.once('SIGTERM', shutdown)
+
     await waitUntilExit()
+    process.off('SIGTERM', shutdown)  // clean up if exited normally
     process.exit(0)
   })
 

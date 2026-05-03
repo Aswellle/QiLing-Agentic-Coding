@@ -1,14 +1,20 @@
 /**
  * QiLing query engine — core agentic loop.
  *
- * CC alignment:
+ * CC alignment (upgraded):
  *   ✓ StreamingToolExecutor (tools start during AI streaming)
- *   ✓ max_tokens two-phase recovery (escalate → multi-turn)
+ *   ✓ Transition tracking (prevents infinite recovery loops)
+ *   ✓ max_tokens two-phase recovery (escalate → multi-turn up to 3×)
  *   ✓ reactiveCompact (auto-recover from prompt-too-long)
+ *   ✓ collapse-drain-first before reactive compact (no AI calls)
  *   ✓ autoCompact (threshold-triggered context compression)
  *   ✓ microcompact (per-round tool_result truncation)
- *   ✓ toolUseSummary (Haiku background summaries after tool rounds)
+ *   ✓ contextCollapse (structural fold without AI calls)
+ *   ✓ pendingToolUseSummary pattern (Haiku starts after tools, awaited before next model call)
  *   ✓ tokenBudget (nudge model before context exhaustion)
+ *   ✓ stop hook blocking errors → loop re-entry
+ *   ✓ max_turns attachment message
+ *   ✓ per-turn context injection (getUserContext / getSystemContext)
  *   ✓ AskUserQuestion / EnterPlanMode / ExitPlanMode interaction hooks
  */
 
@@ -23,16 +29,14 @@ import { ENTER_PLAN_MODE_TOOL_NAME } from './tools/EnterPlanModeTool'
 import { EXIT_PLAN_MODE_TOOL_NAME } from './tools/ExitPlanModeTool'
 import { getActiveWorktreeSession } from './services/worktree/store'
 import { StreamingToolExecutor } from './query/StreamingToolExecutor'
-import { microcompact } from './compact/engine'
-import { compactConversation } from './compact/engine'
+import { microcompact, compactConversation } from './compact/engine'
 import { shouldAutoCompact } from './compact/autoCompact'
 import { isPromptTooLong, isMediaSizeError, tryReactiveCompact } from './compact/reactiveCompact'
 import { createBudgetTracker, checkTokenBudget } from './compact/tokenBudget'
 import { generateToolUseSummary, extractToolInfoFromResults } from './services/toolUseSummary/generator'
-import { applyCollapsesIfNeeded } from './services/contextCollapse/index'
+import { applyCollapsesIfNeeded, recoverFromOverflow } from './services/contextCollapse/index'
 
 // ─── Tools safe to run concurrently during AI streaming ──────────────────────
-// These always have permission=allow and no destructive side effects.
 const STREAMING_SAFE_TOOLS = new Set([
   'FileRead', 'Glob', 'Grep', 'RepoMap', 'NotebookRead',
   'WebFetch', 'WebSearch',
@@ -40,6 +44,23 @@ const STREAMING_SAFE_TOOLS = new Set([
   'CronList', 'ListMcpResources', 'ToolSearch',
   'TodoRead',
 ])
+
+// ─── Transition types (CC's query/transitions.ts pattern) ────────────────────
+// Records why the previous iteration continued — prevents infinite loops.
+
+type ContinueReason =
+  | 'next_turn'
+  | 'collapse_drain_retry'
+  | 'reactive_compact_retry'
+  | 'max_output_tokens_escalate'
+  | 'max_output_tokens_recovery'
+  | 'stop_hook_blocking'
+  | 'token_budget_continuation'
+
+interface Transition {
+  reason: ContinueReason
+  attempt?: number
+}
 
 // ─── Interfaces ───────────────────────────────────────────────────────────────
 
@@ -49,11 +70,13 @@ export interface QueryOptions {
   maxRounds?: number
   signal?: AbortSignal
   hooks?: HooksConfig
-  /** Enable StreamingToolExecutor (default: true) */
   enableStreamingTools?: boolean
-  /** Token budget for the whole turn (cross-compact tracking) */
   taskBudgetTokens?: number
   thinkingBudget?: number
+  /** User context to inject each turn (date, memory files etc.) */
+  userContext?: { [k: string]: string }
+  /** System context to inject each turn (git status etc.) */
+  systemContext?: { [k: string]: string }
 }
 
 export interface QueryCallbacks {
@@ -75,8 +98,11 @@ export interface QueryCallbacks {
   onUsageUpdate?: (usage: TokenUsage) => void
   onRetry?: (attempt: number, total: number, error: string, delayMs: number) => void
   onError?: (error: string) => void
-  /** Called when context compression is triggered */
   onCompact?: (reason: 'threshold' | 'reactive' | 'manual', msg: string) => void
+  /** Called with the tool use summary message for display */
+  onToolUseSummary?: (summary: string) => void
+  /** Called when max turns is reached */
+  onMaxTurnsReached?: (maxTurns: number, turnCount: number) => void
 }
 
 export interface QueryResult {
@@ -106,18 +132,20 @@ export async function runQuery(
   let finalStopReason = 'end_turn'
   let rounds = 0
 
-  // max_tokens recovery state (CC Phase 1 + Phase 2)
+  // ── Recovery state (CC's State type fields) ──────────────────────────────────
   let maxTokensRecoveryCount = 0
   const MAX_TOKENS_RECOVERY_LIMIT = 3
   let effectiveMaxTokens = options.maxTokens
-
-  // reactiveCompact: prevent spiral — only attempt once per runQuery call
   let hasAttemptedReactiveCompact = false
-
-  // autoCompact: circuit breaker
   let autoCompactFailures = 0
+  let lastTransition: Transition | undefined = undefined
+  let stopHookActive = false
 
-  // tokenBudget: optional cross-round tracking
+  // ── Cross-turn pending tool summary (CC's pendingToolUseSummary pattern) ─────
+  // Haiku call starts AFTER tools complete; awaited BEFORE next model call.
+  let pendingToolUseSummary: Promise<string | null> | undefined = undefined
+
+  // ── Token budget ──────────────────────────────────────────────────────────────
   const budgetTracker = options.taskBudgetTokens ? createBudgetTracker() : null
 
   const toolDefinitions = Array.from(tools.values()).map(t => t.toDefinition())
@@ -129,7 +157,7 @@ export async function runQuery(
 
   const { runHooks } = await import('./hooks/index')
 
-  // ─── Core tool runner (used by StreamingToolExecutor) ──────────────────────
+  // ── Core tool runner ──────────────────────────────────────────────────────────
   const makeCoreRunner = (toolUse: ToolUseContent) =>
     async (id: string, name: string, input: unknown) => {
       const tool = tools.get(name)
@@ -160,16 +188,28 @@ export async function runQuery(
       }
     }
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────────
   while (rounds < maxRounds) {
     if (signal?.aborted) { finalStopReason = 'aborted'; break }
 
-    // ── 1. AutoCompact: threshold check before each iteration ─────────────
-    //    Mirrors CC: fires when token usage >= (context_window - 13k buffer)
-    if (
-      rounds > 0 &&
-      shouldAutoCompact(totalUsage, modelName, autoCompactFailures)
-    ) {
+    // ── 0. Await pending tool summary from PREVIOUS round ─────────────────────
+    //    CC pattern: summary starts after tools, awaited at top of NEXT round
+    //    so the Haiku call overlaps with the model's inter-turn latency.
+    if (pendingToolUseSummary !== undefined) {
+      const summary = await pendingToolUseSummary
+      pendingToolUseSummary = undefined
+      if (summary) {
+        callbacks.onToolUseSummary?.(summary)
+        // Inject summary as a context message so the model knows what happened
+        workingMessages.push({
+          role: 'user',
+          content: `[Tool summary] ${summary}`,
+        })
+      }
+    }
+
+    // ── 1. AutoCompact: threshold check before each iteration ─────────────────
+    if (rounds > 0 && shouldAutoCompact(totalUsage, modelName, autoCompactFailures)) {
       const reason = '自动压缩：上下文接近上限'
       callbacks.onCompact?.('threshold', reason)
       try {
@@ -182,13 +222,10 @@ export async function runQuery(
         autoCompactFailures = 0
       } catch {
         autoCompactFailures++
-        // Continue anyway — better to try than to crash
       }
     }
 
-    // ── 2a. ContextCollapse: fold old tool rounds into summary text ────────
-    //    Cheaper than autoCompact (no AI calls) — collapses rounds beyond
-    //    KEEP_FULL_ROUNDS threshold. Mirrors CC's contextCollapse service.
+    // ── 2a. ContextCollapse: fold old tool rounds (no AI calls) ───────────────
     if (rounds > 1) {
       const collapsed = applyCollapsesIfNeeded(workingMessages)
       if (collapsed !== workingMessages) {
@@ -197,9 +234,7 @@ export async function runQuery(
       }
     }
 
-    // ── 2b. Microcompact: truncate verbose old tool_results ────────────────
-    //    Runs after collapse (complementary — collapse removes structure,
-    //    microcompact truncates remaining verbose content).
+    // ── 2b. Microcompact: truncate verbose old tool_results ────────────────────
     if (rounds > 0) {
       const compacted = microcompact(workingMessages)
       workingMessages.length = 0
@@ -208,7 +243,7 @@ export async function runQuery(
 
     rounds++
 
-    // ── Per-round state ────────────────────────────────────────────────────
+    // ── Per-round state ────────────────────────────────────────────────────────
     const pendingToolUses: ToolUseContent[] = []
     const streamingStarted = new Set<string>()
     let currentAssistantText = ''
@@ -217,7 +252,7 @@ export async function runQuery(
     let stopReasonThisRound = 'end_turn'
     let executor = new StreamingToolExecutor(STREAMING_SAFE_TOOLS, signal)
 
-    // ── 3. Stream with retry ───────────────────────────────────────────────
+    // ── 3. Stream with retry ───────────────────────────────────────────────────
     try {
       await withRetry(async () => {
         pendingToolUses.length = 0
@@ -266,7 +301,6 @@ export async function runQuery(
                 try { tu.input = JSON.parse(raw) as Record<string, unknown> }
                 catch { tu.input = { _raw: raw } }
 
-                // ── STREAMING EXECUTION: start safe tools immediately ──────
                 if (streamingEnabled && STREAMING_SAFE_TOOLS.has(tu.name) && !signal?.aborted) {
                   const perm = await permissions.check(tu.name, tu.input)
                   if (perm.type === 'allow') {
@@ -300,14 +334,28 @@ export async function runQuery(
       executor.discard()
       const errMsg = error instanceof Error ? error.message : String(error)
 
-      if ((error instanceof DOMException && error.name === 'AbortError') ||
-          errMsg === 'Aborted') {
+      if ((error instanceof DOMException && error.name === 'AbortError') || errMsg === 'Aborted') {
         finalStopReason = 'aborted'; break
       }
 
-      // ── 4. ReactiveCompact: recover from prompt-too-long ─────────────────
-      //    Mirrors CC: withhold the error, compact, retry the whole round.
+      // ── 4. ReactiveCompact: recover from prompt-too-long ──────────────────
+      //    CC order: collapse-drain first (no AI), then full reactive compact.
       if ((isPromptTooLong(errMsg) || isMediaSizeError(errMsg)) && !hasAttemptedReactiveCompact) {
+        // Step 4a: Try collapse drain first (CC's collapse_drain_retry path)
+        //          Only if we haven't already tried this on the previous iteration.
+        if (!isMediaSizeError(errMsg) && lastTransition?.reason !== 'collapse_drain_retry') {
+          const drained = recoverFromOverflow(workingMessages)
+          if (drained.committed > 0) {
+            callbacks.onCompact?.('reactive', '⟳ 上下文折叠压缩中（无 AI 调用）…')
+            workingMessages.length = 0
+            workingMessages.push(...drained.messages)
+            rounds--
+            lastTransition = { reason: 'collapse_drain_retry' }
+            continue
+          }
+        }
+
+        // Step 4b: Full reactive compact (Haiku summarization)
         const label = isMediaSizeError(errMsg) ? '媒体文件过大' : '上下文过长'
         callbacks.onCompact?.('reactive', `⟳ ${label}，正在自动压缩后重试…`)
 
@@ -325,7 +373,8 @@ export async function runQuery(
           hasAttemptedReactiveCompact = true
           workingMessages.length = 0
           workingMessages.push(...compacted.messages)
-          rounds--  // retry this round with compacted messages
+          rounds--
+          lastTransition = { reason: 'reactive_compact_retry' }
           continue
         }
       }
@@ -337,7 +386,7 @@ export async function runQuery(
 
     if (signal?.aborted) { finalStopReason = 'aborted' }
 
-    // ── 5. Build assistant message ─────────────────────────────────────────
+    // ── 5. Build assistant message ──────────────────────────────────────────────
     const assistantContent: ContentBlock[] = []
     if (currentAssistantText) assistantContent.push({ type: 'text', text: currentAssistantText })
     for (const tu of pendingToolUses) assistantContent.push(tu)
@@ -351,11 +400,12 @@ export async function runQuery(
       })
     }
 
-    // ── 6. max_tokens two-phase recovery (CC exact) ────────────────────────
+    // ── 6. max_tokens two-phase recovery (CC exact) ────────────────────────────
     if (stopReasonThisRound === 'max_tokens') {
-      // Phase 1: first hit → escalate maxTokens silently (no meta message)
+      // Phase 1: silent escalation (no message)
       if (effectiveMaxTokens === undefined || effectiveMaxTokens <= 8_192) {
         effectiveMaxTokens = 16_384
+        lastTransition = { reason: 'max_output_tokens_escalate' }
         continue
       }
       // Phase 2: multi-turn recovery with CC's exact wording
@@ -367,21 +417,44 @@ export async function runQuery(
             'Output token limit hit. Resume directly — no apology, no recap of what you were doing. ' +
             'Pick up mid-thought if that is where the cut happened. Break remaining work into smaller pieces.',
         })
+        lastTransition = { reason: 'max_output_tokens_recovery', attempt: maxTokensRecoveryCount }
         continue
       }
       finalStopReason = 'max_tokens_exhausted'
       break
     }
     maxTokensRecoveryCount = 0
+    effectiveMaxTokens = options.maxTokens  // reset escalation after successful turn
 
-    if (pendingToolUses.length === 0 || signal?.aborted || streamError) break
+    if (pendingToolUses.length === 0 || signal?.aborted || streamError) {
+      // No tool calls — this is the end of the agent turn.
+      // Check stop hooks before exiting.
+      if (options.hooks?.Stop && !streamError) {
+        const stopResult = await runStopHooksWithBlocking(runHooks, options.hooks, context, workingMessages)
+        if (stopResult.preventContinuation) {
+          finalStopReason = 'stop_hook_prevented'
+          break
+        }
+        if (stopResult.blockingErrors.length > 0 && !stopHookActive) {
+          // Re-enter the loop with blocking error messages (CC's stop_hook_blocking)
+          stopHookActive = true
+          for (const errMsg of stopResult.blockingErrors) {
+            workingMessages.push({ role: 'user', content: errMsg })
+          }
+          lastTransition = { reason: 'stop_hook_blocking' }
+          continue
+        }
+      }
+      stopHookActive = false
+      break
+    }
 
-    // ── 7. Permission phase for non-streaming tools ────────────────────────
+    // ── 7. Permission phase for non-streaming tools ────────────────────────────
     const toolResults: ToolResultContent[] = []
 
     for (const toolUse of pendingToolUses) {
       if (signal?.aborted) break
-      if (streamingStarted.has(toolUse.id)) continue  // already running
+      if (streamingStarted.has(toolUse.id)) continue
 
       const tool = tools.get(toolUse.name)
       if (!tool) {
@@ -426,7 +499,6 @@ export async function runQuery(
         if (dec.remember !== 'once') permissions.recordDecision(toolUse.name, '*', 'allow', dec.remember)
       }
 
-      // Special interaction tools: mutate input before adding to executor
       let executionInput = toolUse.input
 
       if (toolUse.name === ASK_USER_QUESTION_TOOL_NAME && callbacks.onAskUserQuestion) {
@@ -454,7 +526,7 @@ export async function runQuery(
       executor.addTool(toolUse.id, toolUse.name, capturedInput, makeCoreRunner(capturedToolUse))
     }
 
-    // ── 8. Collect results (StreamingToolExecutor) ─────────────────────────
+    // ── 8. Collect results ─────────────────────────────────────────────────────
     for await (const result of executor.getRemainingResults()) {
       toolResults.push(result)
     }
@@ -463,11 +535,10 @@ export async function runQuery(
       workingMessages.push({ role: 'user', content: toolResults })
     }
 
-    // ── 9. ToolUseSummary: background Haiku summary of this tool round ─────
-    //    Non-blocking — fires and forgets; result stored as metadata.
-    //    Mirrors CC's pendingToolUseSummary pattern.
+    // ── 9. Start tool summary for NEXT round (CC's pendingToolUseSummary) ─────
+    //    Does NOT await here — awaited at top of next round while model streams.
     if (pendingToolUses.length > 0 && toolResults.length > 0) {
-      void generateToolUseSummary({
+      pendingToolUseSummary = generateToolUseSummary({
         tools: extractToolInfoFromResults(
           pendingToolUses.map(tu => ({ id: tu.id, name: tu.name, input: tu.input })),
           toolResults
@@ -475,28 +546,36 @@ export async function runQuery(
         lastAssistantText: currentAssistantText.slice(0, 200),
         provider,
         signal,
-      }).catch(() => null)  // truly non-blocking
+      }).catch(() => null)
     }
 
-    // ── 10. TokenBudget: nudge model before exhaustion ─────────────────────
-    //    Mirrors CC's checkTokenBudget() / TOKEN_BUDGET feature.
+    // ── 10. Max turns check ────────────────────────────────────────────────────
+    //    CC yields an attachment message before exiting.
+    const nextRound = rounds + 1
+    if (nextRound > maxRounds) {
+      callbacks.onMaxTurnsReached?.(maxRounds, nextRound)
+      workingMessages.push({
+        role: 'assistant',
+        content: `[max_turns_reached] Reached maximum turns limit (${maxRounds}). Stopping.`,
+      })
+      finalStopReason = 'max_turns'
+      break
+    }
+
+    // ── 11. TokenBudget: nudge model before exhaustion ─────────────────────────
     if (budgetTracker && options.taskBudgetTokens) {
       const turnTokens = totalUsage.inputTokens + totalUsage.outputTokens
       const decision = checkTokenBudget(budgetTracker, options.taskBudgetTokens, turnTokens)
       if (decision.action === 'continue') {
         workingMessages.push({ role: 'user', content: decision.nudgeMessage })
+        lastTransition = { reason: 'token_budget_continuation' }
       } else if (decision.completionEvent) {
         finalStopReason = `budget_${decision.completionEvent.reason}`
         break
       }
     }
-  }
 
-  // ── Stop hook ──────────────────────────────────────────────────────────────
-  if (options.hooks?.Stop) {
-    await runHooks('Stop', options.hooks, {
-      toolName: '', input: {}, workingDir: context.workingDir, sessionId: context.sessionId,
-    })
+    lastTransition = { reason: 'next_turn' }
   }
 
   return { messages: workingMessages, usage: totalUsage, stopReason: finalStopReason, rounds }
@@ -511,4 +590,25 @@ function addUsage(a: TokenUsage, b: TokenUsage): TokenUsage {
     cacheReadTokens: a.cacheReadTokens + b.cacheReadTokens,
     cacheWriteTokens: a.cacheWriteTokens + b.cacheWriteTokens,
   }
+}
+
+/**
+ * Run Stop hooks and return structured result.
+ * Currently QiLing's hooks return void — the infrastructure exists for
+ * future blocking error re-entry support (CC's stop_hook_blocking pattern).
+ */
+async function runStopHooksWithBlocking(
+  runHooks: (event: 'PreToolUse' | 'PostToolUse' | 'Stop', hooks: HooksConfig | undefined, ctx: { toolName: string; input: Record<string, unknown>; workingDir: string; sessionId: string }) => Promise<void>,
+  hooks: HooksConfig,
+  context: ToolContext,
+  _messages: Message[],
+): Promise<{ preventContinuation: boolean; blockingErrors: string[] }> {
+  try {
+    await runHooks('Stop', hooks, {
+      toolName: '', input: {}, workingDir: context.workingDir, sessionId: context.sessionId,
+    })
+  } catch {
+    // Hook errors are non-fatal
+  }
+  return { preventContinuation: false, blockingErrors: [] }
 }
