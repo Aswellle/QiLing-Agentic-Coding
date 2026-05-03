@@ -118,6 +118,13 @@ export const BUILT_IN_AGENTS: BuiltInAgent[] = [
     disallowedTools: ['Agent', 'ExitPlanMode', ...WRITE_TOOLS],
   },
   {
+    agentType: 'worker',
+    whenToUse:
+      'Autonomous worker agent for coordinator mode. Used by a Coordinator to research, implement, or verify specific tasks. Has full tool access and operates autonomously. Use in coordinator mode (--coordinator) for parallel work across multiple workers.',
+    systemPrompt: `You are an autonomous worker agent for QiLing. Execute the task given to you completely and efficiently. Report your findings or results when done — be specific about file paths, line numbers, and outcomes. If you modify files, commit the changes and report the commit hash.`,
+    disallowedTools: [],
+  },
+  {
     agentType: 'general-purpose',
     whenToUse:
       'General-purpose agent for researching complex questions, searching for code, and executing multi-step tasks. When you are searching for a keyword or file and are not confident that you will find the right match in the first few tries use this agent to perform the search for you.',

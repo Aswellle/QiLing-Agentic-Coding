@@ -13,6 +13,7 @@ import { loadAllMcpTools } from './tools/McpTool'
 import { checkForUpdates } from './utils/updater'
 import { loadLastSession } from './session/resume'
 import { initFileHistory } from './utils/fileHistory'
+import { isCoordinatorMode, getCoordinatorSystemPrompt } from './coordinator/coordinatorMode'
 
 const VERSION = '0.3.0'
 
@@ -36,6 +37,7 @@ program
   .option('--no-repo-map', 'Skip automatic repository map injection into system prompt')
   .option('--resume [session-id]', 'Resume last session (or specific session by ID)')
   .option('--thinking <tokens>', 'Enable extended thinking with token budget', parseInt)
+  .option('--coordinator', 'Enable coordinator mode: orchestrate parallel worker agents')
   .action(async (options) => {
     const workingDir = options.cwd
       ? (await import('path')).resolve(options.cwd)
@@ -133,14 +135,26 @@ program
       if (failed.length > 0) process.stderr.write(`⚠ 插件加载失败: ${failed.map(p => p.id).join(', ')}\n`)
     }
 
+    // ─── Coordinator mode override ────────────────────────────────────────
+    if (options.coordinator) process.env.QILING_COORDINATOR_MODE = '1'
+    const coordinatorActive = isCoordinatorMode()
+    if (coordinatorActive) process.stderr.write('⚡ 协调器模式已启用 (Coordinator Mode)\n')
+
     // Sync prompt first (no RepoMap) so TUI appears fast
     const { buildSystemPrompt } = await import('./utils/systemPrompt')
-    const systemPromptSync = buildSystemPrompt(workingDir, settings)
+    const baseSystemPrompt = buildSystemPrompt(workingDir, settings)
+    const systemPromptSync = coordinatorActive
+      ? getCoordinatorSystemPrompt() + '\n\n---\n\n' + baseSystemPrompt
+      : baseSystemPrompt
 
     // Async enrich: RepoMap + full memory scan (fires after TUI is visible)
     let systemPrompt = systemPromptSync
     const enrichPromptAsync = options.repoMap !== false
-      ? buildSystemPromptAsync(workingDir, settings).then(p => { systemPrompt = p }).catch(() => {})
+      ? buildSystemPromptAsync(workingDir, settings).then(p => {
+          systemPrompt = coordinatorActive
+            ? getCoordinatorSystemPrompt() + '\n\n---\n\n' + p
+            : p
+        }).catch(() => {})
       : Promise.resolve()
 
     // ─── Session resume ────────────────────────────────────────────────────
