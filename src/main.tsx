@@ -68,6 +68,8 @@ program
   .option('--system-prompt <prompt>', 'Override system prompt')
   .option('--allowed-tools <tools...>', 'Comma or space-separated list of tools to allow (e.g. "Bash FileRead Glob")')
   .option('--disallowed-tools <tools...>', 'Comma or space-separated list of tools to deny (e.g. "Bash FileWrite")')
+  .option('--settings <file-or-json>', 'Path to a settings JSON file, or a JSON string to load additional settings from')
+  .option('--max-budget-usd <amount>', 'Maximum USD cost before stopping (print mode); formats: 0.50, 1.00', parseFloat)
   .action(async (prompt: string | undefined, options) => {
     const workingDir = options.cwd
       ? (await import('path')).resolve(options.cwd)
@@ -89,12 +91,29 @@ program
     }
 
     // ─── Settings ─────────────────────────────────────────────────────────
+    // --settings: load additional settings from JSON file or JSON string
+    let settingsOverrides: Record<string, unknown> = {}
+    if (options.settings) {
+      try {
+        const s = options.settings.trim()
+        if (s.startsWith('{')) {
+          settingsOverrides = JSON.parse(s)
+        } else {
+          const content = require('fs').readFileSync(s, 'utf-8')
+          settingsOverrides = JSON.parse(content)
+        }
+      } catch (e) {
+        process.stderr.write(`⚠ --settings 解析失败: ${e instanceof Error ? e.message : e}\n`)
+      }
+    }
+
     const settings = loadSettings(workingDir, {
       ...(options.model    && { model: options.model }),
       ...(options.provider && { provider: options.provider }),
       ...(options.apiKey   && { apiKey: options.apiKey }),
       ...(options.endpoint && { endpoint: options.endpoint }),
       ...(options.maxTokens && { maxTokens: options.maxTokens }),
+      ...settingsOverrides,
     })
 
     if (options.debug)    process.env.QILING_DEBUG = '1'
@@ -327,6 +346,16 @@ program
             onError: (err) => { process.stderr.write(`\n⚠ Error: ${err}\n`) },
             onRetry: (attempt, total, _err, delay) => {
               process.stderr.write(`⟳ Retry ${attempt}/${total} (${delay}ms)…\n`)
+            },
+            onUsageUpdate: (usage) => {
+              // --max-budget-usd: warn when cost limit exceeded (print mode)
+              if (options.maxBudgetUsd && options.maxBudgetUsd > 0) {
+                const { calculateCost } = require('./utils/tokens') as typeof import('./utils/tokens')
+                const cost = calculateCost(usage, settings.model)
+                if (cost.totalUSD >= options.maxBudgetUsd) {
+                  process.stderr.write(`\n⚠ 已达到预算上限 $${options.maxBudgetUsd.toFixed(2)} (实际: $${cost.totalUSD.toFixed(4)})\n`)
+                }
+              }
             },
           }
         )
