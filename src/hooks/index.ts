@@ -24,9 +24,20 @@ export interface HookCommand {
   timeout?: number  // ms, default 10000
 }
 
+/** HTTP hook — calls a URL with tool/result context as JSON body */
+export interface HookHttp {
+  type: 'http'
+  url: string
+  method?: 'GET' | 'POST' | 'PUT'  // default POST
+  headers?: Record<string, string>
+  timeout?: number  // ms, default 10000
+}
+
+export type Hook = HookCommand | HookHttp
+
 export interface HookEntry {
   matcher?: string          // 正则匹配工具名，不填则匹配所有
-  hooks: HookCommand[]
+  hooks: Hook[]
 }
 
 export interface HooksConfig {
@@ -129,7 +140,40 @@ export async function runHooks(
     for (const hook of entry.hooks) {
       if (hook.type === 'command') {
         await runHookCommand(hook, env, ctx.workingDir)
+      } else if (hook.type === 'http') {
+        await runHookHttp(hook, ctx)
       }
     }
+  }
+}
+
+/** HTTP hook execution — mirrors CC's execHttpHook.ts (simplified, no SSRF guard) */
+async function runHookHttp(hook: HookHttp, ctx: HookContext): Promise<void> {
+  try {
+    const body = {
+      event: ctx.toolName ? 'tool' : 'stop',
+      tool_name: ctx.toolName,
+      tool_input: ctx.input,
+      working_dir: ctx.workingDir,
+      session_id: ctx.sessionId,
+      ...(ctx.result && { result: ctx.result }),
+    }
+
+    const response = await fetch(hook.url, {
+      method: hook.method ?? 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'qiling-hook/1.0',
+        ...hook.headers,
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(hook.timeout ?? 10_000),
+    })
+
+    if (!response.ok && process.env.QILING_DEBUG === '1') {
+      process.stderr.write(`[hook:http] ${hook.url} returned ${response.status}\n`)
+    }
+  } catch {
+    // HTTP hooks are non-fatal
   }
 }
