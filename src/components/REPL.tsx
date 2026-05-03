@@ -88,6 +88,9 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
   const [scrollOffset, setScrollOffset] = useState(0)  // 0 = bottom, N = N messages up
   // Background session tracker (re-render on changes)
   const [bgSessionCount, setBgSessionCount] = useState(0)
+  // Vim mode state for StatusBar display
+  const [vimDisplayMode, setVimDisplayMode] = useState<'INSERT' | 'NORMAL'>('INSERT')
+  const [pendingVimOp, setPendingVimOp] = useState<string | undefined>(undefined)
   // Update availability notification
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null)
 
@@ -709,6 +712,9 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
         mode={appMode}
         totalCostUSD={totalCostUSD}
         bgSessionCount={bgSessionCount}
+        vimMode={settings.vimMode}
+        vimDisplayMode={vimDisplayMode}
+        pendingVimOp={pendingVimOp}
       />
 
       <PromptInput
@@ -716,6 +722,10 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
         isDisabled={isStreaming || pendingPermission !== null || pendingUserQuestion !== null || pendingPlanApproval !== null}
         commands={SLASH_COMMANDS}
         vimMode={settings.vimMode}
+        onVimModeChange={(mode, op) => {
+          setVimDisplayMode(mode)
+          setPendingVimOp(op)
+        }}
       />
     </Box>
   )

@@ -25,6 +25,7 @@ interface Props {
   commands: SlashCommand[]
   placeholder?: string
   vimMode?: boolean
+  onVimModeChange?: (mode: VimMode, pendingOp?: string) => void
 }
 
 // Session-level input history
@@ -34,7 +35,7 @@ let historyIndex = -1
 // Terminal width for Cursor line wrapping
 const COLUMNS = process.stdout.columns ?? 120
 
-export function PromptInput({ onSubmit, isDisabled, commands, placeholder, vimMode = false }: Props) {
+export function PromptInput({ onSubmit, isDisabled, commands, placeholder, vimMode = false, onVimModeChange }: Props) {
   const [value, setValue] = useState('')
   const [showCommands, setShowCommands] = useState(false)
   const [commandFilter, setCommandFilter] = useState('')
@@ -60,6 +61,7 @@ export function PromptInput({ onSubmit, isDisabled, commands, placeholder, vimMo
     if (offset !== undefined) setCursorOffset(offset)
     vimStateRef.current = { mode: 'INSERT', insertedText: '' }
     setVimDisplayMode('INSERT')
+    onVimModeChange?.('INSERT')
   }
 
   function switchToNormal(): void {
@@ -67,10 +69,10 @@ export function PromptInput({ onSubmit, isDisabled, commands, placeholder, vimMo
     if (vs.mode === 'INSERT' && vs.insertedText) {
       persistentRef.current.lastChange = { type: 'insert', text: vs.insertedText }
     }
-    // Vim: move cursor back 1 on ESC (unless at start)
     setCursorOffset(prev => Math.max(0, prev - (prev > 0 ? 1 : 0)))
     vimStateRef.current = { mode: 'NORMAL', command: { type: 'idle' } }
     setVimDisplayMode('NORMAL')
+    onVimModeChange?.('NORMAL')
   }
 
   function replayLastChange(curValue: string, curOffset: number, onUpdate: (v: string, o: number) => void): void {
@@ -221,8 +223,12 @@ export function PromptInput({ onSubmit, isDisabled, commands, placeholder, vimMo
             setCursorOffset(Math.min(newOffset, newValue.length === 0 ? 0 : maxNormal))
             if (result.next) {
               vimStateRef.current = { mode: 'NORMAL', command: result.next }
+              // Notify StatusBar of pending operator (shows [N:d], [N:c] etc.)
+              const pendingOp = result.next.type === 'operator' ? result.next.op[0] : undefined
+              onVimModeChange?.('NORMAL', pendingOp)
             } else if (result.execute) {
               vimStateRef.current = { mode: 'NORMAL', command: { type: 'idle' } }
+              onVimModeChange?.('NORMAL')
             }
           } else {
             // Entered insert mode
