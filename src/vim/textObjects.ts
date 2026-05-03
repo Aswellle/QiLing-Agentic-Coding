@@ -1,103 +1,96 @@
-// Vim text objects — ported from CC's vim/textObjects.ts
+/**
+ * Vim Text Object Finding — ported from CC's vim/textObjects.ts (verbatim except imports)
+ */
 
-import type { TextObjScope } from './types'
+import { isVimPunctuation, isVimWhitespace, isVimWordChar } from '../utils/Cursor'
+import { getGraphemeSegmenter } from '../utils/intl'
 
-export interface TextObjectRange {
-  start: number
-  end: number  // exclusive
+export type TextObjectRange = { start: number; end: number } | null
+
+const PAIRS: Record<string, [string, string]> = {
+  '(': ['(', ')'], ')': ['(', ')'], b: ['(', ')'],
+  '[': ['[', ']'], ']': ['[', ']'],
+  '{': ['{', '}'], '}': ['{', '}'], B: ['{', '}'],
+  '<': ['<', '>'], '>': ['<', '>'],
+  '"': ['"', '"'], "'": ["'", "'"], '`': ['`', '`'],
 }
 
-const PAIRS: Record<string, string> = {
-  '(': ')', ')': '(',
-  '[': ']', ']': '[',
-  '{': '}', '}': '{',
-  '<': '>', '>': '<',
-}
-
-const QUOTES = new Set(['"', "'", '`'])
-
-export function findTextObject(
-  type: string,
-  scope: TextObjScope,
-  text: string,
-  pos: number
-): TextObjectRange | null {
-  if (type === 'w' || type === 'W') return findWordObject(type === 'W', scope, text, pos)
-  if (QUOTES.has(type)) return findQuoteObject(type, scope, text, pos)
-  if (PAIRS[type] !== undefined || type === 'B') return findBracketObject(type, scope, text, pos)
+export function findTextObject(text: string, offset: number, objectType: string, isInner: boolean): TextObjectRange {
+  if (objectType === 'w') return findWordObject(text, offset, isInner, isVimWordChar)
+  if (objectType === 'W') return findWordObject(text, offset, isInner, ch => !isVimWhitespace(ch))
+  const pair = PAIRS[objectType]
+  if (pair) {
+    const [open, close] = pair
+    return open === close
+      ? findQuoteObject(text, offset, open, isInner)
+      : findBracketObject(text, offset, open, close, isInner)
+  }
   return null
 }
 
-function findWordObject(WORD: boolean, scope: TextObjScope, text: string, pos: number): TextObjectRange | null {
-  const isWord = WORD ? (c: string) => /\S/.test(c) : (c: string) => /[a-zA-Z0-9_]/.test(c)
-
-  // Expand left
-  let start = pos
-  while (start > 0 && isWord(text[start - 1] ?? '')) start--
-
-  // Expand right
-  let end = pos
-  while (end < text.length && isWord(text[end] ?? '')) end++
-
-  if (start === end) return null  // Not on a word
-
-  if (scope === 'around') {
-    // Include trailing space
-    while (end < text.length && text[end] === ' ') end++
-    // If no trailing space, include leading space
-    if (end === pos + 1) {
-      while (start > 0 && text[start - 1] === ' ') start--
-    }
+function findWordObject(text: string, offset: number, isInner: boolean, isWordChar: (ch: string) => boolean): TextObjectRange {
+  const graphemes: Array<{ segment: string; index: number }> = []
+  for (const { segment, index } of getGraphemeSegmenter().segment(text)) graphemes.push({ segment, index })
+  let graphemeIdx = graphemes.length - 1
+  for (let i = 0; i < graphemes.length; i++) {
+    const g = graphemes[i]!
+    const nextStart = i + 1 < graphemes.length ? graphemes[i + 1]!.index : text.length
+    if (offset >= g.index && offset < nextStart) { graphemeIdx = i; break }
   }
-
-  return { start, end }
+  const graphemeAt = (idx: number): string => graphemes[idx]?.segment ?? ''
+  const offsetAt = (idx: number): number => idx < graphemes.length ? graphemes[idx]!.index : text.length
+  const isWs = (idx: number) => isVimWhitespace(graphemeAt(idx))
+  const isWord = (idx: number) => isWordChar(graphemeAt(idx))
+  const isPunct = (idx: number) => isVimPunctuation(graphemeAt(idx))
+  let startIdx = graphemeIdx, endIdx = graphemeIdx
+  if (isWord(graphemeIdx)) {
+    while (startIdx > 0 && isWord(startIdx - 1)) startIdx--
+    while (endIdx < graphemes.length && isWord(endIdx)) endIdx++
+  } else if (isWs(graphemeIdx)) {
+    while (startIdx > 0 && isWs(startIdx - 1)) startIdx--
+    while (endIdx < graphemes.length && isWs(endIdx)) endIdx++
+    return { start: offsetAt(startIdx), end: offsetAt(endIdx) }
+  } else if (isPunct(graphemeIdx)) {
+    while (startIdx > 0 && isPunct(startIdx - 1)) startIdx--
+    while (endIdx < graphemes.length && isPunct(endIdx)) endIdx++
+  }
+  if (!isInner) {
+    if (endIdx < graphemes.length && isWs(endIdx)) { while (endIdx < graphemes.length && isWs(endIdx)) endIdx++ }
+    else if (startIdx > 0 && isWs(startIdx - 1)) { while (startIdx > 0 && isWs(startIdx - 1)) startIdx-- }
+  }
+  return { start: offsetAt(startIdx), end: offsetAt(endIdx) }
 }
 
-function findQuoteObject(quote: string, scope: TextObjScope, text: string, pos: number): TextObjectRange | null {
-  // Find enclosing quotes on the same line
-  let left = pos - 1
-  while (left >= 0 && text[left] !== quote) left--
-  let right = pos + 1 <= text.length ? pos : pos + 1
-  while (right < text.length && text[right] !== quote) right++
-
-  if (left < 0 || right >= text.length) return null
-
-  if (scope === 'inner') return { start: left + 1, end: right }
-  return { start: left, end: right + 1 }
+function findQuoteObject(text: string, offset: number, quote: string, isInner: boolean): TextObjectRange {
+  const lineStart = text.lastIndexOf('\n', offset - 1) + 1
+  const lineEnd = text.indexOf('\n', offset)
+  const effectiveEnd = lineEnd === -1 ? text.length : lineEnd
+  const line = text.slice(lineStart, effectiveEnd)
+  const posInLine = offset - lineStart
+  const positions: number[] = []
+  for (let i = 0; i < line.length; i++) if (line[i] === quote) positions.push(i)
+  for (let i = 0; i < positions.length - 1; i += 2) {
+    const qs = positions[i]!, qe = positions[i + 1]!
+    if (qs <= posInLine && posInLine <= qe) {
+      return isInner ? { start: lineStart + qs + 1, end: lineStart + qe } : { start: lineStart + qs, end: lineStart + qe + 1 }
+    }
+  }
+  return null
 }
 
-function findBracketObject(type: string, scope: TextObjScope, text: string, pos: number): TextObjectRange | null {
-  const open = type === 'B' ? '{' : (PAIRS[type] === '}' || type === '{' ? '{' : (PAIRS[type] !== undefined ? type : type))
-  const close = type === 'B' ? '}' : (PAIRS[open] ?? open)
-  const actualOpen = PAIRS[open] === open ? open : (Object.keys(PAIRS).find(k => PAIRS[k] === close && k !== close) ?? open)
-  const actualClose = PAIRS[actualOpen] ?? close
-
-  // Search backward for opening bracket
-  let depth = 0
-  let left = pos
-  while (left >= 0) {
-    if (text[left] === actualClose) depth++
-    else if (text[left] === actualOpen) {
-      if (depth === 0) break
-      depth--
-    }
-    left--
+function findBracketObject(text: string, offset: number, open: string, close: string, isInner: boolean): TextObjectRange {
+  let depth = 0, start = -1
+  for (let i = offset; i >= 0; i--) {
+    if (text[i] === close && i !== offset) depth++
+    else if (text[i] === open) { if (depth === 0) { start = i; break }; depth-- }
   }
-  if (left < 0) return null
-
-  // Search forward for closing bracket
+  if (start === -1) return null
   depth = 0
-  let right = pos
-  while (right < text.length) {
-    if (text[right] === actualOpen) depth++
-    else if (text[right] === actualClose) {
-      if (depth === 0) break
-      depth--
-    }
-    right++
+  let end = -1
+  for (let i = start + 1; i < text.length; i++) {
+    if (text[i] === open) depth++
+    else if (text[i] === close) { if (depth === 0) { end = i; break }; depth-- }
   }
-  if (right >= text.length) return null
-
-  if (scope === 'inner') return { start: left + 1, end: right }
-  return { start: left, end: right + 1 }
+  if (end === -1) return null
+  return isInner ? { start: start + 1, end } : { start, end: end + 1 }
 }

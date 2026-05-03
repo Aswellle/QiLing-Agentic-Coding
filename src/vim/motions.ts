@@ -1,118 +1,42 @@
-// Vim cursor motions — ported from CC's vim/motions.ts
+/**
+ * Vim Motion Functions — ported from CC's vim/motions.ts (verbatim)
+ * Depends on CC's Cursor (now at src/utils/Cursor.ts)
+ */
 
-/** Count characters that form a "word" in vim's sense */
-function isWordChar(ch: string): boolean {
-  return /[a-zA-Z0-9_]/.test(ch)
-}
-function isWORDChar(ch: string): boolean {
-  return /\S/.test(ch)  // WORD = any non-whitespace
-}
+import type { Cursor } from '../utils/Cursor'
 
-/** Apply a single motion step to an offset, returning new offset */
-export function applyMotion(
-  motion: string,
-  text: string,
-  offset: number,
-  count = 1
-): number {
-  let pos = offset
+/** Resolve a motion to a target cursor position (count-aware). */
+export function resolveMotion(key: string, cursor: Cursor, count: number): Cursor {
+  let result = cursor
   for (let i = 0; i < count; i++) {
-    pos = applyOneMotion(motion, text, pos)
+    const next = applySingleMotion(key, result)
+    if (next.equals(result)) break
+    result = next
   }
-  return pos
+  return result
 }
 
-function applyOneMotion(motion: string, text: string, pos: number): number {
-  switch (motion) {
-    case 'h': return Math.max(0, pos - 1)
-    case 'l': return Math.min(text.length, pos + 1)
-    case '0': return 0
-    case '^': {
-      const i = text.search(/\S/)
-      return i === -1 ? 0 : i
-    }
-    case '$': return text.length
-    case 'w': return wordForward(text, pos, isWordChar)
-    case 'W': return wordForward(text, pos, isWORDChar)
-    case 'b': return wordBackward(text, pos, isWordChar)
-    case 'B': return wordBackward(text, pos, isWORDChar)
-    case 'e': return wordEnd(text, pos, isWordChar)
-    case 'E': return wordEnd(text, pos, isWORDChar)
-    default: return pos
+function applySingleMotion(key: string, cursor: Cursor): Cursor {
+  switch (key) {
+    case 'h': return cursor.left()
+    case 'l': return cursor.right()
+    case 'j': return cursor.downLogicalLine()
+    case 'k': return cursor.upLogicalLine()
+    case 'gj': return cursor.down()
+    case 'gk': return cursor.up()
+    case 'w': return cursor.nextVimWord()
+    case 'b': return cursor.prevVimWord()
+    case 'e': return cursor.endOfVimWord()
+    case 'W': return cursor.nextWORD()
+    case 'B': return cursor.prevWORD()
+    case 'E': return cursor.endOfWORD()
+    case '0': return cursor.startOfLogicalLine()
+    case '^': return cursor.firstNonBlankInLogicalLine()
+    case '$': return cursor.endOfLogicalLine()
+    case 'G': return cursor.startOfLastLine()
+    default: return cursor
   }
 }
 
-function wordForward(text: string, pos: number, isWord: (c: string) => boolean): number {
-  if (pos >= text.length) return text.length
-  let i = pos
-  const atWord = isWord(text[i] ?? '')
-  // Skip current cluster (word or non-word non-space)
-  while (i < text.length && (isWord(text[i] ?? '') === atWord && text[i] !== ' ' && text[i] !== '\t')) i++
-  // Skip whitespace
-  while (i < text.length && (text[i] === ' ' || text[i] === '\t')) i++
-  return i
-}
-
-function wordBackward(text: string, pos: number, isWord: (c: string) => boolean): number {
-  if (pos <= 0) return 0
-  let i = pos - 1
-  // Skip whitespace
-  while (i > 0 && (text[i] === ' ' || text[i] === '\t')) i--
-  const atWord = isWord(text[i] ?? '')
-  // Go back while same type
-  while (i > 0 && (isWord(text[i - 1] ?? '') === atWord && text[i - 1] !== ' ' && text[i - 1] !== '\t')) i--
-  return i
-}
-
-function wordEnd(text: string, pos: number, isWord: (c: string) => boolean): number {
-  if (pos >= text.length - 1) return text.length
-  let i = pos + 1
-  // Skip whitespace
-  while (i < text.length && (text[i] === ' ' || text[i] === '\t')) i++
-  const atWord = isWord(text[i] ?? '')
-  // Move forward while same type
-  while (i < text.length - 1 && isWord(text[i + 1] ?? '') === atWord && text[i + 1] !== ' ' && text[i + 1] !== '\t') i++
-  return i
-}
-
-/** Apply f/F/t/T find motion */
-export function applyFind(
-  findType: string,
-  char: string,
-  text: string,
-  pos: number,
-  count = 1
-): number {
-  let cur = pos
-  for (let i = 0; i < count; i++) {
-    const next = applyOneFind(findType, char, text, cur)
-    if (next === cur) break
-    cur = next
-  }
-  return cur
-}
-
-function applyOneFind(findType: string, char: string, text: string, pos: number): number {
-  if (findType === 'f') {
-    const idx = text.indexOf(char, pos + 1)
-    return idx === -1 ? pos : idx
-  }
-  if (findType === 'F') {
-    const idx = text.lastIndexOf(char, pos - 1)
-    return idx === -1 ? pos : idx
-  }
-  if (findType === 't') {
-    const idx = text.indexOf(char, pos + 1)
-    return idx <= 0 ? pos : idx - 1
-  }
-  if (findType === 'T') {
-    const idx = text.lastIndexOf(char, pos - 1)
-    return idx === -1 ? pos : idx + 1
-  }
-  return pos
-}
-
-/** Inclusive motions include the character under the cursor in operations */
-export function isInclusiveMotion(motion: string): boolean {
-  return motion === 'e' || motion === 'E' || motion === '$'
-}
+export function isInclusiveMotion(key: string): boolean { return 'eE$'.includes(key) }
+export function isLinewiseMotion(key: string): boolean { return 'jkG'.includes(key) || key === 'gg' }

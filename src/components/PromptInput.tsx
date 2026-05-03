@@ -1,9 +1,18 @@
 import React, { useState, useCallback, useRef } from 'react'
 import { Box, Text, useInput } from 'ink'
+import { Cursor } from '../utils/Cursor'
+import { lastGrapheme } from '../utils/intl'
+import {
+  executeIndent, executeJoin, executeOpenLine,
+  executeOperatorFind, executeOperatorMotion, executeOperatorTextObj,
+  executeReplace, executeToggleCase, executeX,
+  type OperatorContext,
+} from '../vim/operators'
+import { transition, type TransitionContext } from '../vim/transitions'
 import {
   createInitialVimState, createInitialPersistentState,
-  transition, type VimState, type PersistentState, type VimEditContext,
-} from '../vim/engine'
+  type VimState, type PersistentState, type RecordedChange, type VimMode,
+} from '../vim/types'
 
 export interface SlashCommand {
   name: string
@@ -22,37 +31,97 @@ interface Props {
 const inputHistory: string[] = []
 let historyIndex = -1
 
+// Terminal width for Cursor line wrapping
+const COLUMNS = process.stdout.columns ?? 120
+
 export function PromptInput({ onSubmit, isDisabled, commands, placeholder, vimMode = false }: Props) {
   const [value, setValue] = useState('')
   const [showCommands, setShowCommands] = useState(false)
   const [commandFilter, setCommandFilter] = useState('')
   const [selectedCommand, setSelectedCommand] = useState(0)
-  const [cursorPos, setCursorPos] = useState(0)
+  const [cursorOffset, setCursorOffset] = useState(0)
 
-  // Vim state (only used when vimMode=true)
+  // Vim state
   const vimStateRef = useRef<VimState>(createInitialVimState())
   const persistentRef = useRef<PersistentState>(createInitialPersistentState())
-  const [vimDisplayMode, setVimDisplayMode] = useState<'INSERT' | 'NORMAL'>('INSERT')
+  const [vimDisplayMode, setVimDisplayMode] = useState<VimMode>('INSERT')
 
   const filteredCommands = commands.filter(cmd =>
     cmd.name.toLowerCase().startsWith(commandFilter.toLowerCase().slice(1))
   )
 
-  const makeEditContext = useCallback((
-    curVal: string,
-    curPos: number,
-    setVal: (v: string) => void,
-    setPos: (p: number) => void,
-    enterInsertFn: (pos: number) => void
-  ): VimEditContext => ({
-    text: curVal,
-    cursor: curPos,
-    setText: setVal,
-    setCursor: setPos,
-    enterInsert: enterInsertFn,
-    getRegister: () => persistentRef.current.register,
-    setRegister: (s) => { persistentRef.current.register = s },
-  }), [])
+  // ── Vim helpers ─────────────────────────────────────────────────────────────
+
+  function makeCursor(text: string, offset: number): Cursor {
+    return Cursor.fromText(text, COLUMNS, offset)
+  }
+
+  function switchToInsert(offset?: number): void {
+    if (offset !== undefined) setCursorOffset(offset)
+    vimStateRef.current = { mode: 'INSERT', insertedText: '' }
+    setVimDisplayMode('INSERT')
+  }
+
+  function switchToNormal(): void {
+    const vs = vimStateRef.current
+    if (vs.mode === 'INSERT' && vs.insertedText) {
+      persistentRef.current.lastChange = { type: 'insert', text: vs.insertedText }
+    }
+    // Vim: move cursor back 1 on ESC (unless at start)
+    setCursorOffset(prev => Math.max(0, prev - (prev > 0 ? 1 : 0)))
+    vimStateRef.current = { mode: 'NORMAL', command: { type: 'idle' } }
+    setVimDisplayMode('NORMAL')
+  }
+
+  function replayLastChange(curValue: string, curOffset: number, onUpdate: (v: string, o: number) => void): void {
+    const change = persistentRef.current.lastChange
+    if (!change) return
+    const cursor = makeCursor(curValue, curOffset)
+    let newValue = curValue, newOffset = curOffset
+    const ctx = makeCtx(cursor, curValue, (v) => { newValue = v }, (o) => { newOffset = o }, () => {})
+    const replayCtx = { ...ctx, recordChange: () => {} }
+
+    switch (change.type) {
+      case 'insert': {
+        const nc = cursor.insert(change.text)
+        newValue = nc.text; newOffset = nc.offset; break
+      }
+      case 'x': executeX(change.count, replayCtx); break
+      case 'replace': executeReplace(change.char, change.count, replayCtx); break
+      case 'toggleCase': executeToggleCase(change.count, replayCtx); break
+      case 'indent': executeIndent(change.dir, change.count, replayCtx); break
+      case 'join': executeJoin(change.count, replayCtx); break
+      case 'openLine': executeOpenLine(change.direction, replayCtx); break
+      case 'operator': executeOperatorMotion(change.op, change.motion, change.count, replayCtx); break
+      case 'operatorFind': executeOperatorFind(change.op, change.find, change.char, change.count, replayCtx); break
+      case 'operatorTextObj': executeOperatorTextObj(change.op, change.scope, change.objType, change.count, replayCtx); break
+    }
+    onUpdate(newValue, newOffset)
+  }
+
+  function makeCtx(
+    cursor: Cursor, curValue: string,
+    onSetText: (v: string) => void, onSetOffset: (o: number) => void,
+    onEnterInsert: (o: number) => void,
+  ): OperatorContext {
+    return {
+      cursor,
+      text: curValue,
+      setText: onSetText,
+      setOffset: onSetOffset,
+      enterInsert: onEnterInsert,
+      getRegister: () => persistentRef.current.register,
+      setRegister: (content, linewise) => {
+        persistentRef.current.register = content
+        persistentRef.current.registerIsLinewise = linewise
+      },
+      getLastFind: () => persistentRef.current.lastFind,
+      setLastFind: (type, char) => { persistentRef.current.lastFind = { type, char } },
+      recordChange: (change: RecordedChange) => { persistentRef.current.lastChange = change },
+    }
+  }
+
+  // ── Main input handler ───────────────────────────────────────────────────────
 
   useInput(
     useCallback((input: string, key: {
@@ -63,169 +132,167 @@ export function PromptInput({ onSubmit, isDisabled, commands, placeholder, vimMo
     }) => {
       if (isDisabled) return
 
-      // ── VIM MODE ─────────────────────────────────────────────────────────
+      // ── VIM MODE ───────────────────────────────────────────────────────────
       if (vimMode) {
         const vs = vimStateRef.current
 
         if (vs.mode === 'INSERT') {
-          // Escape → Normal
           if (key.escape) {
-            const newPos = Math.max(0, cursorPos - 1)
-            // Save insert text to lastChange for dot-repeat
-            if (vs.insertedText) {
-              persistentRef.current.lastChange = { type: 'insert', text: vs.insertedText }
-            }
-            vimStateRef.current = { mode: 'NORMAL', command: { type: 'idle' }, insertedText: '' }
-            setVimDisplayMode('NORMAL')
-            setCursorPos(newPos)
+            switchToNormal()
             setShowCommands(false)
             return
           }
           // Track inserted text for dot-repeat
-          if (!key.ctrl && !key.meta && input) {
-            vimStateRef.current = { ...vs, insertedText: vs.insertedText + input }
+          if (key.backspace || key.delete) {
+            if (vs.insertedText.length > 0) {
+              const lg = lastGrapheme(vs.insertedText)
+              vimStateRef.current = { mode: 'INSERT', insertedText: vs.insertedText.slice(0, -(lg.length || 1)) }
+            }
+          } else if (!key.ctrl && !key.meta && input) {
+            vimStateRef.current = { mode: 'INSERT', insertedText: vs.insertedText + input }
           }
           // Fall through to normal insert handling below
         } else {
-          // NORMAL mode — delegate to vim engine
-          const result = transition(vs, persistentRef.current, input, key)
-
-          if (result) {
-            if (result.sideEffect) {
-              let newValue = value
-              let newCursor = cursorPos
-
-              const ctx = makeEditContext(
-                value, cursorPos,
-                (v) => { newValue = v },
-                (p) => { newCursor = p },
-                (pos) => {
-                  // enterInsert called inside sideEffect — schedule mode switch
-                  const resolvedPos = pos === 9999 ? newValue.length :
-                                      pos === -1 ? 0 :
-                                      pos === 1 ? cursorPos + 1 :
-                                      cursorPos
-                  newCursor = Math.max(0, Math.min(resolvedPos, newValue.length))
-                  vimStateRef.current = { mode: 'INSERT', command: { type: 'idle' }, insertedText: '' }
-                  setVimDisplayMode('INSERT')
-                }
-              )
-              result.sideEffect(ctx, persistentRef.current)
-              setValue(newValue)
-              setCursorPos(Math.max(0, Math.min(newCursor, Math.max(0, newValue.length - 1))))
-            }
-
-            if (result.enterInsert !== undefined && vimStateRef.current.mode !== 'INSERT') {
-              const raw = result.enterInsert
-              const pos = raw === true ? cursorPos :
-                          raw === 9999 ? value.length :
-                          raw === -1 ? 0 :
-                          cursorPos + (raw as number)
-              const clipped = Math.max(0, Math.min(pos, value.length))
-              setCursorPos(clipped)
-              vimStateRef.current = { mode: 'INSERT', command: { type: 'idle' }, insertedText: '' }
-              setVimDisplayMode('INSERT')
-            } else {
-              vimStateRef.current = { ...vs, command: result.nextCommand }
-            }
+          // NORMAL mode
+          if (key.escape) {
+            vimStateRef.current = { mode: 'NORMAL', command: { type: 'idle' } }
+            return
           }
-
-          // In NORMAL mode, only Return submits; escape/arrow/motions handled above
           if (key.return) {
             const trimmed = value.trim()
             if (trimmed) {
-              if (inputHistory[0] !== trimmed) {
-                inputHistory.unshift(trimmed)
-                if (inputHistory.length > 100) inputHistory.pop()
-              }
+              if (inputHistory[0] !== trimmed) { inputHistory.unshift(trimmed); if (inputHistory.length > 100) inputHistory.pop() }
               historyIndex = -1
-              onSubmit(trimmed)
-              setValue('')
-              setCursorPos(0)
-              setShowCommands(false)
-              setCommandFilter('')
-              vimStateRef.current = createInitialVimState()
-              setVimDisplayMode('INSERT')
+              onSubmit(trimmed); setValue(''); setCursorOffset(0); setShowCommands(false); setCommandFilter('')
+              vimStateRef.current = createInitialVimState(); setVimDisplayMode('INSERT')
             }
+            return
           }
-          return  // NORMAL mode handled fully above
+
+          // Arrow keys in idle state → history navigation / cursor
+          if (vs.command.type === 'idle' && (key.upArrow || key.downArrow || key.leftArrow || key.rightArrow)) {
+            if (key.leftArrow) setCursorOffset(p => Math.max(0, p - 1))
+            else if (key.rightArrow) setCursorOffset(p => Math.min(value.length, p + 1))
+            // up/down in NORMAL: history navigation
+            else if (key.upArrow && inputHistory.length > 0) {
+              const newIdx = Math.min(historyIndex + 1, inputHistory.length - 1); historyIndex = newIdx
+              const h = inputHistory[newIdx]!; setValue(h); setCursorOffset(h.length)
+            } else if (key.downArrow) {
+              if (historyIndex > 0) { const newIdx = historyIndex - 1; historyIndex = newIdx; const h = inputHistory[newIdx]!; setValue(h); setCursorOffset(h.length) }
+              else { historyIndex = -1; setValue(''); setCursorOffset(0) }
+            }
+            return
+          }
+
+          // Map arrow keys to vim motions
+          let vimInput = input
+          if (key.leftArrow) vimInput = 'h'
+          else if (key.rightArrow) vimInput = 'l'
+          else if (key.upArrow) vimInput = 'k'
+          else if (key.downArrow) vimInput = 'j'
+
+          const expectsMotion = vs.command.type === 'idle' || vs.command.type === 'count' || vs.command.type === 'operator' || vs.command.type === 'operatorCount'
+          if (expectsMotion && key.backspace) vimInput = 'h'
+          else if (expectsMotion && vs.command.type !== 'count' && key.delete) vimInput = 'x'
+
+          let newValue = value
+          let newOffset = cursorOffset
+
+          const cursor = makeCursor(value, cursorOffset)
+          const ctx: TransitionContext = {
+            ...makeCtx(
+              cursor, value,
+              (v) => { newValue = v },
+              (o) => { newOffset = o },
+              (o) => { newOffset = o; vimStateRef.current = { mode: 'INSERT', insertedText: '' }; setVimDisplayMode('INSERT') },
+            ),
+            onUndo: undefined,
+            onDotRepeat: () => replayLastChange(newValue, newOffset, (v, o) => { newValue = v; newOffset = o }),
+          }
+
+          const result = transition(vs.command, vimInput, ctx)
+
+          if (result.execute) result.execute()
+
+          setValue(newValue)
+          // Clamp to normal-mode limit (can't be past last char)
+          const maxNormal = Math.max(0, newValue.length - 1)
+          if (vimStateRef.current.mode === 'NORMAL') {
+            setCursorOffset(Math.min(newOffset, newValue.length === 0 ? 0 : maxNormal))
+            if (result.next) {
+              vimStateRef.current = { mode: 'NORMAL', command: result.next }
+            } else if (result.execute) {
+              vimStateRef.current = { mode: 'NORMAL', command: { type: 'idle' } }
+            }
+          } else {
+            // Entered insert mode
+            setCursorOffset(Math.min(newOffset, newValue.length))
+          }
+          return
         }
       }
 
-      // ── NORMAL INSERT MODE (also INSERT branch of vim mode) ───────────────
+      // ── NORMAL INSERT (or INSERT branch of vim) ────────────────────────────
 
-      if (key.escape) {
-        setShowCommands(false)
-        setCommandFilter('')
-        setSelectedCommand(0)
-        return
-      }
+      if (key.escape) { setShowCommands(false); setCommandFilter(''); setSelectedCommand(0); return }
 
       if (showCommands) {
         if (key.upArrow) { setSelectedCommand(s => Math.max(0, s - 1)); return }
         if (key.downArrow) { setSelectedCommand(s => Math.min(filteredCommands.length - 1, s + 1)); return }
         if ((key.return || key.tab) && filteredCommands.length > 0) {
           const cmd = filteredCommands[selectedCommand]!
-          setValue(cmd.name + ' ')
-          setCursorPos(cmd.name.length + 1)
-          setShowCommands(false); setCommandFilter(''); setSelectedCommand(0)
-          return
+          setValue(cmd.name + ' '); setCursorOffset(cmd.name.length + 1)
+          setShowCommands(false); setCommandFilter(''); setSelectedCommand(0); return
         }
       }
 
       if (key.return) {
         const trimmed = value.trim()
         if (trimmed) {
-          if (inputHistory[0] !== trimmed) {
-            inputHistory.unshift(trimmed)
-            if (inputHistory.length > 100) inputHistory.pop()
-          }
+          if (inputHistory[0] !== trimmed) { inputHistory.unshift(trimmed); if (inputHistory.length > 100) inputHistory.pop() }
           historyIndex = -1
-          onSubmit(trimmed)
-          setValue(''); setCursorPos(0); setShowCommands(false); setCommandFilter('')
+          onSubmit(trimmed); setValue(''); setCursorOffset(0); setShowCommands(false); setCommandFilter('')
         }
         return
       }
 
       if (!showCommands) {
         if (key.upArrow && inputHistory.length > 0) {
-          const newIdx = Math.min(historyIndex + 1, inputHistory.length - 1)
-          historyIndex = newIdx
-          const hist = inputHistory[newIdx]!
-          setValue(hist); setCursorPos(hist.length); return
+          const newIdx = Math.min(historyIndex + 1, inputHistory.length - 1); historyIndex = newIdx
+          const h = inputHistory[newIdx]!; setValue(h); setCursorOffset(h.length); return
         }
         if (key.downArrow) {
-          if (historyIndex > 0) {
-            const newIdx = historyIndex - 1; historyIndex = newIdx
-            const hist = inputHistory[newIdx]!; setValue(hist); setCursorPos(hist.length)
-          } else { historyIndex = -1; setValue(''); setCursorPos(0) }
+          if (historyIndex > 0) { const newIdx = historyIndex - 1; historyIndex = newIdx; const h = inputHistory[newIdx]!; setValue(h); setCursorOffset(h.length) }
+          else { historyIndex = -1; setValue(''); setCursorOffset(0) }
           return
         }
-        if (key.leftArrow) { setCursorPos(p => Math.max(0, p - 1)); return }
-        if (key.rightArrow) { setCursorPos(p => Math.min(value.length, p + 1)); return }
+        if (key.leftArrow) { setCursorOffset(p => Math.max(0, p - 1)); return }
+        if (key.rightArrow) { setCursorOffset(p => Math.min(value.length, p + 1)); return }
       }
 
       if (key.backspace || key.delete) {
-        if (cursorPos > 0) {
-          const newVal = value.slice(0, cursorPos - 1) + value.slice(cursorPos)
-          setValue(newVal); setCursorPos(p => p - 1)
-          if (newVal.startsWith('/')) { setCommandFilter(newVal); setShowCommands(true) }
+        if (cursorOffset > 0) {
+          const cursor = makeCursor(value, cursorOffset)
+          const newCursor = cursor.backspace()
+          setValue(newCursor.text); setCursorOffset(newCursor.offset)
+          if (newCursor.text.startsWith('/')) { setCommandFilter(newCursor.text); setShowCommands(true) }
           else { setShowCommands(false); setCommandFilter('') }
         }
         return
       }
 
       if (!key.ctrl && !key.meta && input) {
-        const newVal = value.slice(0, cursorPos) + input + value.slice(cursorPos)
-        setValue(newVal); setCursorPos(p => p + input.length)
-        if (newVal.startsWith('/')) { setCommandFilter(newVal); setShowCommands(true); setSelectedCommand(0) }
+        const cursor = makeCursor(value, cursorOffset)
+        const newCursor = cursor.insert(input)
+        setValue(newCursor.text); setCursorOffset(newCursor.offset)
+        if (newCursor.text.startsWith('/')) { setCommandFilter(newCursor.text); setShowCommands(true); setSelectedCommand(0) }
         else { setShowCommands(false); setCommandFilter('') }
       }
-    }, [value, cursorPos, showCommands, filteredCommands, selectedCommand, isDisabled, onSubmit, vimMode, makeEditContext])
+    }, [value, cursorOffset, showCommands, filteredCommands, selectedCommand, isDisabled, onSubmit, vimMode])
   )
 
   const isNormalMode = vimMode && vimStateRef.current.mode === 'NORMAL'
-  const displayValue = value.slice(0, cursorPos) + (isNormalMode ? '▌' : '█') + value.slice(cursorPos)
+  const displayValue = value.slice(0, cursorOffset) + (isNormalMode ? '▌' : '█') + value.slice(cursorOffset)
 
   return (
     <Box flexDirection="column">
