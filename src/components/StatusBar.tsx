@@ -1,8 +1,9 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Box, Text } from 'ink'
 import type { TokenUsage } from '../types/message'
 import { formatUsageLine, formatTokenCount } from '../utils/tokens'
 import { formatCostUSD, getCacheHitRate } from '../cost-tracker'
+import { getCurrentTip, maybeAdvanceTip } from '../services/tips'
 
 interface Props {
   model: string
@@ -14,11 +15,17 @@ interface Props {
   mode?: 'act' | 'plan'
   totalCostUSD?: number
   bgSessionCount?: number
+  vimMode?: boolean
+  vimDisplayMode?: 'INSERT' | 'NORMAL'
+  pendingVimOp?: string  // e.g. "d" "c" "y" when operator is pending
+  showTips?: boolean
 }
 
 export function StatusBar({
   model, usage, contextWindow, isStreaming, rounds,
   retryStatus, mode = 'act', totalCostUSD, bgSessionCount = 0,
+  vimMode = false, vimDisplayMode = 'INSERT', pendingVimOp,
+  showTips = true,
 }: Props) {
   const totalTokens = usage.inputTokens + usage.outputTokens
   const usagePct = contextWindow > 0 ? Math.round((totalTokens / contextWindow) * 100) : 0
@@ -27,9 +34,19 @@ export function StatusBar({
   const shortModel = model.length > 24 ? model.slice(0, 22) + '…' : model
   const showCost = totalCostUSD !== undefined && totalCostUSD > 0
 
-  // Cache hit rate — from accumulated session data
   const cacheHitPct = Math.round(getCacheHitRate() * 100)
   const showCache = cacheHitPct > 0
+
+  // Rotating tip — updates every 30 seconds
+  const [tip, setTip] = useState(() => getCurrentTip())
+  useEffect(() => {
+    if (!showTips) return
+    const interval = setInterval(() => {
+      maybeAdvanceTip()
+      setTip(getCurrentTip())
+    }, 5_000)
+    return () => clearInterval(interval)
+  }, [showTips])
 
   return (
     <Box flexDirection="column">
@@ -38,9 +55,24 @@ export function StatusBar({
           <Text color="yellow">⟳ {retryStatus}</Text>
         </Box>
       )}
+
+      {/* Tip row — shown when not streaming (avoid distracting during output) */}
+      {showTips && !isStreaming && tip && (
+        <Box>
+          <Text color="gray" dimColor>💡 {tip.content}</Text>
+        </Box>
+      )}
+
       <Box flexDirection="row" justifyContent="space-between">
-        {/* Left: mode badge + model + streaming status + bg pill */}
+        {/* Left: vim mode + pending op + plan badge + model + streaming + bg pill */}
         <Box flexDirection="row" gap={1}>
+          {vimMode && (
+            <Text color={vimDisplayMode === 'NORMAL' ? 'yellow' : 'gray'} bold>
+              {vimDisplayMode === 'NORMAL'
+                ? (pendingVimOp ? `[N:${pendingVimOp}]` : '[N]')
+                : '[I]'}
+            </Text>
+          )}
           {mode === 'plan' && (
             <Text color="cyan" bold>[PLAN]</Text>
           )}
