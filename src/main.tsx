@@ -62,7 +62,7 @@ program
   .option('--thinking <tokens>', 'Enable extended thinking with token budget', parseInt)
   .option('--coordinator', 'Enable coordinator mode: orchestrate parallel worker agents')
   .option('-p, --print', 'Print response and exit (non-interactive, useful for pipes and scripts)')
-  .option('--output-format <format>', 'Output format with -p: "text" (default) or "json"', 'text')
+  .option('--output-format <format>', 'Output format with -p: "text" (default), "json", or "stream-json"', 'text')
   .option('--max-turns <n>', 'Maximum number of agent turns (non-interactive mode)', parseInt)
   .option('--system-prompt <prompt>', 'Override system prompt')
   .action(async (prompt: string | undefined, options) => {
@@ -266,14 +266,34 @@ program
           },
           {
             onTextDelta: (text) => {
-              if (outputFormat === 'text') process.stdout.write(text)
-              else textChunks.push(text)
+              if (outputFormat === 'text') {
+                process.stdout.write(text)
+              } else if (outputFormat === 'stream-json') {
+                process.stdout.write(JSON.stringify({
+                  type: 'content_block_delta',
+                  delta: { type: 'text_delta', text },
+                }) + '\n')
+              } else {
+                textChunks.push(text)
+              }
             },
-            onToolStart: (_id, name) => {
+            onToolStart: (id, name) => {
               if (outputFormat === 'text') process.stderr.write(`\n⚡ ${name}…\n`)
+              else if (outputFormat === 'stream-json') {
+                process.stdout.write(JSON.stringify({
+                  type: 'tool_use_start', id, name,
+                }) + '\n')
+              }
             },
-            onToolComplete: (_id, name, _result, isError) => {
+            onToolComplete: (id, name, result, isError) => {
               if (outputFormat === 'text' && isError) process.stderr.write(`✗ ${name} failed\n`)
+              else if (outputFormat === 'stream-json') {
+                process.stdout.write(JSON.stringify({
+                  type: 'tool_result', id, name,
+                  content: result.slice(0, 500),  // truncate for stream-json
+                  is_error: isError,
+                }) + '\n')
+              }
             },
             onError: (err) => { process.stderr.write(`\n⚠ Error: ${err}\n`) },
             onRetry: (attempt, total, _err, delay) => {
@@ -283,13 +303,27 @@ program
         )
 
         if (outputFormat === 'text') {
-          // Text already streamed; add newline if needed
-          if (!textChunks.join('').endsWith('\n') && textChunks.length === 0) {
-            // streaming already done
-          }
           process.stdout.write('\n')
+        } else if (outputFormat === 'stream-json') {
+          // Emit final result event (CC compatibility)
+          const lastAssistant = [...result.messages].reverse().find(m => m.role === 'assistant' && !m.isMeta)
+          const text = lastAssistant
+            ? typeof lastAssistant.content === 'string'
+              ? lastAssistant.content
+              : (lastAssistant.content as Array<{type: string; text?: string}>)
+                  .filter(b => b.type === 'text').map(b => b.text ?? '').join('')
+            : ''
+          process.stdout.write(JSON.stringify({
+            type: 'result',
+            subtype: 'success',
+            result: text,
+            stop_reason: result.stopReason,
+            num_turns: result.rounds,
+            usage: result.usage,
+            session_id: `qiling-${Date.now()}`,
+          }) + '\n')
         } else if (outputFormat === 'json') {
-          const lastAssistant = [...result.messages].reverse().find(m => m.role === 'assistant')
+          const lastAssistant = [...result.messages].reverse().find(m => m.role === 'assistant' && !m.isMeta)
           const text = lastAssistant
             ? typeof lastAssistant.content === 'string'
               ? lastAssistant.content
