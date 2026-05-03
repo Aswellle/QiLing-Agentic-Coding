@@ -36,6 +36,31 @@ import { createBudgetTracker, checkTokenBudget } from './compact/tokenBudget'
 import { generateToolUseSummary, extractToolInfoFromResults } from './services/toolUseSummary/generator'
 import { applyCollapsesIfNeeded, recoverFromOverflow } from './services/contextCollapse/index'
 
+// ─── Context injection (CC's prependUserContext pattern) ──────────────────────
+// Wraps userContext as a <system-reminder> block prepended to messages.
+// Git status, current date, CLAUDE.md content injected here as isMeta message.
+function prependUserContext(messages: Message[], context: { [k: string]: string }): Message[] {
+  const entries = Object.entries(context)
+  if (entries.length === 0) return messages
+  const contextText = entries.map(([key, value]) => `# ${key}\n${value}`).join('\n')
+  return [
+    {
+      role: 'user' as const,
+      content: `<system-reminder>\nAs you answer the user's questions, you can use the following context:\n${contextText}\n\n      IMPORTANT: this context may or may not be relevant to your tasks. You should not respond to this context unless it is highly relevant to your task.\n</system-reminder>`,
+      isMeta: true,
+    },
+    ...messages,
+  ]
+}
+
+// Appends systemContext key-value pairs to the system prompt string.
+function buildSystemPromptWithContext(base: string | undefined, context: { [k: string]: string }): string | undefined {
+  const entries = Object.entries(context)
+  if (!base || entries.length === 0) return base
+  const contextText = entries.map(([key, value]) => `# ${key}\n${value}`).join('\n')
+  return `${base}\n\n${contextText}`
+}
+
 // ─── Tools safe to run concurrently during AI streaming ──────────────────────
 const STREAMING_SAFE_TOOLS = new Set([
   'FileRead', 'Glob', 'Grep', 'RepoMap', 'NotebookRead',
@@ -263,15 +288,26 @@ export async function runQuery(
         executor.discard()
         executor = new StreamingToolExecutor(STREAMING_SAFE_TOOLS, signal)
 
+        // Append systemContext (git status, etc.) to system prompt (CC's appendSystemContext)
+        const effectiveSystemPrompt = options.systemContext && Object.keys(options.systemContext).length > 0
+          ? buildSystemPromptWithContext(options.systemPrompt, options.systemContext)
+          : options.systemPrompt
+
         const streamOpts = {
-          systemPrompt: options.systemPrompt,
+          systemPrompt: effectiveSystemPrompt,
           maxTokens: effectiveMaxTokens,
           ...(options.thinkingBudget && options.thinkingBudget > 0
             ? { thinking: { type: 'enabled' as const, budget_tokens: options.thinkingBudget } }
             : {}),
         }
 
-        const stream = provider.stream(workingMessages, toolDefinitions, streamOpts)
+        // CC's prependUserContext / appendSystemContext pattern:
+        // Inject git status, date, CLAUDE.md as a isMeta user message at start.
+        const messagesForAPI = options.userContext && Object.keys(options.userContext).length > 0
+          ? prependUserContext(workingMessages, options.userContext)
+          : workingMessages
+
+        const stream = provider.stream(messagesForAPI, toolDefinitions, streamOpts)
 
         for await (const chunk of stream) {
           if (signal?.aborted) return
