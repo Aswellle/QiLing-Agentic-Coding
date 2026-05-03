@@ -104,6 +104,12 @@ export interface QueryOptions {
   userContext?: { [k: string]: string }
   /** System context to inject each turn (git status etc.) */
   systemContext?: { [k: string]: string }
+  /**
+   * Optional callback to refresh the tool list between turns.
+   * Called after each round if provided. Mirrors CC's refreshTools() pattern
+   * for dynamically adding newly connected MCP tools.
+   */
+  refreshTools?: () => Map<string, Tool>
 }
 
 export interface QueryCallbacks {
@@ -647,6 +653,20 @@ export async function runQuery(
       } else if (decision.completionEvent) {
         finalStopReason = `budget_${decision.completionEvent.reason}`
         break
+      }
+    }
+
+    // ── 12. Refresh tools between turns (CC's refreshTools pattern) ───────────
+    // Allows newly-connected MCP tools to become available without restarting.
+    if (options.refreshTools) {
+      const refreshed = options.refreshTools()
+      if (refreshed !== tools) {
+        // Update tool definitions for the next API call
+        toolDefinitions.length = 0
+        toolDefinitions.push(...Array.from(refreshed.values()).map(t => t.toDefinition()))
+        // Update tools reference for permission checks
+        ;(tools as Map<string, Tool>).clear()
+        for (const [k, v] of refreshed) (tools as Map<string, Tool>).set(k, v)
       }
     }
 
