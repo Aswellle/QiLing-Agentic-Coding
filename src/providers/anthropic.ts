@@ -29,10 +29,13 @@ export class AnthropicProvider implements Provider {
     tools: ToolDefinition[],
     options: StreamOptions = {}
   ): AsyncGenerator<StreamChunkType> {
-    // ── Prompt cache injection ────────────────────────────────────────────
-    // Inject cache_control on system prompt and first 2 user messages.
-    // This gives 80-90% cost reduction on repeated queries (cache hits).
-    // Only Claude 3.5+ supports ephemeral caching.
+    // ── Prompt cache injection (CC's single-marker-at-last-user-message) ────
+    // Strategy (ported from CC's addCacheBreakpoints):
+    //   - System prompt: always cached (stable, rarely changes)
+    //   - Tool definitions: last tool gets cache_control (stable set)
+    //   - Messages: EXACTLY ONE cache_control marker on the LAST user message
+    //     This is CC's proven approach: each new turn extends the cached prefix
+    //     to the most recent user message, maximising cache hits.
     const supportsCaching = (
       this.config.model.includes('claude-3') ||
       this.config.model.includes('claude-sonnet') ||
@@ -40,29 +43,30 @@ export class AnthropicProvider implements Provider {
       this.config.model.includes('claude-haiku')
     )
 
-    // Build system prompt with cache_control
+    // System prompt with cache_control
     const systemWithCache = supportsCaching && options.systemPrompt
       ? [{ type: 'text' as const, text: options.systemPrompt, cache_control: { type: 'ephemeral' as const } }]
       : options.systemPrompt
 
-    // Mark first 2 user messages (likely to be repeated context) as cacheable
-    let cacheInserted = 0
+    // Find the index of the LAST user message — that's where the marker goes
+    const lastUserIdx = messages.reduce((last, msg, i) => msg.role === 'user' ? i : last, -1)
+
     const anthropicMessages = messages.map((msg, idx) => {
-      const base = { role: msg.role, content: typeof msg.content === 'string' ? msg.content : msg.content }
-      // Cache the first 2 user messages (usually context/memory) and tools block
-      if (supportsCaching && msg.role === 'user' && cacheInserted < 2 && idx < 4) {
-        cacheInserted++
-        const rawContent = msg.content as unknown
-        const content = typeof msg.content === 'string'
-          ? [{ type: 'text' as const, text: msg.content, cache_control: { type: 'ephemeral' as const } }]
-          : (rawContent as Array<Record<string, unknown>>).map((block, i) =>
-              i === (rawContent as unknown[]).length - 1
+      const role = msg.role
+      const rawContent = msg.content
+
+      // Only add cache_control to the last user message's last content block
+      if (supportsCaching && idx === lastUserIdx && role === 'user') {
+        const content = typeof rawContent === 'string'
+          ? [{ type: 'text' as const, text: rawContent, cache_control: { type: 'ephemeral' as const } }]
+          : (rawContent as unknown as Array<Record<string, unknown>>).map((block, i, arr) =>
+              i === arr.length - 1
                 ? { ...block, cache_control: { type: 'ephemeral' as const } }
                 : block
             )
-        return { ...base, content }
+        return { role, content }
       }
-      return base
+      return { role, content: rawContent }
     }) as Anthropic.MessageParam[]
 
     try {
