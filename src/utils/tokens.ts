@@ -1,4 +1,40 @@
-import type { TokenUsage } from '../types/message'
+import type { TokenUsage, Message } from '../types/message'
+
+// ─── Rough token estimation (CC's roughTokenCountEstimation pattern) ──────────
+// ~4 bytes per token for English text; 2 for JSON-heavy content
+const BYTES_PER_TOKEN = 4
+
+/**
+ * Rough token estimate for a string.
+ * Used to pre-estimate context size before API call (no API call required).
+ */
+export function roughTokenCountEstimation(content: string, bytesPerToken = BYTES_PER_TOKEN): number {
+  return Math.ceil(content.length / bytesPerToken)
+}
+
+/**
+ * Rough token estimate across a set of messages.
+ * Mirrors CC's roughTokenCountEstimationForMessages().
+ */
+export function roughTokenCountEstimationForMessages(messages: Message[]): number {
+  let total = 0
+  for (const msg of messages) {
+    if (typeof msg.content === 'string') {
+      total += roughTokenCountEstimation(msg.content)
+    } else {
+      for (const block of msg.content) {
+        if (block.type === 'text') total += roughTokenCountEstimation(block.text)
+        else if (block.type === 'tool_use') total += roughTokenCountEstimation(JSON.stringify(block.input))
+        else if (block.type === 'tool_result') {
+          const c = block.content
+          total += roughTokenCountEstimation(typeof c === 'string' ? c : JSON.stringify(c))
+        }
+      }
+    }
+    total += 4  // per-message overhead (role token etc.)
+  }
+  return total
+}
 
 /** Pricing per 1M tokens in USD */
 interface ModelPricing {
