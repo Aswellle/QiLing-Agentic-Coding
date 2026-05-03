@@ -65,6 +65,8 @@ program
   .option('--output-format <format>', 'Output format with -p: "text" (default), "json", or "stream-json"', 'text')
   .option('--max-turns <n>', 'Maximum number of agent turns (non-interactive mode)', parseInt)
   .option('--system-prompt <prompt>', 'Override system prompt')
+  .option('--allowed-tools <tools...>', 'Comma or space-separated list of tools to allow (e.g. "Bash FileRead Glob")')
+  .option('--disallowed-tools <tools...>', 'Comma or space-separated list of tools to deny (e.g. "Bash FileWrite")')
   .action(async (prompt: string | undefined, options) => {
     const workingDir = options.cwd
       ? (await import('path')).resolve(options.cwd)
@@ -135,7 +137,29 @@ program
 
     // ─── Build core components (fast path) ────────────────────────────────
     const provider    = createProvider(settings)
-    const tools       = buildToolRegistry(settings)
+    const rawTools    = buildToolRegistry(settings)
+
+    // ─── Tool filtering (--allowed-tools / --disallowed-tools) ───────────
+    // Mirrors CC's tool filtering for scripted/headless use.
+    const tools = (() => {
+      const allowed = options.allowedTools?.flatMap((s: string) => s.split(',').map((t: string) => t.trim())).filter(Boolean)
+      const disallowed = options.disallowedTools?.flatMap((s: string) => s.split(',').map((t: string) => t.trim())).filter(Boolean)
+      if (!allowed && !disallowed) return rawTools
+      const filtered = new Map(rawTools)
+      if (allowed && allowed.length > 0) {
+        for (const [name] of filtered) {
+          if (!allowed.some((a: string) => name === a || name.startsWith(a + '('))) filtered.delete(name)
+        }
+      }
+      if (disallowed && disallowed.length > 0) {
+        for (const name of disallowed) filtered.delete(name)
+      }
+      if (options.debug) {
+        process.stderr.write(`✓ 工具: ${[...filtered.keys()].join(', ')}\n`)
+      }
+      return filtered
+    })()
+
     const permissions = new PermissionsManager(settings)
 
     // ─── Init file history (session-scoped backup system) ─────────────────
