@@ -67,8 +67,8 @@ export class StreamingToolExecutor {
    * Register a tool and immediately start execution if concurrency conditions
    * allow. Called from query.ts on every tool_use_stop event.
    */
-  addTool(id: string, name: string, input: unknown, runner: ToolRunner): void {
-    const safe = this.parallelSafeNames.has(name)
+  addTool(id: string, name: string, input: unknown, runner: ToolRunner, isSafe?: boolean): void {
+    const safe = isSafe ?? this.parallelSafeNames.has(name)
     const tracked: TrackedTool = { id, name, input, status: 'queued', isConcurrencySafe: safe, runner }
     this.tools.push(tracked)
 

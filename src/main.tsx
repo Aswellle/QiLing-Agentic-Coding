@@ -348,13 +348,21 @@ program
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 async function readStdin(): Promise<string> {
+  // If stdin is a TTY (interactive terminal), don't try to read it
+  if (process.stdin.isTTY) return ''
   return new Promise((resolve) => {
     const chunks: Buffer[] = []
+    let resolved = false
+    const done = () => {
+      if (!resolved) {
+        resolved = true
+        resolve(Buffer.concat(chunks).toString('utf-8').trim())
+      }
+    }
     process.stdin.on('data', (c: Buffer) => chunks.push(c))
-    process.stdin.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8').trim()))
-    process.stdin.on('error', () => resolve(''))
-    // Timeout: if stdin has no data within 50ms, resolve empty (TTY pipe)
-    setTimeout(() => resolve(''), 50)
+    process.stdin.on('end', done)
+    process.stdin.on('error', done)
+    process.stdin.resume()
   })
 }
 

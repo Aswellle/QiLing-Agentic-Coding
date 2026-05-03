@@ -310,7 +310,7 @@ export async function runQuery(
                   const perm = await permissions.check(tu.name, tu.input)
                   if (perm.type === 'allow') {
                     streamingStarted.add(tu.id)
-                    executor.addTool(tu.id, tu.name, tu.input, makeCoreRunner(tu))
+                    executor.addTool(tu.id, tu.name, tu.input, makeCoreRunner(tu), true)
                   }
                 }
               }
