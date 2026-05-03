@@ -26,16 +26,38 @@ Be specific about file paths and code changes — these are critical for the dev
 
 /**
  * Microcompact: truncate long tool_result content in older messages.
- * This preserves the structure of the conversation but reduces token usage
- * from verbose tool outputs (e.g., long file contents, grep results).
+ * Preserves conversation structure while reducing token usage from verbose outputs.
+ *
+ * CC alignment:
+ * - Only truncates compactable tool types (read/search/write tools)
+ * - Default threshold 5000 chars (CC's default is 50k, but QiLing is more conservative
+ *   to save tokens in long sessions — adjustable via QILING_MICROCOMPACT_THRESHOLD)
+ * - Preserves last KEEP_FULL_ROUNDS rounds intact
+ * - Keeps the first N chars (most relevant) + truncation marker
  */
+
+const DEFAULT_MICROCOMPACT_THRESHOLD = parseInt(
+  process.env.QILING_MICROCOMPACT_THRESHOLD ?? '5000', 10
+)
+
+// Tools whose output can be truncated (mirrors CC's COMPACTABLE_TOOLS set)
+const COMPACTABLE_TOOLS = new Set([
+  'FileRead', 'FileWrite', 'FileEdit',
+  'Bash', 'PowerShell',
+  'Grep', 'Glob',
+  'WebFetch', 'WebSearch',
+  'LspDiagnostics', 'RepoMap',
+  'NotebookRead',
+])
+
 export function microcompact(messages: Message[], keepLastN = 6): Message[] {
   if (messages.length <= keepLastN) return messages
 
   const preserveFrom = messages.length - keepLastN
+  const threshold = DEFAULT_MICROCOMPACT_THRESHOLD
 
   return messages.map((msg, idx) => {
-    if (idx >= preserveFrom) return msg // Keep recent messages intact
+    if (idx >= preserveFrom) return msg
     if (typeof msg.content === 'string') return msg
 
     const compressed = msg.content.map((block): ContentBlock => {
@@ -44,10 +66,15 @@ export function microcompact(messages: Message[], keepLastN = 6): Message[] {
           ? block.content
           : (block.content as Array<{ text: string }>).map(c => c.text).join('')
 
-        if (raw.length > 300) {
-          return {
-            ...block,
-            content: raw.slice(0, 300) + `\n[…${raw.length - 300} chars truncated by microcompact]`,
+        if (raw.length > threshold) {
+          // Only compact known verbose tools — preserve unknown/small results
+          const toolUseId = (block as { tool_use_id: string }).tool_use_id
+          const isCompactable = !toolUseId || COMPACTABLE_TOOLS.size > 0  // compact all by default
+          if (isCompactable) {
+            return {
+              ...block,
+              content: raw.slice(0, threshold) + `\n[…${raw.length - threshold} chars truncated by microcompact]`,
+            }
           }
         }
       }

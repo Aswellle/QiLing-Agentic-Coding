@@ -302,7 +302,11 @@ export async function runQuery(
                 try { tu.input = JSON.parse(raw) as Record<string, unknown> }
                 catch { tu.input = { _raw: raw } }
 
-                if (streamingEnabled && STREAMING_SAFE_TOOLS.has(tu.name) && !signal?.aborted) {
+                // Check concurrency safety: prefer per-tool isConcurrencySafe(), fall back to set
+                const streamTool = tools.get(tu.name)
+                const isSafe = streamTool?.isConcurrencySafe?.(tu.input as never)
+                  ?? STREAMING_SAFE_TOOLS.has(tu.name)
+                if (streamingEnabled && isSafe && !signal?.aborted) {
                   const perm = await permissions.check(tu.name, tu.input)
                   if (perm.type === 'allow') {
                     streamingStarted.add(tu.id)

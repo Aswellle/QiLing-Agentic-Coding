@@ -91,6 +91,8 @@ export const NotebookReadTool: Tool<Input> = {
     }
   },
 
+  isConcurrencySafe: () => true,
+
   toDefinition(): ToolDefinition {
     return {
       name: this.name,

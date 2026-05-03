@@ -54,4 +54,19 @@ export interface Tool<TInput = Record<string, unknown>> {
   renderToolResult?(result: ToolResult, input: TInput): React.ReactNode
 
   toDefinition(): ToolDefinition
+
+  /**
+   * Returns true if this tool can safely run concurrently with other tools.
+   * Read-only tools (FileRead, Glob, Grep etc.) return true.
+   * Write/execute tools (FileEdit, FileWrite, Bash etc.) return false (default).
+   * Mirrors CC's isConcurrencySafe() on Tool.
+   */
+  isConcurrencySafe?(input: TInput): boolean
+
+  /**
+   * Maximum result size in characters before microcompact truncation.
+   * Mirrors CC's maxResultSizeChars on tool definitions.
+   * Undefined = no limit (use global default).
+   */
+  maxResultSizeChars?: number
 }

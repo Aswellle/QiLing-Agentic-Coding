@@ -80,6 +80,8 @@ export const GrepTool: Tool<Input> = {
     }
   },
 
+  isConcurrencySafe: () => true,
+
   toDefinition(): ToolDefinition {
     return {
       name: this.name,

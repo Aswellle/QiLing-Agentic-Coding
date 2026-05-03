@@ -226,6 +226,8 @@ export const WebSearchTool: Tool<WebSearchInput> = {
     }
   },
 
+  isConcurrencySafe: () => true,
+
   toDefinition() {
     return {
       name: this.name,

@@ -23,7 +23,7 @@ describe('microcompact', () => {
   })
 
   test('truncates long tool_result content in older messages', () => {
-    const longContent = 'x'.repeat(1000)
+    const longContent = 'x'.repeat(6000)  // must exceed DEFAULT_MICROCOMPACT_THRESHOLD (5000)
     const msgs: Message[] = [
       makeToolResultMsg('t1', longContent),
       makeToolResultMsg('t2', longContent),

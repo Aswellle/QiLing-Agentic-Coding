@@ -194,6 +194,8 @@ export const RepoMapTool: Tool<Input> = {
     return { content: [{ type: 'text', text }] }
   },
 
+  isConcurrencySafe: () => true,
+
   toDefinition(): ToolDefinition {
     return {
       name: this.name,

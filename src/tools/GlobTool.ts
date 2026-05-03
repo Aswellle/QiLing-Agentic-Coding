@@ -108,6 +108,8 @@ export const GlobTool: Tool<Input> = {
     }
   },
 
+  isConcurrencySafe: () => true,
+
   toDefinition(): ToolDefinition {
     return {
       name: this.name,
