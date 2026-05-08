@@ -53,3 +53,27 @@ export function containsPathTraversal(path: string): boolean {
   const normalized = normalize(path)
   return normalized.includes('..') || path.includes('../') || path.includes('..\\')
 }
+
+import { dirname } from 'path'
+
+/**
+ * Get the directory component of a path (respects ~ and UNC paths).
+ * Ported from CC's utils/path.ts.
+ */
+export function getDirectoryForPath(filePath: string): string {
+  const absolutePath = expandPath(filePath)
+  // SECURITY: Skip filesystem ops for UNC paths to prevent NTLM credential leaks.
+  if (absolutePath.startsWith('\\\\') || absolutePath.startsWith('//')) {
+    return dirname(absolutePath)
+  }
+  return dirname(absolutePath)
+}
+
+/**
+ * Normalize a path for use as a JSON config key.
+ * Resolves . and .. segments, converts backslashes to forward slashes.
+ * Ported from CC's utils/path.ts.
+ */
+export function normalizePathForConfigKey(filePath: string): string {
+  return normalize(filePath).replace(/\\/g, '/')
+}
