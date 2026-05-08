@@ -3,6 +3,38 @@
  * Handles UNC paths, drive letters, MSYS2/Git Bash paths, Cygwin paths.
  */
 
+import { existsSync } from 'fs'
+
+const KNOWN_GIT_BASH_PATHS = [
+  'C:\\Program Files\\Git\\bin\\bash.exe',
+  'C:\\Program Files (x86)\\Git\\bin\\bash.exe',
+  'C:\\Git\\bin\\bash.exe',
+]
+
+let _gitBashPath: string | undefined
+
+/** Find the Git Bash executable path on Windows. Falls back to 'bash'. */
+export function findGitBashPath(): string {
+  if (_gitBashPath !== undefined) return _gitBashPath
+
+  if (process.env.QILING_GIT_BASH_PATH) {
+    if (existsSync(process.env.QILING_GIT_BASH_PATH)) {
+      _gitBashPath = process.env.QILING_GIT_BASH_PATH
+      return _gitBashPath
+    }
+  }
+
+  for (const p of KNOWN_GIT_BASH_PATHS) {
+    if (existsSync(p)) {
+      _gitBashPath = p
+      return _gitBashPath
+    }
+  }
+
+  _gitBashPath = 'bash'
+  return _gitBashPath
+}
+
 const winToPosixCache = new Map<string, string>()
 const posixToWinCache = new Map<string, string>()
 const MAX_CACHE = 500
