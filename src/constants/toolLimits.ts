@@ -9,4 +9,4 @@ export const MAX_TOOL_RESULTS_PER_MESSAGE_CHARS = 200_000
 export const MAX_TOOL_RESULT_BYTES = MAX_TOOL_RESULT_TOKENS * BYTES_PER_TOKEN
 
 /** Max characters for tool use summary (Haiku-generated short label). */
-export const TOOL_SUMMARY_MAX_LENGTH = 100
+export const TOOL_SUMMARY_MAX_LENGTH = 50
