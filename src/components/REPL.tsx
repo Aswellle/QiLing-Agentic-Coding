@@ -279,6 +279,9 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
           thinkingBudget: settings.thinkingBudget,
           userContext: userCtx,
           systemContext: sysCtx,
+          // CC's refreshTools() pattern: reload tools between agent turns
+          // Allows newly-connected MCP tools to become available mid-session
+          refreshTools: () => filterToolsForMode(tools, appMode) as Map<string, Tool>,
         },
         {
           onTextDelta: (text) => setStreamingText(prev => prev + text),
