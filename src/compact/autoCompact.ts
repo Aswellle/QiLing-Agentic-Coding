@@ -78,6 +78,16 @@ export function calculateTokenWarningState(
 }
 
 /**
+ * Check if autocompact is enabled (CC's isAutoCompactEnabled pattern).
+ * Respects DISABLE_COMPACT and DISABLE_AUTO_COMPACT env vars.
+ */
+export function isAutoCompactEnabled(): boolean {
+  if (process.env.DISABLE_COMPACT === '1') return false
+  if (process.env.DISABLE_AUTO_COMPACT === '1') return false
+  return true
+}
+
+/**
  * Should autocompact trigger this iteration?
  * Returns true if usage is above the compact threshold.
  */
@@ -88,6 +98,9 @@ export function shouldAutoCompact(
 ): boolean {
   // Circuit breaker: 3 consecutive failures → stop retrying
   if (consecutiveFailures >= 3) return false
+
+  // CC's isAutoCompactEnabled() check
+  if (!isAutoCompactEnabled()) return false
 
   const total = usage.inputTokens + usage.outputTokens + usage.cacheReadTokens
   return total >= getAutoCompactThreshold(model)
