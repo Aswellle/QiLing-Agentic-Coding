@@ -57,3 +57,10 @@ export function getDisplayPath(filePath: string, cwd = process.cwd()): string {
     return rel.startsWith('..') ? filePath : rel
   } catch { return filePath }
 }
+
+
+/** Maximum output size in bytes for shell/file tool results (0.25MB). Mirrors CC's MAX_OUTPUT_SIZE. */
+export const MAX_OUTPUT_SIZE = 0.25 * 1024 * 1024
+
+/** Text prepended when a file/dir is not found to help orient the model. Mirrors CC's FILE_NOT_FOUND_CWD_NOTE. */
+export const FILE_NOT_FOUND_CWD_NOTE = 'Note: your current working directory is'
