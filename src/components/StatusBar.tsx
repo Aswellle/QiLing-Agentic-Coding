@@ -5,6 +5,7 @@ import { formatUsageLine, formatTokenCount } from '../utils/tokens'
 import { formatCostUSD, getCacheHitRate } from '../cost-tracker'
 import { getCurrentTip, maybeAdvanceTip } from '../services/tips'
 import { calculateTokenWarningState } from '../compact/autoCompact'
+import { type PrStatus, fetchPrStatus } from '../utils/ghPrStatus'
 
 interface Props {
   model: string
@@ -50,6 +51,18 @@ export function StatusBar({
 
   const cacheHitPct = Math.round(getCacheHitRate() * 100)
   const showCache = cacheHitPct > 0
+
+  // PR status — fetched once and cached (CC's usePrStatus pattern)
+  const [prStatus, setPrStatus] = useState<PrStatus | null>(null)
+  useEffect(() => {
+    if (isStreaming) return  // Don't fetch while streaming
+    fetchPrStatus().then(status => setPrStatus(status)).catch(() => {})
+    // Re-fetch every 60 seconds
+    const interval = setInterval(() => {
+      fetchPrStatus().then(s => setPrStatus(s)).catch(() => {})
+    }, 60_000)
+    return () => clearInterval(interval)
+  }, [isStreaming])
 
   // Rotating tip — updates every 30 seconds
   const [tip, setTip] = useState(() => getCurrentTip())
@@ -104,6 +117,17 @@ export function StatusBar({
           {rounds > 0 && <Text color="gray">·{rounds}r</Text>}
           {bgSessionCount > 0 && (
             <Text color="magenta">⬤ {bgSessionCount}bg</Text>
+          )}
+          {/* CC's PR status display (usePrStatus pattern) */}
+          {prStatus && (
+            <Text color={
+              prStatus.reviewState === 'approved' ? 'green'
+              : prStatus.reviewState === 'changes_requested' ? 'red'
+              : prStatus.reviewState === 'draft' ? 'gray'
+              : 'yellow'
+            }>
+              PR#{prStatus.number}:{prStatus.reviewState === 'approved' ? '✓' : prStatus.reviewState === 'changes_requested' ? '✗' : prStatus.reviewState === 'draft' ? 'draft' : '…'}
+            </Text>
           )}
         </Box>
 
