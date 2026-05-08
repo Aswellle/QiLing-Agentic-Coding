@@ -4,9 +4,13 @@ import { resolve, join, dirname } from 'path'
 import { existsSync, readFileSync } from 'fs'
 import type { Tool, ToolResult, ToolContext, ToolDefinition } from '../types/tool'
 
+const DEFAULT_HEAD_LIMIT_GLOB = 250
+
 const inputSchema = z.object({
   pattern: z.string().describe('Glob pattern to match files (e.g., "**/*.ts", "src/**/*.{js,ts}")'),
   path: z.string().optional().describe('Directory to search in (defaults to working directory)'),
+  head_limit: z.number().optional().describe('Limit output to first N files (default: 250, 0=unlimited). Use to avoid context bloat on large repos.'),
+  offset: z.number().optional().describe('Skip first N files before applying head_limit, for pagination (default: 0).'),
 })
 
 type Input = z.infer<typeof inputSchema>
@@ -97,9 +101,21 @@ export const GlobTool: Tool<Input> = {
         }
       }
 
-      return {
-        content: [{ type: 'text', text: files.join('\n') }],
+      // Apply head_limit + offset pagination (CC pattern)
+      const offset = input.offset ?? 0
+      const limit = input.head_limit
+      const effectiveLimit = limit === 0 ? undefined : (limit ?? DEFAULT_HEAD_LIMIT_GLOB)
+      const paginated = effectiveLimit !== undefined
+        ? files.slice(offset, offset + effectiveLimit)
+        : files.slice(offset)
+      const truncated = effectiveLimit !== undefined && files.length > offset + effectiveLimit
+
+      let text = paginated.join('\n')
+      if (truncated) {
+        text += `\n... (showing ${offset + paginated.length}/${files.length} files — use offset/head_limit to paginate)`
       }
+
+      return { content: [{ type: 'text', text }] }
     } catch (error) {
       return {
         content: [{ type: 'text', text: `Glob error: ${error instanceof Error ? error.message : String(error)}` }],
@@ -119,6 +135,8 @@ export const GlobTool: Tool<Input> = {
         properties: {
           pattern: { type: 'string', description: 'Glob pattern' },
           path: { type: 'string', description: 'Directory to search in' },
+          head_limit: { type: 'number', description: 'Max files to return (default: 250, 0=unlimited)' },
+          offset: { type: 'number', description: 'Skip first N files for pagination (default: 0)' },
         },
         required: ['pattern'],
       },
