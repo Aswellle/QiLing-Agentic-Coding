@@ -3,6 +3,7 @@ import fg from 'fast-glob'
 import { resolve, join, dirname } from 'path'
 import { existsSync, readFileSync } from 'fs'
 import type { Tool, ToolResult, ToolContext, ToolDefinition } from '../types/tool'
+import { filterGeneratedFiles } from '../utils/generatedFiles'
 
 const DEFAULT_HEAD_LIMIT_GLOB = 250
 
@@ -94,26 +95,31 @@ export const GlobTool: Tool<Input> = {
         followSymbolicLinks: false,
       })
 
-      files.sort()
+      // CC's filterGeneratedFiles: exclude lock files, minified JS, .d.ts, etc.
+      const filtered = filterGeneratedFiles(files)
+      filtered.sort()
 
-      if (files.length === 0) {
-        return {
-          content: [{ type: 'text', text: `No files found matching: ${input.pattern}` }],
-        }
+      if (filtered.length === 0) {
+        const skipped = files.length - filtered.length
+        const msg = skipped > 0
+          ? `No non-generated files found matching: ${input.pattern} (${skipped} generated files excluded)`
+          : `No files found matching: ${input.pattern}`
+        return { content: [{ type: 'text', text: msg }] }
       }
+      const files2 = filtered  // alias for readability
 
       // Apply head_limit + offset pagination (CC pattern)
       const offset = input.offset ?? 0
       const limit = input.head_limit
       const effectiveLimit = limit === 0 ? undefined : (limit ?? DEFAULT_HEAD_LIMIT_GLOB)
       const paginated = effectiveLimit !== undefined
-        ? files.slice(offset, offset + effectiveLimit)
-        : files.slice(offset)
-      const truncated = effectiveLimit !== undefined && files.length > offset + effectiveLimit
+        ? files2.slice(offset, offset + effectiveLimit)
+        : files2.slice(offset)
+      const truncated = effectiveLimit !== undefined && files2.length > offset + effectiveLimit
 
       let text = paginated.join('\n')
       if (truncated) {
-        text += `\n... (showing ${offset + paginated.length}/${files.length} files — use offset/head_limit to paginate)`
+        text += `\n... (showing ${offset + paginated.length}/${files2.length} files — use offset/head_limit to paginate)`
       }
 
       return { content: [{ type: 'text', text }] }
