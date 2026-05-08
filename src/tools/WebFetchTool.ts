@@ -93,7 +93,7 @@ export const WebFetchTool: Tool<Input> = {
       const response = await fetch(input.url, {
         method: input.method ?? 'GET',
         headers: {
-          'User-Agent': 'QiLing/0.3.0 (AI Programming Agent)',
+          'User-Agent': `QiLing/${process.env.QILING_VERSION ?? '0.3.0'} (AI Programming Agent)`,
           Accept: 'text/markdown, text/html, application/json, text/plain, */*',
           ...input.headers,
         },
