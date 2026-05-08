@@ -1,6 +1,9 @@
 /**
  * Message utilities — ported from CC's utils/messages.ts (targeted subset)
  *
+ * Key message constants (CC-aligned):
+ * - INTERRUPT_MESSAGE, CANCEL_MESSAGE, REJECT_MESSAGE, NO_RESPONSE_REQUESTED
+ *
  * Key functions:
  * - stripThinkingBlocks(): remove thinking blocks when credentials change
  * - filterMetaMessages(): remove isMeta messages for session display/export
@@ -88,4 +91,34 @@ export function countToolCalls(messages: Message[]): number {
 /** Count user turns (non-meta user messages). */
 export function countUserTurns(messages: Message[]): number {
   return messages.filter(m => m.role === 'user' && !m.isMeta).length
+}
+
+// ─── CC-aligned message constants ────────────────────────────────────────────
+
+/** User interrupted the request (Ctrl+C). */
+export const INTERRUPT_MESSAGE = '[Request interrupted by user]'
+
+/** User interrupted during tool use (tool call was NOT executed). */
+export const INTERRUPT_MESSAGE_FOR_TOOL_USE = '[Request interrupted by user for tool use]'
+
+/** User declined to take the suggested action. Model should wait for instructions. */
+export const CANCEL_MESSAGE =
+  "The user doesn't want to take this action right now. STOP what you are doing and wait for the user to tell you how to proceed."
+
+/** User rejected a specific tool use. Model should stop and wait. */
+export const REJECT_MESSAGE =
+  "The user doesn't want to proceed with this tool use. The tool use was rejected (eg. if it was a file edit, the new_string was NOT written to the file). STOP what you are doing and wait for the user to tell you how to proceed."
+
+export const REJECT_MESSAGE_WITH_REASON_PREFIX =
+  "The user doesn't want to proceed with this tool use and provided the following reason: "
+
+/** Tool result placeholder when no response was requested (silent tool use). */
+export const NO_RESPONSE_REQUESTED = 'No response requested.'
+
+export function AUTO_REJECT_MESSAGE(toolName: string): string {
+  return `${toolName} was not executed because auto-mode rejected it. The user has not approved this type of tool use.`
+}
+
+export function DONT_ASK_REJECT_MESSAGE(toolName: string): string {
+  return `${toolName} was not executed because the user chose to never ask for this permission.`
 }
