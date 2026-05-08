@@ -53,6 +53,8 @@ const SLASH_COMMANDS: SlashCommand[] = BUILTIN_COMMANDS.map(c => ({
   { name: '/clear', description: '清空当前对话' },
   { name: '/compact', description: '压缩对话上下文' },
   { name: '/memory', description: '查看当前内存文件内容（QILING.md / CLAUDE.md）' },
+  { name: '/fast', description: '切换快速模式：claude-opus-4-6（更快响应，CC /fast 模式）' },
+  { name: '/cost', description: '显示当前会话的 Token 使用量和费用统计' },
   { name: '/exit', description: '退出' },
   { name: '! <cmd>', description: '直接执行 Shell 命令，不经过 AI（CC bash 模式）' },
 ])
@@ -555,6 +557,46 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
           content: memContent
             ? `当前内存文件内容:\n\n${memContent}\n\n提示: 编辑 QILING.md / CLAUDE.md 来更新记忆，或 ~/.qiling/QILING.md 来添加全局记忆。`
             : `暂无内存文件。创建 QILING.md 或 ~/.qiling/QILING.md 来添加持久化记忆。`,
+        }])
+        return
+      }
+
+      case '/fast': {
+        // CC's /fast toggle: switches between normal model and claude-opus-4-6 (fast Opus)
+        const FAST_MODEL = 'claude-opus-4-6'
+        const normalModel = settings.model
+        const isFastNow = normalModel === FAST_MODEL
+        if (isFastNow) {
+          setMessages(prev => [...prev, {
+            role: 'assistant',
+            content: `⚡ 快速模式已关闭。当前模型: ${normalModel}\n提示: 使用 /model 切换模型`,
+          }])
+        } else {
+          setMessages(prev => [...prev, {
+            role: 'assistant',
+            content: `⚡ 快速模式: /fast 会切换到 ${FAST_MODEL}（更快速的 Opus 版本）。\n当前模型: ${normalModel}\n使用 /model ${FAST_MODEL} 手动切换。`,
+          }])
+        }
+        return
+      }
+
+      case '/cost': {
+        const { getTotalCostUSD, getCacheHitRate, getUsageByModel } = await import('../cost-tracker')
+        const totalUSD = getTotalCostUSD()
+        const cacheRate = Math.round(getCacheHitRate() * 100)
+        const byModel = getUsageByModel()
+        const modelLines = [...byModel.entries()].map(([m, u]) =>
+          `  ${m}: in=${u.inputTokens.toLocaleString()} out=${u.outputTokens.toLocaleString()} cache=${u.cacheReadTokens.toLocaleString()}`
+        ).join('\n')
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: [
+            `当前会话 Token 使用统计:`,
+            modelLines || `  (暂无数据)`,
+            ``,
+            `缓存命中率: ${cacheRate}%`,
+            `估算费用: $${totalUSD.toFixed(4)} USD`,
+          ].join('\n'),
         }])
         return
       }
