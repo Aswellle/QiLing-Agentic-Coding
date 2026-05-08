@@ -4,6 +4,7 @@ import type { TokenUsage } from '../types/message'
 import { formatUsageLine, formatTokenCount } from '../utils/tokens'
 import { formatCostUSD, getCacheHitRate } from '../cost-tracker'
 import { getCurrentTip, maybeAdvanceTip } from '../services/tips'
+import { calculateTokenWarningState } from '../compact/autoCompact'
 
 interface Props {
   model: string
@@ -29,7 +30,20 @@ export function StatusBar({
 }: Props) {
   const totalTokens = usage.inputTokens + usage.outputTokens
   const usagePct = contextWindow > 0 ? Math.round((totalTokens / contextWindow) * 100) : 0
-  const usageColor = usagePct > 85 ? 'red' : usagePct > 70 ? 'yellow' : 'green'
+
+  // CC's calculateTokenWarningState for nuanced context warnings
+  const warningState = calculateTokenWarningState(usage, model)
+  const usageColor = warningState.level === 'blocked' ? 'red'
+    : warningState.level === 'critical' ? 'red'
+    : warningState.level === 'warn' ? 'yellow'
+    : 'green'
+  const contextWarning = warningState.level !== 'ok' && !isStreaming
+    ? warningState.level === 'blocked'
+      ? `上下文已满 · 请运行 /compact`
+      : warningState.level === 'critical'
+        ? `上下文剩余 ${100 - usagePct}% · 建议运行 /compact`
+        : null
+    : null
 
   const shortModel = model.length > 24 ? model.slice(0, 22) + '…' : model
   const showCost = totalCostUSD !== undefined && totalCostUSD > 0
@@ -56,8 +70,17 @@ export function StatusBar({
         </Box>
       )}
 
-      {/* Tip row — shown when not streaming (avoid distracting during output) */}
-      {showTips && !isStreaming && tip && (
+      {/* Context warning row — shown when context is getting full (CC's TokenWarning pattern) */}
+      {contextWarning && (
+        <Box>
+          <Text color={warningState.level === 'blocked' ? 'red' : 'yellow'} bold={warningState.level === 'blocked'}>
+            ⚠ {contextWarning}
+          </Text>
+        </Box>
+      )}
+
+      {/* Tip row — shown when not streaming and not warning */}
+      {showTips && !isStreaming && !contextWarning && tip && (
         <Box>
           <Text color="gray" dimColor>💡 {tip.content}</Text>
         </Box>
