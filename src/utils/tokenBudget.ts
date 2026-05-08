@@ -57,3 +57,47 @@ export function stripTokenBudget(text: string): string {
     .replace(VERBOSE_RE_G, '')
     .trim()
 }
+
+/**
+ * Find all token budget expression positions in text — used for UI highlighting.
+ * Returns [{start, end}] ranges of each budget expression.
+ * Ported from CC's utils/tokenBudget.ts.
+ */
+export function findTokenBudgetPositions(
+  text: string,
+): Array<{ start: number; end: number }> {
+  const positions: Array<{ start: number; end: number }> = []
+  const startMatch = text.match(SHORTHAND_START_RE)
+  if (startMatch) {
+    const offset =
+      startMatch.index! +
+      startMatch[0].length -
+      startMatch[0].trimStart().length
+    positions.push({ start: offset, end: startMatch.index! + startMatch[0].length })
+  }
+  const endMatch = text.match(SHORTHAND_END_RE)
+  if (endMatch) {
+    const endStart = endMatch.index! + 1
+    const alreadyCovered = positions.some(p => endStart >= p.start && endStart < p.end)
+    if (!alreadyCovered) {
+      positions.push({ start: endStart, end: endMatch.index! + endMatch[0].length })
+    }
+  }
+  for (const match of text.matchAll(VERBOSE_RE_G)) {
+    positions.push({ start: match.index, end: match.index + match[0].length })
+  }
+  return positions
+}
+
+/**
+ * Generate the continuation nudge message when the token budget is hit.
+ * Ported from CC's utils/tokenBudget.ts.
+ */
+export function getBudgetContinuationMessage(
+  pct: number,
+  turnTokens: number,
+  budget: number,
+): string {
+  const fmt = (n: number): string => new Intl.NumberFormat('en-US').format(n)
+  return `Stopped at ${pct}% of token target (${fmt(turnTokens)} / ${fmt(budget)}). Keep working — do not summarize.`
+}
