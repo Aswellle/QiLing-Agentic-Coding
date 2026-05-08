@@ -281,6 +281,9 @@ export async function runQuery(
     const pendingToolUses: ToolUseContent[] = []
     const streamingStarted = new Set<string>()
     let currentAssistantText = ''
+    // Thinking blocks accumulated per-round; must be preserved in assistant content
+    // for multi-turn conversations (CC's thinking block preservation rules)
+    const thinkingBlocks: Array<{ type: 'thinking'; thinking: string; signature: string }> = []
     const toolInputs = new Map<string, string>()
     let streamError: string | null = null
     let stopReasonThisRound = 'end_turn'
@@ -309,6 +312,7 @@ export async function runQuery(
         pendingToolUses.length = 0
         streamingStarted.clear()
         currentAssistantText = ''
+        thinkingBlocks.length = 0
         toolInputs.clear()
         executor.discard()
         executor = new StreamingToolExecutor(STREAMING_SAFE_TOOLS, signal)
@@ -383,6 +387,17 @@ export async function runQuery(
               stopReasonThisRound = chunk.stopReason
               finalStopReason = chunk.stopReason
               callbacks.onUsageUpdate?.(totalUsage)
+              break
+
+            case 'thinking_block':
+              // Preserve thinking blocks for multi-turn conversations.
+              // CC rule: thinking blocks in an assistant message must be
+              // preserved for the duration of the assistant trajectory.
+              thinkingBlocks.push({
+                type: 'thinking',
+                thinking: chunk.thinking,
+                signature: chunk.signature,
+              })
               break
 
             case 'error':
@@ -467,14 +482,22 @@ export async function runQuery(
     if (signal?.aborted) { finalStopReason = 'aborted' }
 
     // ── 5. Build assistant message ──────────────────────────────────────────────
+    // Thinking blocks must come FIRST in the content array (CC rule),
+    // followed by text, followed by tool_use blocks.
     const assistantContent: ContentBlock[] = []
+    // Prepend thinking blocks (must not be the last block per CC's rules)
+    for (const tb of thinkingBlocks) {
+      assistantContent.push(tb as unknown as ContentBlock)
+    }
     if (currentAssistantText) assistantContent.push({ type: 'text', text: currentAssistantText })
     for (const tu of pendingToolUses) assistantContent.push(tu)
 
+    // Use string shorthand only when there are no thinking blocks or tool uses
+    const canUseStringContent = assistantContent.length === 1 && assistantContent[0].type === 'text'
     if (assistantContent.length > 0) {
       workingMessages.push({
         role: 'assistant',
-        content: assistantContent.length === 1 && assistantContent[0].type === 'text'
+        content: canUseStringContent
           ? currentAssistantText
           : assistantContent,
       })

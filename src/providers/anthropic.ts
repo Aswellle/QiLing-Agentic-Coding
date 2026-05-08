@@ -120,6 +120,8 @@ export class AnthropicProvider implements Provider {
               yield { type: 'tool_use_delta', id, inputDelta: event.delta.partial_json }
             }
           }
+          // Note: thinking_delta events are NOT yielded to the UI (internal only)
+          // Thinking blocks are preserved via finalMessage.content below
 
         } else if (event.type === 'content_block_stop') {
           const id = indexToId.get(event.index)
@@ -141,6 +143,19 @@ export class AnthropicProvider implements Provider {
           (finalMessage.usage as { cache_creation_input_tokens?: number })
             .cache_creation_input_tokens ?? 0,
       }
+
+      // Yield thinking blocks from finalMessage.content for multi-turn preservation.
+      // CC's thinking block rule: thinking/redacted_thinking blocks in an assistant
+      // message MUST be preserved for the duration of an assistant trajectory.
+      // Since we don't stream thinking deltas, we emit them here as a batch.
+      const thinkingBlocks = finalMessage.content.filter(
+        (b): b is { type: 'thinking'; thinking: string; signature: string } =>
+          b.type === 'thinking'
+      )
+      for (const block of thinkingBlocks) {
+        yield { type: 'thinking_block' as const, thinking: block.thinking, signature: block.signature }
+      }
+
       yield { type: 'stop', stopReason: finalMessage.stop_reason ?? 'end_turn', usage }
 
     } catch (error) {

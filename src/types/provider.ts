@@ -23,6 +23,10 @@ export type StreamChunkType =
   | { type: 'tool_use_stop'; id: string }
   | { type: 'stop'; stopReason: string; usage: TokenUsage }
   | { type: 'error'; error: string }
+  /** Thinking block (extended thinking mode) — carries the full thinking text
+   *  and its signature. Must be preserved in assistant content for multi-turn
+   *  conversations with thinking enabled. Mirrors CC's thinking block rules. */
+  | { type: 'thinking_block'; thinking: string; signature: string }
 
 export interface Provider {
   config: ProviderConfig
