@@ -355,6 +355,58 @@ async function generateSyntheticDiff(
   } catch { return null }
 }
 
+// ─── Additional git utilities (ported from CC's utils/git.ts) ─────────────────
+
+/** Get list of files changed in the working tree (unstaged + staged). */
+export async function getChangedFiles(cwd = process.cwd()): Promise<string[]> {
+  const { stdout, code } = await git(
+    ['--no-optional-locks', 'diff', '--name-only', 'HEAD'],
+    cwd
+  )
+  if (code !== 0) return []
+  return stdout.split('\n').filter(Boolean)
+}
+
+/** Returns true if working tree is clean (no staged or unstaged changes). */
+export async function getIsClean(cwd = process.cwd()): Promise<boolean> {
+  const { stdout, code } = await git(
+    ['--no-optional-locks', 'status', '--porcelain'],
+    cwd
+  )
+  if (code !== 0) return true  // assume clean if git fails
+  return !stdout.trim()
+}
+
+/** Returns true if there are commits not pushed to the remote. */
+export async function hasUnpushedCommits(cwd = process.cwd()): Promise<boolean> {
+  const { stdout, code } = await git(
+    ['--no-optional-locks', 'log', '--oneline', '@{u}..HEAD'],
+    cwd
+  )
+  if (code !== 0) return false
+  return !!stdout.trim()
+}
+
+/** Get current branch name. */
+export async function getBranch(cwd = process.cwd()): Promise<string> {
+  const { stdout, code } = await git(['rev-parse', '--abbrev-ref', 'HEAD'], cwd)
+  return code === 0 ? stdout.trim() : '(detached)'
+}
+
+/** Get current HEAD SHA (short). */
+export async function getHead(cwd = process.cwd()): Promise<string> {
+  const { stdout, code } = await git(['rev-parse', '--short', 'HEAD'], cwd)
+  return code === 0 ? stdout.trim() : ''
+}
+
+/** Get GitHub owner/repo from remote URL, e.g. "Aswellle/QiLing-Agentic-Coding". */
+export async function getGithubRepo(cwd = process.cwd()): Promise<string | null> {
+  const { stdout, code } = await git(['remote', 'get-url', 'origin'], cwd)
+  if (code !== 0) return null
+  const match = stdout.match(/github\.com[:/]([^/]+\/[^/]+?)(?:\.git)?$/)
+  return match?.[1] ?? null
+}
+
 /** Format diff stats as compact string, e.g. "+42 -7 (3 files)" */
 export function formatDiffStats(stats: GitDiffStats): string {
   const parts: string[] = []
