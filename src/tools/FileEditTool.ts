@@ -37,11 +37,20 @@ export const FileEditTool: Tool<Input> = {
 
     const content = readFileSync(filePath, 'utf-8')
 
+    // CC's findActualString: fuzzy quote normalization for curly vs straight quotes
+    const actualOldString = findActualString(content, input.old_string)
+    const effectiveOldString = actualOldString ?? input.old_string
+    const quoteNormalized = actualOldString !== null && actualOldString !== input.old_string
+
     if (!input.replace_all) {
-      const count = countOccurrences(content, input.old_string)
+      const count = countOccurrences(content, effectiveOldString)
       if (count === 0) {
+        // Try whitespace-normalized fallback
+        const wsNormMsg = input.old_string.includes('\n')
+          ? '\n\nTip: If the string spans multiple lines, ensure indentation/whitespace matches exactly.'
+          : ''
         return {
-          content: [{ type: 'text', text: `String not found in file:\n${input.old_string}` }],
+          content: [{ type: 'text', text: `String not found in file:\n${input.old_string}${wsNormMsg}` }],
           isError: true,
         }
       }
@@ -56,13 +65,18 @@ export const FileEditTool: Tool<Input> = {
       }
     }
 
+    // Preserve curly quote style if normalization was applied (CC's preserveQuoteStyle)
+    const effectiveNewString = quoteNormalized
+      ? preserveQuoteStyle(input.old_string, effectiveOldString, input.new_string)
+      : input.new_string
+
     const newContent = input.replace_all
-      ? content.split(input.old_string).join(input.new_string)
-      : content.replace(input.old_string, input.new_string)
+      ? content.split(effectiveOldString).join(effectiveNewString)
+      : content.replace(effectiveOldString, effectiveNewString)
 
     writeFileSync(filePath, newContent, 'utf-8')
 
-    const occurrences = countOccurrences(content, input.old_string)
+    const occurrences = countOccurrences(content, effectiveOldString)
     // Embed diff metadata as JSON comment so ToolCallDisplay can render it
     const diffMeta = JSON.stringify({
       __diff: true,
@@ -98,11 +112,70 @@ export const FileEditTool: Tool<Input> = {
 
 function countOccurrences(text: string, pattern: string): number {
   if (pattern.length === 0) return 0
-  let count = 0
-  let pos = 0
-  while ((pos = text.indexOf(pattern, pos)) !== -1) {
-    count++
-    pos += pattern.length
-  }
+  let count = 0, pos = 0
+  while ((pos = text.indexOf(pattern, pos)) !== -1) { count++; pos += pattern.length }
   return count
+}
+
+// ─── CC's quote normalization utilities ──────────────────────────────────────
+// Mirrors CC's tools/FileEditTool/utils.ts findActualString + preserveQuoteStyle.
+// Handles the common case where models use straight quotes but files use curly.
+
+const CURLY_DOUBLE = ['“', '”']  // " "
+const CURLY_SINGLE = ['‘', '’']  // ' '
+
+function normalizeQuotes(s: string): string {
+  return s
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'")
+}
+
+/**
+ * Try to find searchString in fileContent, with curly-quote fallback.
+ * Returns the actual substring as it appears in the file, or null if not found.
+ * Mirrors CC's findActualString().
+ */
+function findActualString(fileContent: string, searchString: string): string | null {
+  if (fileContent.includes(searchString)) return searchString
+
+  const normSearch = normalizeQuotes(searchString)
+  const normFile = normalizeQuotes(fileContent)
+  const idx = normFile.indexOf(normSearch)
+  if (idx === -1) return null
+  return fileContent.substring(idx, idx + searchString.length)
+}
+
+/**
+ * When old_string matched via quote normalization, apply the same curly quote
+ * style to new_string so the edit preserves the file's typography.
+ * Mirrors CC's preserveQuoteStyle().
+ */
+function preserveQuoteStyle(oldString: string, actualOldString: string, newString: string): string {
+  if (oldString === actualOldString) return newString
+  let result = newString
+  if (CURLY_DOUBLE.some(c => actualOldString.includes(c))) {
+    result = applyCurlyDouble(result)
+  }
+  if (CURLY_SINGLE.some(c => actualOldString.includes(c))) {
+    result = applyCurlySingle(result)
+  }
+  return result
+}
+
+function applyCurlyDouble(s: string): string {
+  let open = true
+  return s.replace(/"/g, () => {
+    const c = open ? '“' : '”'
+    open = !open
+    return c
+  })
+}
+
+function applyCurlySingle(s: string): string {
+  let open = true
+  return s.replace(/'/g, () => {
+    const c = open ? '‘' : '’'
+    open = !open
+    return c
+  })
 }
