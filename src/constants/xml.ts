@@ -1,0 +1,54 @@
+/**
+ * XML tag names for tool-protocol message framing — ported from CC's constants/xml.ts
+ */
+
+// Skill/command metadata tags
+export const COMMAND_NAME_TAG = 'command-name'
+export const COMMAND_MESSAGE_TAG = 'command-message'
+export const COMMAND_ARGS_TAG = 'command-args'
+
+// Terminal input/output wrapping tags
+export const BASH_INPUT_TAG = 'bash-input'
+export const BASH_STDOUT_TAG = 'bash-stdout'
+export const BASH_STDERR_TAG = 'bash-stderr'
+export const LOCAL_COMMAND_STDOUT_TAG = 'local-command-stdout'
+export const LOCAL_COMMAND_STDERR_TAG = 'local-command-stderr'
+export const LOCAL_COMMAND_CAVEAT_TAG = 'local-command-caveat'
+
+export const TERMINAL_OUTPUT_TAGS = [
+  BASH_INPUT_TAG,
+  BASH_STDOUT_TAG,
+  BASH_STDERR_TAG,
+  LOCAL_COMMAND_STDOUT_TAG,
+  LOCAL_COMMAND_STDERR_TAG,
+  LOCAL_COMMAND_CAVEAT_TAG,
+] as const
+
+// Tick (periodic check-in) tag — used by SleepTool and loop scheduling
+export const TICK_TAG = 'tick'
+
+// Task notification tags
+export const TASK_NOTIFICATION_TAG = 'task-notification'
+export const TASK_ID_TAG = 'task-id'
+export const TOOL_USE_ID_TAG = 'tool-use-id'
+export const TASK_TYPE_TAG = 'task-type'
+export const OUTPUT_FILE_TAG = 'output-file'
+export const STATUS_TAG = 'status'
+export const SUMMARY_TAG = 'summary'
+export const REASON_TAG = 'reason'
+
+// Worktree tags
+export const WORKTREE_TAG = 'worktree'
+export const WORKTREE_PATH_TAG = 'worktreePath'
+export const WORKTREE_BRANCH_TAG = 'worktreeBranch'
+
+// Fork boilerplate wrapper (collapses in UI)
+export const FORK_BOILERPLATE_TAG = 'fork-boilerplate'
+export const FORK_DIRECTIVE_PREFIX = 'Your directive: '
+
+// Common slash command argument patterns
+export const COMMON_HELP_ARGS = ['help', '-h', '--help']
+export const COMMON_INFO_ARGS = [
+  'list', 'show', 'display', 'current', 'view', 'get',
+  'check', 'describe', 'print', 'version', 'about', 'status', '?',
+]
