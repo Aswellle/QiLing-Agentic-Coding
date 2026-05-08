@@ -27,6 +27,7 @@ interface Props {
   vimMode?: boolean
   onVimModeChange?: (mode: VimMode, pendingOp?: string) => void
   initialValue?: string  // CC's --prefill: pre-fill without submitting
+  onCycleMode?: () => void  // CC's Shift+Tab — cycle permission modes
 }
 
 // Session-level input history
@@ -36,7 +37,7 @@ let historyIndex = -1
 // Terminal width for Cursor line wrapping
 const COLUMNS = process.stdout.columns ?? 120
 
-export function PromptInput({ onSubmit, isDisabled, commands, placeholder, vimMode = false, onVimModeChange, initialValue }: Props) {
+export function PromptInput({ onSubmit, isDisabled, commands, placeholder, vimMode = false, onVimModeChange, initialValue, onCycleMode }: Props) {
   const [value, setValue] = useState(initialValue ?? '')
   const [showCommands, setShowCommands] = useState(false)
   const [commandFilter, setCommandFilter] = useState('')
@@ -243,6 +244,14 @@ export function PromptInput({ onSubmit, isDisabled, commands, placeholder, vimMo
 
       if (key.escape) { setShowCommands(false); setCommandFilter(''); setSelectedCommand(0); return }
 
+      // ── Shift+Tab: cycle permission modes (CC's chat:cycleMode pattern) ───
+      // CC: default → acceptEdits → plan → default (Shift+Tab each step)
+      // On Windows without VT mode: also accept meta+m as fallback
+      if ((key.shift && key.tab) || (key.meta && input === 'm')) {
+        onCycleMode?.()
+        return
+      }
+
       if (showCommands) {
         if (key.upArrow) { setSelectedCommand(s => Math.max(0, s - 1)); return }
         if (key.downArrow) { setSelectedCommand(s => Math.min(filteredCommands.length - 1, s + 1)); return }
@@ -332,6 +341,10 @@ export function PromptInput({ onSubmit, isDisabled, commands, placeholder, vimMo
           </Text>
         ) : (
           <Text color="gray">{placeholder ?? '输入消息，/ 查看命令...'}</Text>
+        )}
+        {/* CC's mode cycle hint — Shift+Tab shortcut (shown when onCycleMode is wired) */}
+        {!isDisabled && onCycleMode && !value && (
+          <Text color="gray" dimColor>  ⇥ 模式</Text>
         )}
       </Box>
     </Box>

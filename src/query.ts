@@ -38,6 +38,7 @@ import { applyCollapsesIfNeeded, recoverFromOverflow } from './services/contextC
 import { snipCompactIfNeeded } from './compact/snipCompact'
 import { calculateTokenWarningState } from './compact/autoCompact'
 import { roughTokenCountEstimationForMessages } from './utils/tokens'
+import { ACCEPT_EDITS_AUTO_TOOLS } from './modes/planMode'
 
 // ─── Context injection (CC's prependUserContext pattern) ──────────────────────
 // Wraps userContext as a <system-reminder> block prepended to messages.
@@ -111,6 +112,13 @@ export interface QueryOptions {
    * for dynamically adding newly connected MCP tools.
    */
   refreshTools?: () => Map<string, Tool>
+  /**
+   * Permission mode — CC's acceptEdits mode auto-allows file edit tools.
+   * 'acceptEdits': auto-approve FileEdit/FileWrite/FileRead without asking.
+   * 'plan': read-only (tool filtering already applied upstream).
+   * 'act': default, all permissions go through normal check.
+   */
+  permissionMode?: 'act' | 'acceptEdits' | 'plan'
 }
 
 export interface QueryCallbacks {
@@ -161,6 +169,8 @@ export async function runQuery(
   const signal = options.signal
   const streamingEnabled = options.enableStreamingTools !== false
   const modelName = provider.config.model
+  // CC's acceptEdits mode: auto-allow file edit tools without asking
+  const isAcceptEditsMode = options.permissionMode === 'acceptEdits'
 
   let totalUsage: TokenUsage = { inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0 }
   let finalStopReason = 'end_turn'
@@ -402,7 +412,8 @@ export async function runQuery(
                 const isSafe = streamTool?.isConcurrencySafe?.(tu.input as never)
                   ?? STREAMING_SAFE_TOOLS.has(tu.name)
                 if (streamingEnabled && isSafe && !signal?.aborted) {
-                  const perm = await permissions.check(tu.name, tu.input)
+                  const isAutoApprovedStream = isAcceptEditsMode && ACCEPT_EDITS_AUTO_TOOLS.has(tu.name)
+                  const perm = isAutoApprovedStream ? { type: 'allow' as const } : await permissions.check(tu.name, tu.input)
                   if (perm.type === 'allow') {
                     streamingStarted.add(tu.id)
                     executor.addTool(tu.id, tu.name, tu.input, makeCoreRunner(tu), true)
@@ -601,10 +612,12 @@ export async function runQuery(
         continue
       }
 
-      const perm = await permissions.check(toolUse.name, toolUse.input)
+      // CC's acceptEdits mode: auto-approve file edit/read tools, skip permission dialog
+      const isAutoApproved = isAcceptEditsMode && ACCEPT_EDITS_AUTO_TOOLS.has(toolUse.name)
+      const perm = isAutoApproved ? { type: 'allow' as const } : await permissions.check(toolUse.name, toolUse.input)
 
       if (perm.type === 'deny') {
-        const err = `Permission denied: ${perm.reason}`
+        const err = `Permission denied: ${(perm as { reason?: string }).reason ?? toolUse.name}`
         callbacks.onToolComplete?.(toolUse.id, toolUse.name, err, true)
         executor.addTool(toolUse.id, toolUse.name, toolUse.input,
           async () => ({ type: 'tool_result' as const, tool_use_id: toolUse.id, content: err, is_error: true }))

@@ -13,7 +13,7 @@ import { compactConversation } from '../compact/engine'
 import { BUILTIN_COMMANDS, type CommandContext } from '../commands/index'
 import { formatModelList, resolveModel } from '../commands/model'
 import { createProvider } from '../providers/index'
-import { filterToolsForMode, buildModeSystemPrompt, type AppMode } from '../modes/planMode'
+import { filterToolsForMode, buildModeSystemPrompt, getNextMode, MODE_INFO, ACCEPT_EDITS_AUTO_TOOLS, type AppMode } from '../modes/planMode'
 import { getBrief } from '../services/brief/store'
 import { readMemories } from '../services/memory/store'
 import { resolveMentions } from '../utils/mentions'
@@ -56,6 +56,7 @@ const SLASH_COMMANDS: SlashCommand[] = BUILTIN_COMMANDS.map(c => ({
   { name: '/fast', description: '切换快速模式：claude-opus-4-6（更快响应，CC /fast 模式）' },
   { name: '/cost', description: '显示当前会话的 Token 使用量和费用统计' },
   { name: '/review', description: 'AI 代码审查 — /review <PR号> 或不带参数显示 PR 列表' },
+  { name: '/auto', description: '切换到自动编辑模式（文件操作自动批准，Shift+Tab 也可循环切换）' },
   { name: '/exit', description: '退出' },
   { name: '! <cmd>', description: '直接执行 Shell 命令，不经过 AI（CC bash 模式）' },
 ])
@@ -289,6 +290,8 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
           // CC's refreshTools() pattern: reload tools between agent turns
           // Allows newly-connected MCP tools to become available mid-session
           refreshTools: () => filterToolsForMode(tools, appMode) as Map<string, Tool>,
+          // CC's acceptEdits mode — auto-approve file edit tools without dialog
+          permissionMode: appMode,
         },
         {
           onTextDelta: (text) => setStreamingText(prev => prev + text),
@@ -379,6 +382,21 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
       abortControllerRef.current = null
     }
   }, [tools, currentProvider, permissions, systemPrompt, appMode, settings])
+
+  // ── CC's Shift+Tab permission mode cycle (chat:cycleMode) ─────────────────
+  // Cycle: act → acceptEdits → plan → act
+  // Shows a brief notification banner with the new mode name and description.
+  const handleCycleMode = useCallback(() => {
+    setAppMode(prev => {
+      const next = getNextMode(prev)
+      const info = MODE_INFO[next]
+      // Show notification — borrow the existing notification slot
+      const label = next === 'act' ? '默认模式' : next === 'acceptEdits' ? '自动编辑模式' : '计划模式'
+      setNotification(`${info.label ? `[${info.label}] ` : ''}${label} — ${info.description}`)
+      setTimeout(() => setNotification(null), 3500)
+      return next
+    })
+  }, [])
 
   const handleSubmit = useCallback(async (rawInput: string) => {
     if (rawInput.startsWith('/')) {
@@ -499,11 +517,22 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
 
       case '/plan':
         setAppMode('plan')
+        setNotification('[PLAN] 计划模式 — 只读，禁止写入/执行  ·  Shift+Tab 循环切换')
+        setTimeout(() => setNotification(null), 3000)
         break  // fall through to builtin command for the message
 
       case '/act':
         setAppMode('act')
+        setNotification('默认模式 — 写入/执行前逐次确认  ·  Shift+Tab 循环切换')
+        setTimeout(() => setNotification(null), 3000)
         break  // fall through to builtin command for the message
+
+      case '/auto': {
+        setAppMode('acceptEdits')
+        setNotification('[AUTO] 自动编辑模式 — 文件操作自动批准，Shell 仍需确认  ·  Shift+Tab 循环切换')
+        setTimeout(() => setNotification(null), 3500)
+        return
+      }
 
       case '/clear':
         setMessages([])
@@ -907,6 +936,7 @@ PR number: ${prNum}`
           setPendingVimOp(op)
         }}
         initialValue={initialInput}
+        onCycleMode={handleCycleMode}
       />
     </Box>
   )

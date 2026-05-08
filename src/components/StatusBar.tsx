@@ -14,7 +14,7 @@ interface Props {
   isStreaming: boolean
   rounds: number
   retryStatus?: string | null
-  mode?: 'act' | 'plan'
+  mode?: 'act' | 'acceptEdits' | 'plan'
   totalCostUSD?: number
   bgSessionCount?: number
   vimMode?: boolean
@@ -108,6 +108,9 @@ export function StatusBar({
                 ? (pendingVimOp ? `[N:${pendingVimOp}]` : '[N]')
                 : '[I]'}
             </Text>
+          )}
+          {mode === 'acceptEdits' && (
+            <Text color="yellow" bold>[AUTO]</Text>
           )}
           {mode === 'plan' && (
             <Text color="cyan" bold>[PLAN]</Text>
