@@ -19,11 +19,38 @@ export interface CompactOptions {
   onProgress?: (msg: string) => void
 }
 
-const COMPACT_SYSTEM_PROMPT = `You are a conversation summarizer.
-Your job is to create a concise but complete summary of the conversation history.
-Preserve: key decisions made, code changes performed (file names + what changed), current task state, errors encountered, and important context needed to continue the work.
-Format the summary as structured bullet points, grouped by topic.
-Be specific about file paths and code changes — these are critical for the developer to continue.`
+// CC's BASE_COMPACT_PROMPT — detailed, structured summary with analysis phase
+// Mirrors CC's services/compact/prompt.ts for high-quality compaction output.
+const COMPACT_SYSTEM_PROMPT = `CRITICAL: Respond with TEXT ONLY. Do NOT call any tools.
+
+- Do NOT use Read, Bash, Grep, Glob, Edit, Write, or ANY other tool.
+- You already have all the context you need in the conversation above.
+- Your entire response must be plain text: an <analysis> block followed by a <summary> block.
+
+Your task is to create a detailed summary of the conversation so far, paying close attention to the user's explicit requests and your previous actions. This summary should be thorough in capturing technical details, code patterns, and architectural decisions that would be essential for continuing development work without losing context.
+
+Before providing your final summary, wrap your analysis in <analysis> tags to organize your thoughts and ensure you've covered all necessary points.
+
+Your summary should include the following sections:
+
+1. Primary Request and Intent: Capture all of the user's explicit requests and intents in detail
+2. Key Technical Concepts: List all important technical concepts, technologies, and frameworks discussed.
+3. Files and Code Sections: Enumerate specific files and code sections examined, modified, or created. Include full code snippets where applicable.
+4. Errors and fixes: List all errors encountered, and how they were fixed. Include user feedback if any.
+5. Problem Solving: Document problems solved and any ongoing troubleshooting efforts.
+6. All user messages: List ALL user messages that are not tool results. Critical for understanding the user's feedback and changing intent.
+7. Pending Tasks: Outline any pending tasks that were explicitly requested.
+8. Current Work: Describe in detail precisely what was being worked on immediately before this summary request. Include file names and code snippets.
+9. Optional Next Step: List the next step directly in line with the user's most recent explicit requests. Include direct quotes showing exactly what task was being worked on and where you left off.
+
+Format your response as:
+<analysis>
+[Your thought process]
+</analysis>
+
+<summary>
+[The 9-section summary]
+</summary>`
 
 /**
  * Microcompact: truncate long tool_result content in older messages.
@@ -175,10 +202,8 @@ export async function compactConversation(
     {
       role: 'user' as const,
       content: [
-        'Summarize the conversation above.',
-        customInstructions ? `Focus particularly on: ${customInstructions}` : '',
-        'Include: main goals, decisions made, code changes, current state, and what still needs to be done.',
-        'Be specific about file paths and exact changes made.',
+        'Please provide your detailed summary of the conversation above.',
+        customInstructions ? `\n## Compact Instructions\n${customInstructions}` : '',
       ].filter(Boolean).join('\n'),
     },
   ]
@@ -195,7 +220,7 @@ export async function compactConversation(
   )
 
   const summaryMsg = result.messages.filter(m => m.role === 'assistant').slice(-1)[0]
-  const summaryText = summaryMsg
+  const rawSummaryText = summaryMsg
     ? typeof summaryMsg.content === 'string'
       ? summaryMsg.content
       : (summaryMsg.content as Array<{ type: string; text?: string }>)
@@ -203,6 +228,10 @@ export async function compactConversation(
           .map(b => b.text ?? '')
           .join('\n')
     : '(摘要生成失败)'
+
+  // Extract only the <summary> block (strip <analysis> scratchpad, CC's formatCompactSummary pattern)
+  const summaryMatch = rawSummaryText.match(/<summary>([\s\S]*?)<\/summary>/i)
+  const summaryText = summaryMatch ? summaryMatch[1]!.trim() : rawSummaryText
 
   // Step 4: Build compacted messages
   const compactedMessages: Message[] = [
