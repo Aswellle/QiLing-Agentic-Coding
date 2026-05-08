@@ -18,7 +18,7 @@ import { getBrief } from '../services/brief/store'
 import { readMemories } from '../services/memory/store'
 import { resolveMentions } from '../utils/mentions'
 import { loadAllSkills, formatSkillList } from '../skills/loader'
-import { getUserContext, getSystemContext } from '../context'
+import { getUserContext, getSystemContext, resetContextCaches } from '../context'
 import { parseTokenBudget, stripTokenBudget } from '../utils/tokenBudget'
 import { substituteArguments } from '../utils/argumentSubstitution'
 import { loadLastSession, listSessions, formatSessionList } from '../session/resume'
@@ -475,6 +475,9 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
         setError(null)
         setNotification(null)
         setUsage({ inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0 })
+        // CC's postCompactCleanup pattern: reset context caches on /clear
+        // so the next query re-reads CLAUDE.md and git status fresh
+        resetContextCaches()
         return
 
       case '/compact':
