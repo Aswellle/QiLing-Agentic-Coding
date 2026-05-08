@@ -161,6 +161,20 @@ function findMemoryFiles(startDir: string): string[] {
     const localConfig = join(d, 'CLAUDE.local.md')
     if (existsSync(localConfig) && !found.includes(localConfig)) found.push(localConfig)
   }
+  // 3. Additional directories from --add-dir CLI option (CC's setAdditionalDirectoriesForClaudeMd)
+  const addDirEnv = process.env.QILING_ADDITIONAL_DIRS
+  if (addDirEnv) {
+    for (const addDir of addDirEnv.split(':').filter(Boolean)) {
+      for (const name of names) {
+        const candidate = join(addDir, name)
+        if (existsSync(candidate) && !found.includes(candidate)) found.push(candidate)
+      }
+      for (const ruleFile of findRulesFiles(addDir)) {
+        if (!found.includes(ruleFile)) found.push(ruleFile)
+      }
+    }
+  }
+
   return found
 }
 

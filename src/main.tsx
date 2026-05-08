@@ -72,6 +72,7 @@ program
   .option('--prefill <text>', 'Pre-fill the prompt input with text (does not auto-submit)')
   .option('--settings <file-or-json>', 'Path to a settings JSON file, or a JSON string to load additional settings from')
   .option('--max-budget-usd <amount>', 'Maximum USD cost before stopping (print mode); formats: 0.50, 1.00', parseFloat)
+  .option('--add-dir <directories...>', 'Additional directories to include CLAUDE.md/QILING.md from (useful for monorepos)')
   .action(async (prompt: string | undefined, options) => {
     const workingDir = options.cwd
       ? (await import('path')).resolve(options.cwd)
@@ -209,6 +210,13 @@ program
     }
 
     // ─── Coordinator mode override ────────────────────────────────────────
+    // CC's --add-dir: store additional CLAUDE.md search directories
+    if (options.addDir && options.addDir.length > 0) {
+      const { resolve: resolvePath2 } = await import('path')
+      const additionalDirs = options.addDir.map((d: string) => resolvePath2(workingDir, d))
+      process.env.QILING_ADDITIONAL_DIRS = additionalDirs.join(':')
+    }
+
     if (options.coordinator) process.env.QILING_COORDINATOR_MODE = '1'
     const coordinatorActive = isCoordinatorMode()
     if (coordinatorActive) process.stderr.write('⚡ 协调器模式已启用 (Coordinator Mode)\n')
