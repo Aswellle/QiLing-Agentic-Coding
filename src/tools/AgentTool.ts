@@ -41,6 +41,8 @@ const inputSchema = z.object({
   ),
   mode: z.enum(['acceptEdits', 'auto', 'bypassPermissions', 'default', 'dontAsk', 'plan']).optional()
     .describe('Permission mode override for this agent (default: inherits parent)'),
+  cwd: z.string().optional()
+    .describe('Absolute path to run the agent in. Overrides the working directory for all filesystem and shell operations within this agent. Mutually exclusive with isolation: "worktree".'),
 })
 
 type Input = z.infer<typeof inputSchema>
@@ -124,7 +126,8 @@ export const AgentTool: Tool<Input> = {
       }
     }
 
-    const agentWorkingDir = worktreeDir ?? context.workingDir
+    // CC's cwd param: run agent in specific directory (mutually exclusive with worktree)
+    const agentWorkingDir = worktreeDir ?? input.cwd ?? context.workingDir
     const agentContext: import('../types/tool').ToolContext = {
       workingDir: agentWorkingDir,
       sessionId: context.sessionId + '-agent',
@@ -217,6 +220,7 @@ export const AgentTool: Tool<Input> = {
           system_prompt: { type: 'string', description: 'Override agent system prompt (ignored when subagent_type is set)' },
           isolation: { type: 'string', enum: ['none', 'worktree'], default: 'none', description: 'Run in git worktree for safe isolation' },
           mode: { type: 'string', enum: ['acceptEdits', 'auto', 'bypassPermissions', 'default', 'dontAsk', 'plan'], description: 'Permission mode override' },
+          cwd: { type: 'string', description: 'Absolute path to run agent in (mutually exclusive with isolation: worktree)' },
         },
         required: ['prompt'],
       },
