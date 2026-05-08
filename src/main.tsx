@@ -83,6 +83,8 @@ program
   .option('-c, --continue', 'Continue the most recent conversation (alias for --resume)')
   .option('--thinking <tokens>', 'Enable extended thinking with token budget', parseInt)
   .option('--coordinator', 'Enable coordinator mode: orchestrate parallel worker agents')
+  .option('--session-id <uuid>', 'Use a specific session ID (useful for resuming or tracking from scripts)')
+  .option('-n, --name <name>', 'Set a display name for this session (shown in /resume picker)')
   .option('-p, --print', 'Print response and exit (non-interactive, useful for pipes and scripts)')
   .option('--output-format <format>', 'Output format with -p: "text" (default), "json", or "stream-json"', 'text')
   .option('--max-turns <n>', 'Maximum number of agent turns (non-interactive mode)', parseInt)
