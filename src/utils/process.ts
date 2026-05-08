@@ -24,3 +24,33 @@ export function writeToStdout(data: string): void {
 export function writeToStderr(data: string): void {
   if (!process.stderr.destroyed) process.stderr.write(data)
 }
+
+/** Write error to stderr and exit with code 1. */
+export function exitWithError(message: string): never {
+  console.error(message)
+  process.exit(1)
+}
+
+/**
+ * Wait for a stdin-like stream to produce data or close, with a timeout.
+ * Returns true if timed out (no data), false on stream end.
+ * Used in -p mode to detect real pipe vs inherited-but-idle stdin.
+ */
+export function peekForStdinData(
+  stream: NodeJS.EventEmitter,
+  ms: number,
+): Promise<boolean> {
+  return new Promise<boolean>(resolve => {
+    const done = (timedOut: boolean) => {
+      clearTimeout(peek)
+      stream.off('end', onEnd)
+      stream.off('data', onFirstData)
+      void resolve(timedOut)
+    }
+    const onEnd = () => done(false)
+    const onFirstData = () => clearTimeout(peek)
+    const peek = setTimeout(done, ms, true)
+    stream.once('end', onEnd)
+    stream.once('data', onFirstData)
+  })
+}
