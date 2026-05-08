@@ -7,15 +7,19 @@ export const WEB_SEARCH_TOOL_NAME = 'WebSearch'
 
 const inputSchema = z.object({
   query: z.string().describe(
-    'Search query. Be specific and include the current year when looking for recent information. ' +
+    'The search query to use. Be specific and include the current year when looking for recent information. ' +
     'Example: "TypeScript 5.5 new features 2025"'
   ),
   count: z.number().int().min(1).max(10).default(5)
     .describe('Number of results to return (1-10, default 5)'),
-  allowedDomains: z.array(z.string()).optional()
-    .describe('Restrict results to these domains, e.g. ["github.com", "docs.python.org"]'),
-  blockedDomains: z.array(z.string()).optional()
-    .describe('Exclude results from these domains'),
+  // CC-compatible underscore variants (primary)
+  allowed_domains: z.array(z.string()).optional()
+    .describe('Only include search results from these domains'),
+  blocked_domains: z.array(z.string()).optional()
+    .describe('Never include search results from these domains'),
+  // camelCase aliases for backward compat
+  allowedDomains: z.array(z.string()).optional(),
+  blockedDomains: z.array(z.string()).optional(),
 })
 
 type WebSearchInput = z.infer<typeof inputSchema>
@@ -214,8 +218,10 @@ export const WebSearchTool: Tool<WebSearchInput> = {
     }
 
     // Apply domain filters
-    if (input.allowedDomains || input.blockedDomains) {
-      results = filterByDomain(results, input.allowedDomains, input.blockedDomains)
+    const allowedDomains = input.allowed_domains ?? input.allowedDomains
+    const blockedDomains = input.blocked_domains ?? input.blockedDomains
+    if (allowedDomains || blockedDomains) {
+      results = filterByDomain(results, allowedDomains, blockedDomains)
     }
 
     const output = formatResults(results, input.query)
@@ -246,12 +252,12 @@ export const WebSearchTool: Tool<WebSearchInput> = {
             maximum: 10,
             default: 5,
           },
-          allowedDomains: {
+          allowed_domains: {
             type: 'array',
             items: { type: 'string' },
             description: 'Restrict to these domains (e.g. ["github.com"])',
           },
-          blockedDomains: {
+          blocked_domains: {
             type: 'array',
             items: { type: 'string' },
             description: 'Exclude results from these domains',
