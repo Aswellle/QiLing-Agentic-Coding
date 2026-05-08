@@ -52,6 +52,12 @@ let _gitStatusCache: string | null | undefined = undefined
 export async function getGitStatus(cwd = process.cwd()): Promise<string | null> {
   if (_gitStatusCache !== undefined) return _gitStatusCache
 
+  // CC's shouldIncludeGitInstructions(): respect QILING_DISABLE_GIT_INSTRUCTIONS env var
+  if (process.env.QILING_DISABLE_GIT_INSTRUCTIONS === '1') {
+    _gitStatusCache = null
+    return null
+  }
+
   if (!(await isGitRepo(cwd))) {
     _gitStatusCache = null
     return null
