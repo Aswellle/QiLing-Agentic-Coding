@@ -2,6 +2,7 @@ import { appendFileSync, readFileSync, existsSync, mkdirSync, readdirSync } from
 import { join } from 'path'
 import { getGlobalConfigDir } from '../settings/loader'
 import type { Message } from '../types/message'
+import { generateSessionTitle } from '../utils/sessionTitle'
 
 const HISTORY_DIR = () => join(getGlobalConfigDir(), 'history')
 const MAX_SESSIONS = 50
@@ -17,6 +18,7 @@ export class HistoryManager {
   readonly sessionId: string
   private workingDir: string
   private sessionFile: string
+  private titleGenerated = false  // only generate title once per session
 
   constructor(sessionId: string, workingDir: string) {
     this.sessionId = sessionId
@@ -41,6 +43,21 @@ export class HistoryManager {
       timestamp: Date.now(),
       ...message,
     })
+
+    // CC's generateSessionTitle: auto-generate title from first user message
+    if (!this.titleGenerated && message.role === 'user' && !message.isMeta) {
+      this.titleGenerated = true
+      const content = typeof message.content === 'string'
+        ? message.content
+        : message.content.filter(b => b.type === 'text').map(b => (b as { text: string }).text).join(' ')
+      if (content.trim()) {
+        void generateSessionTitle(content.slice(0, 500)).then(title => {
+          if (title) {
+            this.appendLine({ type: 'session_title', title, timestamp: Date.now() })
+          }
+        }).catch(() => {/* non-critical */})
+      }
+    }
   }
 
   saveMessages(messages: Message[]): void {
