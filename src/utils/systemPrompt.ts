@@ -92,12 +92,37 @@ export function buildSystemPrompt(workingDir: string, settings: Settings): strin
   return buildPromptFromParts(workingDir, settings, memoryContent)
 }
 
+// CC's computeEnvInfo format — provides grounding context for agent decisions
+function buildEnvSection(workingDir: string, settings: Settings): string {
+  const platform = process.platform
+  const platformDisplay = platform === 'win32' ? 'Windows 11' : platform === 'darwin' ? 'macOS' : 'Linux'
+  const shell = platform === 'win32' ? 'PowerShell (use PowerShell syntax)' : 'bash'
+  const model = settings.model
+  const today = new Date().toISOString().split('T')[0]
+
+  // CC's <env> block format — matches what their system prompt uses
+  return `<env>
+Working directory: ${workingDir}
+Platform: ${platformDisplay}
+Shell: ${shell}
+OS Version: ${process.platform} ${process.arch}
+</env>
+You are powered by the model named ${model}.
+The most recent Claude model family is Claude 4.X. Model IDs — Opus 4.7: 'claude-opus-4-7', Sonnet 4.6: 'claude-sonnet-4-6', Haiku 4.5: 'claude-haiku-4-5-20251001'.
+
+# currentDate
+Today's date is ${today}.`
+}
+
 function buildPromptFromParts(workingDir: string, settings: Settings, extraContext: string): string {
   const platform = process.platform === 'win32' ? 'Windows' : process.platform === 'darwin' ? 'macOS' : 'Linux'
   const shell = process.platform === 'win32' ? 'PowerShell and bash (WSL/Git Bash)' : 'bash'
+  const envSection = buildEnvSection(workingDir, settings)
 
   return `You are QiLing (启灵), an expert AI programming agent running in the terminal.
 You help developers understand codebases, edit files, run commands, and complete complex programming tasks autonomously.
+
+${envSection}
 
 ## Environment
 
