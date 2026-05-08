@@ -246,6 +246,13 @@ export async function runQuery(
     if (rounds > 0 && shouldAutoCompact(totalUsage, modelName, autoCompactFailures)) {
       const reason = '自动压缩：上下文接近上限'
       callbacks.onCompact?.('threshold', reason)
+      // CC's PreCompact hook
+      if (options.hooks?.PreCompact) {
+        const { runHooks: rh } = await import('./hooks/index')
+        await rh('PreCompact', options.hooks, {
+          toolName: '', input: { reason: 'threshold' }, workingDir: context.workingDir, sessionId: context.sessionId,
+        })
+      }
       try {
         const compacted = await compactConversation(workingMessages, provider, permissions, {
           signal,
@@ -254,6 +261,13 @@ export async function runQuery(
         workingMessages.length = 0
         workingMessages.push(...compacted.messages)
         autoCompactFailures = 0
+        // CC's PostCompact hook
+        if (options.hooks?.PostCompact) {
+          const { runHooks: rh } = await import('./hooks/index')
+          await rh('PostCompact', options.hooks, {
+            toolName: '', input: { reason: 'threshold', success: true }, workingDir: context.workingDir, sessionId: context.sessionId,
+          })
+        }
       } catch {
         autoCompactFailures++
       }

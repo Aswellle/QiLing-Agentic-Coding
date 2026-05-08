@@ -29,6 +29,7 @@ import {
   removeBackgroundSession, listBackgroundSessions, runningSessionCount, totalSessionCount,
 } from '../services/background/sessions'
 import { checkForUpdates, type UpdateInfo } from '../utils/updater'
+import { runHooks } from '../hooks/index'
 import type { Message } from '../types/message'
 import type { Tool } from '../types/tool'
 import type { Provider } from '../types/provider'
@@ -99,6 +100,13 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
   useEffect(() => {
     const sessionId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
     historyRef.current = new HistoryManager(sessionId, workingDir)
+
+    // CC's SessionStart hook — fires once when REPL session begins
+    if (settings.hooks?.SessionStart) {
+      void runHooks('SessionStart', settings.hooks, {
+        toolName: '', input: {}, workingDir, sessionId,
+      })
+    }
   }, [workingDir])
 
   // Load skills on mount and when workingDir changes
@@ -379,6 +387,14 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
         await runAIQuery([...newMessages, { role: 'user', content: skillPrompt }])
         return
       }
+    }
+
+    // CC's UserPromptSubmit hook — fires before each user prompt is sent to AI
+    if (settings.hooks?.UserPromptSubmit) {
+      await runHooks('UserPromptSubmit', settings.hooks, {
+        toolName: '', input: { prompt: rawInput }, workingDir,
+        sessionId: historyRef.current?.sessionId ?? '',
+      })
     }
 
     // Resolve @mentions before sending to AI

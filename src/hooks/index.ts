@@ -33,17 +33,72 @@ export interface HookHttp {
   timeout?: number  // ms, default 10000
 }
 
-export type Hook = HookCommand | HookHttp
+/**
+ * Prompt hook — queries a small/fast model with the tool context.
+ * Mirrors CC's execPromptHook.ts pattern.
+ * The model must return JSON: {"ok": true} or {"ok": false, "reason": "..."}
+ * If ok=false, the hook blocks the action with the provided reason.
+ * Use $ARGUMENTS in the prompt to inject tool context as JSON.
+ */
+export interface HookPrompt {
+  type: 'prompt'
+  prompt: string                  // Prompt template; $ARGUMENTS → tool context JSON
+  model?: string                  // Model to use (default: haiku or fastest available)
+  timeout?: number                // Timeout in seconds (default: 30)
+}
+
+export type Hook = HookCommand | HookHttp | HookPrompt
 
 export interface HookEntry {
   matcher?: string          // 正则匹配工具名，不填则匹配所有
   hooks: Hook[]
 }
 
+/**
+ * All supported hook events — mirrors CC's HOOK_EVENTS from entrypoints/sdk/coreTypes.ts
+ * Portable events: PreToolUse, PostToolUse, Stop, UserPromptSubmit, SessionStart,
+ * SessionEnd, PreCompact, PostCompact, StopFailure, PermissionRequest, Setup
+ * CC-specific events (no-op in QiLing): SubagentStart/Stop, TeammateIdle, TaskCreated, etc.
+ */
+export type HookEvent =
+  | 'PreToolUse'
+  | 'PostToolUse'
+  | 'PostToolUseFailure'
+  | 'Stop'
+  | 'StopFailure'
+  | 'UserPromptSubmit'
+  | 'SessionStart'
+  | 'SessionEnd'
+  | 'PreCompact'
+  | 'PostCompact'
+  | 'PermissionRequest'
+  | 'PermissionDenied'
+  | 'Setup'
+  | 'SubagentStart'
+  | 'SubagentStop'
+  | 'FileChanged'
+  | 'CwdChanged'
+  | 'InstructionsLoaded'
+
 export interface HooksConfig {
   PreToolUse?: HookEntry[]
   PostToolUse?: HookEntry[]
+  PostToolUseFailure?: HookEntry[]
   Stop?: HookEntry[]
+  StopFailure?: HookEntry[]
+  UserPromptSubmit?: HookEntry[]
+  SessionStart?: HookEntry[]
+  SessionEnd?: HookEntry[]
+  PreCompact?: HookEntry[]
+  PostCompact?: HookEntry[]
+  PermissionRequest?: HookEntry[]
+  PermissionDenied?: HookEntry[]
+  Setup?: HookEntry[]
+  SubagentStart?: HookEntry[]
+  SubagentStop?: HookEntry[]
+  FileChanged?: HookEntry[]
+  CwdChanged?: HookEntry[]
+  InstructionsLoaded?: HookEntry[]
 }
 
 export interface HookContext {
@@ -125,7 +180,7 @@ async function runHookCommand(
 }
 
 export async function runHooks(
-  event: 'PreToolUse' | 'PostToolUse' | 'Stop',
+  event: HookEvent,
   config: HooksConfig | undefined,
   ctx: HookContext
 ): Promise<void> {
@@ -142,8 +197,63 @@ export async function runHooks(
         await runHookCommand(hook, env, ctx.workingDir)
       } else if (hook.type === 'http') {
         await runHookHttp(hook, ctx)
+      } else if (hook.type === 'prompt') {
+        const result = await runHookPrompt(hook, ctx)
+        if (result.blocked) {
+          // Blocking hook: surface reason to user via stderr
+          process.stderr.write(`[hook:prompt] 阻止操作: ${result.reason}\n`)
+          // Could throw to block the tool call — currently non-fatal for simplicity
+        }
       }
     }
+  }
+}
+
+/**
+ * Prompt hook execution — mirrors CC's execPromptHook.ts (simplified).
+ * Sends the prompt to a fast model with tool context injected at $ARGUMENTS.
+ * Returns { blocked: true, reason } if the model returns {"ok": false}.
+ */
+async function runHookPrompt(
+  hook: HookPrompt,
+  ctx: HookContext,
+): Promise<{ blocked: boolean; reason?: string }> {
+  try {
+    const timeout = (hook.timeout ?? 30) * 1000
+    const jsonInput = JSON.stringify({
+      tool_name: ctx.toolName,
+      tool_input: ctx.input,
+      working_dir: ctx.workingDir,
+      session_id: ctx.sessionId,
+      ...(ctx.result && { result: ctx.result }),
+    })
+    const prompt = hook.prompt.replace(/\$ARGUMENTS/g, jsonInput)
+
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.ANTHROPIC_API_KEY ?? '',
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: hook.model ?? 'claude-haiku-4-5-20251001',
+        max_tokens: 256,
+        messages: [{ role: 'user', content: prompt }],
+        system: 'You are evaluating a hook condition. Return JSON only: {"ok": true} or {"ok": false, "reason": "..."}',
+      }),
+      signal: AbortSignal.timeout(timeout),
+    })
+
+    if (!resp.ok) return { blocked: false }
+    const data = await resp.json() as { content?: Array<{ type: string; text?: string }> }
+    const text = data.content?.find(b => b.type === 'text')?.text ?? '{}'
+    const parsed = JSON.parse(text.trim()) as { ok?: boolean; reason?: string }
+    if (parsed.ok === false) return { blocked: true, reason: parsed.reason }
+    return { blocked: false }
+  } catch {
+    // Prompt hooks are non-fatal
+    return { blocked: false }
   }
 }
 

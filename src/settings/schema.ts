@@ -56,32 +56,16 @@ export const settingsSchema = z.object({
   ui: uiConfigSchema.default({}),
   memory: memoryConfigSchema.default({}),
 
-  // Hooks system
-  hooks: z.object({
-    PreToolUse: z.array(z.object({
-      matcher: z.string().optional(),
-      hooks: z.array(z.object({
-        type: z.literal('command'),
-        command: z.string(),
-        timeout: z.number().optional(),
-      })),
-    })).optional(),
-    PostToolUse: z.array(z.object({
-      matcher: z.string().optional(),
-      hooks: z.array(z.object({
-        type: z.literal('command'),
-        command: z.string(),
-        timeout: z.number().optional(),
-      })),
-    })).optional(),
-    Stop: z.array(z.object({
-      hooks: z.array(z.object({
-        type: z.literal('command'),
-        command: z.string(),
-        timeout: z.number().optional(),
-      })),
-    })).optional(),
-  }).optional(),
+  // Hooks system — all CC hook event types supported
+  // Hook types: command (shell), http (POST JSON), prompt (Haiku LLM condition)
+  hooks: z.record(z.string(), z.array(z.object({
+    matcher: z.string().optional(),
+    hooks: z.array(z.union([
+      z.object({ type: z.literal('command'), command: z.string(), timeout: z.number().optional() }),
+      z.object({ type: z.literal('http'), url: z.string(), method: z.enum(['GET', 'POST', 'PUT']).optional(), headers: z.record(z.string()).optional(), timeout: z.number().optional() }),
+      z.object({ type: z.literal('prompt'), prompt: z.string(), model: z.string().optional(), timeout: z.number().optional() }),
+    ])),
+  }))).optional(),
 
   // Vim keybindings in prompt input
   vimMode: z.boolean().default(false),

@@ -14,7 +14,7 @@ export interface SessionRecord {
 }
 
 export class HistoryManager {
-  private sessionId: string
+  readonly sessionId: string
   private workingDir: string
   private sessionFile: string
 
