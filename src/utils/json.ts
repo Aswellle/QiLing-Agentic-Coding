@@ -41,3 +41,31 @@ export function safeStringifyJSON(value: unknown, indent?: number): string | und
     , indent)
   } catch { return undefined }
 }
+
+/**
+ * Safely parse JSONC (JSON with comments).
+ * Strips line and block comments before parsing as JSON.
+ * Ported from CC's utils/json.ts (simplified without jsonc-parser dep).
+ */
+export function safeParseJSONC(json: string | null | undefined): unknown {
+  if (!json) return null
+  try {
+    const stripped = json.charCodeAt(0) === 0xFEFF ? json.slice(1) : json
+    const noComments = stripped
+      .replace(/\/\/[^\n]*/g, '')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+    return JSON.parse(noComments)
+  } catch { return null }
+}
+
+/**
+ * Read and parse a JSONL file. Returns [] on any error.
+ * Ported from CC's utils/json.ts.
+ */
+export async function readJSONLFile<T>(filePath: string): Promise<T[]> {
+  try {
+    const { readFile } = await import('fs/promises')
+    const content = await readFile(filePath, 'utf-8')
+    return parseJSONL<T>(content)
+  } catch { return [] }
+}
