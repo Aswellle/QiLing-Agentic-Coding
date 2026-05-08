@@ -91,23 +91,76 @@ export function resetGitStatusCache(): void {
 }
 
 // ─── CLAUDE.md / QILING.md discovery ─────────────────────────────────────────
+// Mirrors CC's claudemd.ts discovery order:
+//   1. ~/.qiling/CLAUDE.md (user-global memory)
+//   2. Walk from cwd to root: CLAUDE.md, QILING.md, .claude/CLAUDE.md, .claude/rules/*.md
+//   3. CLAUDE.local.md (private, not checked in)
+//
+// Also processes @include directives: @./relative/path or @/absolute/path
+
+const INCLUDE_RE = /^@(\.\/|\.\.\/|~\/|\/)?(.+)$/m
+
+function processIncludes(content: string, baseDir: string, visited = new Set<string>()): string {
+  return content.split('\n').map(line => {
+    const m = line.match(/^@(.+)$/)
+    if (!m) return line
+    const rawPath = m[1]!.trim()
+    const absPath = rawPath.startsWith('~/')
+      ? join(process.env.HOME ?? process.env.USERPROFILE ?? '', rawPath.slice(2))
+      : rawPath.startsWith('/')
+        ? rawPath
+        : resolve(baseDir, rawPath)
+    if (visited.has(absPath) || !existsSync(absPath)) return ''
+    visited.add(absPath)
+    try {
+      const included = readFileSync(absPath, 'utf-8')
+      return processIncludes(included, dirname(absPath), visited)
+    } catch { return '' }
+  }).join('\n')
+}
+
+function findRulesFiles(dir: string): string[] {
+  const rulesDir = join(dir, '.claude', 'rules')
+  if (!existsSync(rulesDir)) return []
+  try {
+    const { readdirSync } = require('fs') as typeof import('fs')
+    return readdirSync(rulesDir)
+      .filter((f: string) => f.endsWith('.md'))
+      .map((f: string) => join(rulesDir, f))
+      .sort()
+  } catch { return [] }
+}
 
 function findMemoryFiles(startDir: string): string[] {
   const found: string[] = []
-  const names = ['CLAUDE.md', 'QILING.md']
+  // 1. User-global memory first (lowest priority — loaded first)
+  const globalConfig = join(process.env.HOME ?? process.env.USERPROFILE ?? '~', '.qiling', 'CLAUDE.md')
+  if (existsSync(globalConfig)) found.push(globalConfig)
+
+  // 2. Walk up from cwd: collect all memory files (inner wins → load last → higher priority)
+  const names = ['CLAUDE.md', 'QILING.md', '.claude/CLAUDE.md']
+  const dirsFromRoot: string[] = []
   let dir = resolve(startDir)
   while (true) {
-    for (const name of names) {
-      const candidate = join(dir, name)
-      if (existsSync(candidate)) found.push(candidate)
-    }
+    dirsFromRoot.unshift(dir)
     const parent = dirname(dir)
     if (parent === dir) break
     dir = parent
   }
-  // Also check ~/.qiling/CLAUDE.md
-  const globalConfig = join(process.env.HOME ?? process.env.USERPROFILE ?? '~', '.qiling', 'CLAUDE.md')
-  if (existsSync(globalConfig) && !found.includes(globalConfig)) found.push(globalConfig)
+  // Process from root → cwd so that inner files appear later (higher priority)
+  for (const d of dirsFromRoot) {
+    for (const name of names) {
+      const candidate = join(d, name)
+      if (existsSync(candidate) && !found.includes(candidate)) found.push(candidate)
+    }
+    // .claude/rules/*.md (CC's rules directory support)
+    for (const ruleFile of findRulesFiles(d)) {
+      if (!found.includes(ruleFile)) found.push(ruleFile)
+    }
+    // CLAUDE.local.md — private, not checked in (CC's local memory)
+    const localConfig = join(d, 'CLAUDE.local.md')
+    if (existsSync(localConfig) && !found.includes(localConfig)) found.push(localConfig)
+  }
   return found
 }
 
@@ -116,7 +169,14 @@ function readMemoryFiles(cwd: string): string | null {
   if (files.length === 0) return null
   const contents = files
     .map(f => {
-      try { return `[${f}]\n${readFileSync(f, 'utf-8').trim()}` } catch { return null }
+      try {
+        const raw = readFileSync(f, 'utf-8').trim()
+        // Process @include directives (CC's CLAUDE.md include syntax)
+        const processed = raw.includes('\n@') || raw.startsWith('@')
+          ? processIncludes(raw, dirname(f))
+          : raw
+        return processed.trim() ? `[${f}]\n${processed.trim()}` : null
+      } catch { return null }
     })
     .filter(Boolean)
   return contents.length > 0 ? contents.join('\n\n---\n\n') : null
