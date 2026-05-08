@@ -36,7 +36,9 @@ export class AnthropicProvider implements Provider {
     //   - Messages: EXACTLY ONE cache_control marker on the LAST user message
     //     This is CC's proven approach: each new turn extends the cached prefix
     //     to the most recent user message, maximising cache hits.
-    const supportsCaching = (
+    // CC's getPromptCachingEnabled(): respect DISABLE_PROMPT_CACHING env var
+    const cachingGloballyDisabled = process.env.DISABLE_PROMPT_CACHING === '1'
+    const supportsCaching = !cachingGloballyDisabled && (
       this.config.model.includes('claude-3') ||
       this.config.model.includes('claude-sonnet') ||
       this.config.model.includes('claude-opus') ||
