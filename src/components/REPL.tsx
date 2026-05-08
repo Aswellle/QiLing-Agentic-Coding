@@ -63,12 +63,13 @@ interface Props {
   version: string
   settings: Settings
   initialMessages?: Message[]   // for --resume
+  initialInput?: string         // for --prefill (CC's --prefill option)
 }
 
 const TOKEN_WARN_THRESHOLD = 0.75 // 75%
 const TOKEN_CRITICAL_THRESHOLD = 0.90 // 90%
 
-export function REPL({ tools, provider, permissions, systemPrompt, workingDir, version, settings, initialMessages }: Props) {
+export function REPL({ tools, provider, permissions, systemPrompt, workingDir, version, settings, initialMessages, initialInput }: Props) {
   const { exit } = useApp()
   const [messages, setMessages] = useState<Message[]>(initialMessages ?? [])
   const [toolCalls, setToolCalls] = useState<ToolCallRecord[]>([])
@@ -779,6 +780,7 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
           setVimDisplayMode(mode)
           setPendingVimOp(op)
         }}
+        initialValue={initialInput}
       />
     </Box>
   )

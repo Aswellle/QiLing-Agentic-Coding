@@ -26,6 +26,7 @@ interface Props {
   placeholder?: string
   vimMode?: boolean
   onVimModeChange?: (mode: VimMode, pendingOp?: string) => void
+  initialValue?: string  // CC's --prefill: pre-fill without submitting
 }
 
 // Session-level input history
@@ -35,12 +36,12 @@ let historyIndex = -1
 // Terminal width for Cursor line wrapping
 const COLUMNS = process.stdout.columns ?? 120
 
-export function PromptInput({ onSubmit, isDisabled, commands, placeholder, vimMode = false, onVimModeChange }: Props) {
-  const [value, setValue] = useState('')
+export function PromptInput({ onSubmit, isDisabled, commands, placeholder, vimMode = false, onVimModeChange, initialValue }: Props) {
+  const [value, setValue] = useState(initialValue ?? '')
   const [showCommands, setShowCommands] = useState(false)
   const [commandFilter, setCommandFilter] = useState('')
   const [selectedCommand, setSelectedCommand] = useState(0)
-  const [cursorOffset, setCursorOffset] = useState(0)
+  const [cursorOffset, setCursorOffset] = useState(initialValue?.length ?? 0)
 
   // Vim state
   const vimStateRef = useRef<VimState>(createInitialVimState())

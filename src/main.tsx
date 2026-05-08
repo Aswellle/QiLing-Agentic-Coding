@@ -68,6 +68,7 @@ program
   .option('--system-prompt <prompt>', 'Override system prompt')
   .option('--allowed-tools <tools...>', 'Comma or space-separated list of tools to allow (e.g. "Bash FileRead Glob")')
   .option('--disallowed-tools <tools...>', 'Comma or space-separated list of tools to deny (e.g. "Bash FileWrite")')
+  .option('--prefill <text>', 'Pre-fill the prompt input with text (does not auto-submit)')
   .option('--settings <file-or-json>', 'Path to a settings JSON file, or a JSON string to load additional settings from')
   .option('--max-budget-usd <amount>', 'Maximum USD cost before stopping (print mode); formats: 0.50, 1.00', parseFloat)
   .action(async (prompt: string | undefined, options) => {
@@ -421,6 +422,7 @@ program
         version={VERSION}
         settings={settings}
         initialMessages={initialMessages}
+        initialInput={options.prefill}
       />,
       {
         exitOnCtrlC: false,  // REPL handles Ctrl+C (abort stream vs exit)
