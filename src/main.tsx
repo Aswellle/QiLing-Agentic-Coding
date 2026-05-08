@@ -38,6 +38,26 @@ process.on('unhandledRejection', (reason) => {
   }
 })
 
+// ─── Suppress common false-positive Node.js warnings (CC's warningHandler.ts) ─
+// MaxListenersExceededWarning fires when many AbortSignal listeners are added
+// (e.g., concurrent tool executions). We set max with setMaxListeners() but
+// Node may still warn in some paths. Suppress known false positives in non-debug mode.
+process.on('warning', (warning: Error & { code?: string }) => {
+  if (process.env.QILING_DEBUG === '1') {
+    process.stderr.write(`[warning] ${warning.name}: ${warning.message}\n`)
+    return
+  }
+  const msg = warning.message ?? ''
+  const SUPPRESS = [
+    /MaxListenersExceededWarning.*AbortSignal/,
+    /MaxListenersExceededWarning.*EventTarget/,
+    /ExperimentalWarning.*VM Modules/,
+  ]
+  if (!SUPPRESS.some(re => re.test(msg))) {
+    process.stderr.write(`[warning] ${warning.name}: ${warning.message}\n`)
+  }
+})
+
 const VERSION = '0.3.0'
 
 const program = new Command()
