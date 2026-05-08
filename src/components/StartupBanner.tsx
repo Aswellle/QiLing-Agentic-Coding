@@ -95,14 +95,14 @@ export function StartupBanner({ version, provider, workingDir }: Props) {
         <Text color="yellow">{shortDir}</Text>
       </Box>
 
-      {/* Command hints */}
-      <Box marginLeft={2} marginTop={1}>
-        {['/help', '/model', '/config', '/memory', '/compact', '/clear', '/exit'].map((cmd, i) => (
-          <React.Fragment key={cmd}>
-            <Text color="cyan">{cmd}</Text>
-            {i < 6 && <Text color="gray">  </Text>}
-          </React.Fragment>
+      {/* Command hints — CC-style compact command row */}
+      <Box marginLeft={2} marginTop={1} flexWrap="wrap" gap={2}>
+        {['/help', '/model', '/memory', '/compact', '/cost', '/fast', '/clear'].map(cmd => (
+          <Text key={cmd} color="cyan">{cmd}</Text>
         ))}
+      </Box>
+      <Box marginLeft={2} marginTop={0}>
+        <Text color="gray" dimColor>输入 /help 查看全部命令 · Tab 自动补全 · Esc 进入 Vim 模式 · ! cmd 执行 Shell</Text>
       </Box>
 
       {/* Bottom border */}
