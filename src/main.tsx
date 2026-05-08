@@ -782,4 +782,75 @@ auth
     console.log(`✓ 已保存 ${provider} API Key (${masked}) 到 ${settingsPath}`)
   })
 
+// ─── Doctor subcommand (CC's 'claude doctor' diagnostic pattern) ──────────────
+program
+  .command('doctor')
+  .description('诊断 QiLing 安装、配置和运行环境')
+  .action(async () => {
+    const { join } = require('path') as typeof import('path')
+    const { homedir } = require('os') as typeof import('os')
+    const { existsSync } = require('fs') as typeof import('fs')
+
+    console.log('=== QiLing Doctor ===\n')
+
+    // Runtime check
+    const runtime = typeof Bun !== 'undefined' ? `Bun ${Bun.version}` : `Node ${process.version}`
+    console.log(`✓ Runtime: ${runtime}`)
+    console.log(`✓ Platform: ${process.platform} ${process.arch}`)
+    console.log(`✓ Version: QiLing v${VERSION}`)
+
+    // Config files check
+    console.log('\n--- 配置文件 ---')
+    const configPaths = [
+      join(homedir(), '.qiling', 'settings.json'),
+      join(process.cwd(), '.qiling', 'settings.json'),
+      join(process.cwd(), 'QILING.md'),
+      join(process.cwd(), 'CLAUDE.md'),
+    ]
+    for (const p of configPaths) {
+      const exists = existsSync(p)
+      console.log(`${exists ? '✓' : '·'} ${p.replace(homedir(), '~')}`)
+    }
+
+    // API keys check
+    console.log('\n--- API Key ---')
+    const keys = {
+      ANTHROPIC_API_KEY: 'Anthropic',
+      OPENAI_API_KEY: 'OpenAI',
+      DASHSCOPE_API_KEY: 'QWen',
+      ARK_API_KEY: 'Doubao',
+      GEMINI_API_KEY: 'Gemini',
+    }
+    let hasAnyKey = false
+    for (const [env, name] of Object.entries(keys)) {
+      if (process.env[env]) {
+        hasAnyKey = true
+        const val = process.env[env]!
+        console.log(`✓ ${name}: ${val.slice(0, 8)}...${val.slice(-4)}`)
+      }
+    }
+    if (!hasAnyKey) {
+      console.log('✗ 未找到任何 API Key。使用 qiling auth set-key <provider> <key> 配置。')
+    }
+
+    // External tools check
+    console.log('\n--- 外部工具 ---')
+    const tools = ['git', 'rg', 'node', 'bun']
+    for (const tool of tools) {
+      try {
+        const proc = Bun.spawnSync([tool, '--version'], { stdout: 'pipe', stderr: 'pipe' })
+        if (proc.exitCode === 0) {
+          const version = proc.stdout.toString().split('\n')[0]!.trim()
+          console.log(`✓ ${tool.padEnd(6)} ${version}`)
+        } else {
+          console.log(`✗ ${tool.padEnd(6)} (未安装或无法运行)`)
+        }
+      } catch {
+        console.log(`✗ ${tool.padEnd(6)} (未找到)`)
+      }
+    }
+
+    console.log('\n✓ 诊断完成')
+  })
+
 program.parse(process.argv)
