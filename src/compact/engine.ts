@@ -229,9 +229,13 @@ export async function compactConversation(
           .join('\n')
     : '(摘要生成失败)'
 
-  // Extract only the <summary> block (strip <analysis> scratchpad, CC's formatCompactSummary pattern)
-  const summaryMatch = rawSummaryText.match(/<summary>([\s\S]*?)<\/summary>/i)
-  const summaryText = summaryMatch ? summaryMatch[1]!.trim() : rawSummaryText
+  // CC's formatCompactSummary: strip <analysis> scratchpad, format <summary> block
+  let summaryText = rawSummaryText.replace(/<analysis>[\s\S]*?<\/analysis>/i, '')
+  const summaryMatch = summaryText.match(/<summary>([\s\S]*?)<\/summary>/i)
+  if (summaryMatch) {
+    summaryText = `Summary:\n${summaryMatch[1]!.trim()}`
+  }
+  summaryText = summaryText.replace(/\n\n+/g, '\n\n').trim() || rawSummaryText
 
   // Step 4: Build compacted messages
   const compactedMessages: Message[] = [
