@@ -75,3 +75,31 @@ export function substituteArguments(
 
   return content
 }
+
+/**
+ * Parse argument names from a skills's argumentNames configuration.
+ * Ported from CC's utils/argumentSubstitution.ts.
+ */
+export function parseArgumentNames(
+  argumentNames: string | string[] | undefined,
+): string[] {
+  if (!argumentNames) return []
+  const names = Array.isArray(argumentNames) ? argumentNames : [argumentNames]
+  const isValidName = (name: string): boolean =>
+    name.length > 0 && !/^\d+$/.test(name)
+  return names.filter(n => isValidName(n.trim()))
+}
+
+/**
+ * Generate a progressive argument hint for the input placeholder.
+ * Returns "[arg1] [arg2]..." showing the remaining arguments needed.
+ * Ported from CC's utils/argumentSubstitution.ts.
+ */
+export function generateProgressiveArgumentHint(
+  argNames: string[],
+  typedArgs: string[],
+): string | undefined {
+  const remaining = argNames.slice(typedArgs.length)
+  if (remaining.length === 0) return undefined
+  return remaining.map(name => `[${name}]`).join(' ')
+}
