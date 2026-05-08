@@ -6,6 +6,31 @@ import { loadMcpTools } from '../tools/McpTool'
 import { saveGlobalSettings, loadSettings } from '../settings/loader'
 import type { Tool } from '../types/tool'
 
+// ─── CC's envExpansion.ts: expand ${VAR} and ${VAR:-default} in MCP configs ──
+
+function expandEnvVarsInString(value: string): string {
+  return value.replace(/\$\{([^}]+)\}/g, (match, varContent) => {
+    const [varName, defaultValue] = varContent.split(':-', 2)
+    const envValue = process.env[varName]
+    if (envValue !== undefined) return envValue
+    if (defaultValue !== undefined) return defaultValue
+    return match  // return original if not found
+  })
+}
+
+/** Expand env vars in MCP server config fields (command, args, url, env values) */
+function expandMcpConfig(config: { command?: string; args?: string[]; url?: string; env?: Record<string, string> }) {
+  return {
+    ...config,
+    command: config.command ? expandEnvVarsInString(config.command) : undefined,
+    args: config.args?.map(a => expandEnvVarsInString(a)),
+    url: config.url ? expandEnvVarsInString(config.url) : undefined,
+    env: config.env
+      ? Object.fromEntries(Object.entries(config.env).map(([k, v]) => [k, expandEnvVarsInString(v)]))
+      : undefined,
+  }
+}
+
 export interface McpServerStatus {
   name: string
   transport: 'stdio' | 'sse'
@@ -22,7 +47,8 @@ export async function getMcpStatus(
 ): Promise<McpServerStatus[]> {
   const statuses: McpServerStatus[] = []
 
-  for (const [name, config] of Object.entries(mcpServers)) {
+  for (const [name, rawConfig] of Object.entries(mcpServers)) {
+    const config = expandMcpConfig(rawConfig)  // CC's envExpansion pattern
     const transport: 'stdio' | 'sse' = config.command ? 'stdio' : 'sse'
     let status: McpServerStatus = {
       name,
@@ -111,7 +137,8 @@ export async function loadAllMcpToolsSafe(
 ): Promise<Tool[]> {
   const allTools: Tool[] = []
 
-  for (const [name, config] of Object.entries(mcpServers)) {
+  for (const [name, rawConfig] of Object.entries(mcpServers)) {
+    const config = expandMcpConfig(rawConfig)  // CC's envExpansion pattern
     const transport: 'stdio' | 'sse' = config.command ? 'stdio' : 'sse'
     try {
       const tools = await Promise.race([
