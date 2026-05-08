@@ -729,4 +729,57 @@ mcp
     console.log(`✓ 已删除 MCP 服务器 "${name}"`)
   })
 
+// ─── Auth subcommand (CC's 'claude auth' pattern) ────────────────────────────
+const auth = program
+  .command('auth')
+  .description('管理 API 认证配置')
+
+auth
+  .command('status')
+  .description('显示当前 API Key 配置状态')
+  .action(() => {
+    const providers = [
+      { name: 'Anthropic', envVar: 'ANTHROPIC_API_KEY' },
+      { name: 'OpenAI',    envVar: 'OPENAI_API_KEY' },
+      { name: 'Gemini',    envVar: 'GEMINI_API_KEY' },
+      { name: 'QWen',      envVar: 'DASHSCOPE_API_KEY' },
+      { name: 'Doubao',    envVar: 'ARK_API_KEY' },
+      { name: 'GLM',       envVar: 'ZHIPUAI_API_KEY' },
+      { name: 'MiniMax',   envVar: 'MINIMAX_API_KEY' },
+    ]
+    console.log('API Key 状态:')
+    for (const { name, envVar } of providers) {
+      const value = process.env[envVar]
+      if (value) {
+        const masked = value.slice(0, 8) + '...' + value.slice(-4)
+        console.log(`  ✓ ${name.padEnd(12)} ${envVar}=${masked}`)
+      } else {
+        console.log(`  ✗ ${name.padEnd(12)} ${envVar}=(未设置)`)
+      }
+    }
+    console.log('')
+    console.log('使用 qiling --api-key <key> 或设置环境变量来配置 API Key。')
+  })
+
+auth
+  .command('set-key <provider> <key>')
+  .description('将 API Key 写入 ~/.qiling/settings.json (provider: anthropic/openai/qwen/etc.)')
+  .action((provider: string, key: string) => {
+    const { join } = require('path') as typeof import('path')
+    const { homedir } = require('os') as typeof import('os')
+    const { existsSync, readFileSync, writeFileSync, mkdirSync } = require('fs') as typeof import('fs')
+
+    const settingsPath = join(homedir(), '.qiling', 'settings.json')
+    mkdirSync(join(settingsPath, '..'), { recursive: true })
+    let config: Record<string, unknown> = {}
+    if (existsSync(settingsPath)) {
+      try { config = JSON.parse(readFileSync(settingsPath, 'utf-8')) } catch {}
+    }
+    config.provider = provider
+    config.apiKey = key
+    writeFileSync(settingsPath, JSON.stringify(config, null, 2) + '\n', 'utf-8')
+    const masked = key.slice(0, 8) + '...' + key.slice(-4)
+    console.log(`✓ 已保存 ${provider} API Key (${masked}) 到 ${settingsPath}`)
+  })
+
 program.parse(process.argv)
