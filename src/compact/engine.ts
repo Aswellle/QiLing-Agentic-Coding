@@ -2,6 +2,7 @@ import type { Message, ContentBlock } from '../types/message'
 import type { Provider } from '../types/provider'
 import type { PermissionManager } from '../types/tool'
 import { runQuery } from '../query'
+import { resetContextCaches } from '../context'
 
 export interface CompactResult {
   messages: Message[]
@@ -221,6 +222,10 @@ export async function compactConversation(
   ]
 
   onProgress?.(`✓ 压缩完成：${originalCount} 条消息 → ${compactedMessages.length} 条`)
+
+  // CC's postCompactCleanup: reset getUserContext/getSystemContext caches
+  // so next turn picks up fresh CLAUDE.md and git status after compaction.
+  resetContextCaches()
 
   return {
     messages: compactedMessages,
