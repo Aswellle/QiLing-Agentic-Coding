@@ -13,6 +13,26 @@ export function roughTokenCountEstimation(content: string, bytesPerToken = BYTES
 }
 
 /**
+ * Get bytes-per-token ratio for a specific file type.
+ * Dense JSON has more single-char tokens → ratio closer to 2.
+ * Mirrors CC's bytesPerTokenForFileType() from services/tokenEstimation.ts.
+ */
+export function bytesPerTokenForFileType(fileExtension: string): number {
+  switch (fileExtension.replace(/^\./, '').toLowerCase()) {
+    case 'json': case 'jsonl': case 'jsonc': case 'yaml': case 'yml': return 2
+    default: return 4
+  }
+}
+
+/**
+ * Rough token estimate for file content, accounting for file type.
+ * More accurate than roughTokenCountEstimation() for code/JSON files.
+ */
+export function roughTokenCountEstimationForFile(content: string, fileExtension: string): number {
+  return Math.ceil(content.length / bytesPerTokenForFileType(fileExtension))
+}
+
+/**
  * Rough token estimate across a set of messages.
  * Mirrors CC's roughTokenCountEstimationForMessages().
  */
