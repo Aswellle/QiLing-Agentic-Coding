@@ -237,20 +237,15 @@ export async function compactConversation(
   }
   summaryText = summaryText.replace(/\n\n+/g, '\n\n').trim() || rawSummaryText
 
-  // Step 4: Build compacted messages
+  // Step 4: Build compacted messages (CC's buildPostCompactMessages order:
+  // boundary marker → summary → messages to keep)
+  const boundaryMarker: Message = {
+    role: 'user',
+    content: `[Earlier conversation compacted]\n\n${summaryText}${toolCallSummary ? `\n\n${toolCallSummary}` : ''}`,
+    isMeta: true,  // Hidden from conversation display (CC pattern: boundary is not a user message)
+  }
   const compactedMessages: Message[] = [
-    {
-      role: 'user',
-      content: [
-        '[对话已压缩。以下是之前对话的摘要:]\n',
-        summaryText,
-        toolCallSummary ? `\n\n${toolCallSummary}` : '',
-      ].join(''),
-    },
-    {
-      role: 'assistant',
-      content: '好的，我已了解之前的对话内容。请继续。',
-    },
+    boundaryMarker,
     ...toKeep,
   ]
 
