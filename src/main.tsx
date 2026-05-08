@@ -102,24 +102,25 @@ const program = new Command()
 
 program
   .name('qiling')
-  .description('启灵 (QiLing) — AI Programming Agent for the terminal')
-  .argument('[prompt]', 'Prompt for non-interactive mode (use with -p)', String)
+  .description('启灵 (QiLing) — 终端 AI 编程代理，默认启动交互式会话，使用 -p/--print 运行非交互式')
+  .argument('[prompt]', 'Your prompt (use with -p for non-interactive mode)', String)
   .version(VERSION, '-v, --version')
-  .option('-m, --model <model>', 'AI model to use')
+  .option('-m, --model <model>', 'AI model to use (e.g. claude-opus-4-7, claude-sonnet-4-6, or aliases: opus, sonnet, haiku)')
   .option('--provider <provider>', 'AI provider (anthropic, minimax, qwen, doubao, glm, openai, gemini, ollama)')
-  .option('--api-key <key>', 'API key (or set ANTHROPIC_API_KEY / MINIMAX_API_KEY / DASHSCOPE_API_KEY etc.)')
+  .option('--api-key <key>', 'API key (or set ANTHROPIC_API_KEY / provider-specific env var)')
   .option('--endpoint <url>', 'Custom API endpoint URL')
   .option('--max-tokens <n>', 'Maximum tokens per response', parseInt)
-  .option('--cwd <dir>', 'Set working directory')
-  .option('--debug', 'Enable debug logging')
+  .option('--cwd <dir>', 'Set working directory (default: current directory)')
+  .option('--debug', 'Enable debug logging (verbose internal state)')
   .option('--no-banner', 'Skip startup banner')
-  .option('--yolo', 'Skip all permission confirmations (dangerous!)')
-  .option('--readonly', 'Read-only mode: disable all write/execute tools')
+  .option('--yolo', 'Skip all permission confirmations — recommended only for trusted environments')
+  .option('--dangerously-skip-permissions', 'Alias for --yolo: bypass all permission checks')
+  .option('--readonly', 'Read-only mode: disables all write/execute tools')
   .option('--no-update-check', 'Skip startup update check')
   .option('--no-repo-map', 'Skip automatic repository map injection into system prompt')
   .option('--resume [session-id]', 'Resume last session (or specific session by ID)')
-  .option('-c, --continue', 'Continue the most recent conversation (alias for --resume)')
-  .option('--thinking <tokens>', 'Enable extended thinking with token budget', parseInt)
+  .option('-c, --continue', 'Continue the most recent conversation in current directory')
+  .option('--thinking <tokens>', 'Enable extended thinking with token budget (e.g. 16384)', parseInt)
   .option('--coordinator', 'Enable coordinator mode: orchestrate parallel worker agents')
   .option('--session-id <uuid>', 'Use a specific session ID (useful for resuming or tracking from scripts)')
   .option('-n, --name <name>', 'Set a display name for this session (shown in /resume picker)')
@@ -211,7 +212,10 @@ program
     })
 
     if (options.debug)    process.env.QILING_DEBUG = '1'
-    if (options.yolo)     process.env.QILING_YOLO = '1'
+    // --yolo and --dangerously-skip-permissions are aliases (CC pattern)
+    if (options.yolo || (options as { dangerouslySkipPermissions?: boolean }).dangerouslySkipPermissions) {
+      process.env.QILING_YOLO = '1'
+    }
     if (options.readonly) process.env.QILING_READONLY = '1'
     if (options.thinking) settings.thinkingBudget = options.thinking
 
