@@ -84,6 +84,15 @@ export class AnthropicProvider implements Provider {
           ) as Anthropic.Tool[]
         : tools.length > 0 ? (tools as Anthropic.Tool[]) : undefined
 
+      // CC's beta headers — port key Anthropic API betas
+      const betas: string[] = []
+      if (this.config.model.includes('claude')) {
+        betas.push('claude-code-20250219')  // CC's main beta header
+      }
+      if (thinkingConfig && supportsThinking) {
+        betas.push('interleaved-thinking-2025-05-14')  // CC's interleaved thinking beta
+      }
+
       const stream = await this.client.messages.stream({
         model: this.config.model,
         max_tokens: options.maxTokens ?? this.config.maxTokens ?? 8096,
@@ -94,6 +103,7 @@ export class AnthropicProvider implements Provider {
         ...(thinkingConfig && supportsThinking ? {
           thinking: { type: 'enabled', budget_tokens: thinkingConfig.budget_tokens },
         } : {}),
+        ...(betas.length > 0 ? { betas } : {}),
       } as Parameters<typeof this.client.messages.stream>[0])
 
       // BUG FIX: Anthropic SDK sends content_block_delta with event.index (not id).
