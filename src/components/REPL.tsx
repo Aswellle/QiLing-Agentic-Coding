@@ -53,6 +53,7 @@ const SLASH_COMMANDS: SlashCommand[] = BUILTIN_COMMANDS.map(c => ({
   { name: '/clear', description: '清空当前对话' },
   { name: '/compact', description: '压缩对话上下文' },
   { name: '/exit', description: '退出' },
+  { name: '! <cmd>', description: '直接执行 Shell 命令，不经过 AI（CC bash 模式）' },
 ])
 
 interface Props {
@@ -378,6 +379,37 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
   const handleSubmit = useCallback(async (rawInput: string) => {
     if (rawInput.startsWith('/')) {
       await handleCommand(rawInput.trim())
+      return
+    }
+
+    // CC's bash mode: `! <command>` runs a shell command directly, no AI involved.
+    // Output appears in the conversation as a system message.
+    if (rawInput.startsWith('!') && rawInput.length > 1) {
+      const shellCmd = rawInput.slice(1).trim()
+      const userMsg: Message = { role: 'user', content: rawInput }
+      setMessages(prev => [...prev, userMsg])
+      try {
+        const isWin = process.platform === 'win32'
+        const proc = Bun.spawn(
+          isWin ? ['powershell', '-NoProfile', '-Command', shellCmd] : ['bash', '-c', shellCmd],
+          { cwd: workingDir, stdout: 'pipe', stderr: 'pipe' }
+        )
+        const [stdout, stderr, code] = await Promise.all([
+          new Response(proc.stdout).text(),
+          new Response(proc.stderr).text(),
+          proc.exited,
+        ])
+        const output = [stdout, stderr].filter(Boolean).join('\n').trim()
+        const result = output
+          ? `$ ${shellCmd}\n${output}`
+          : `$ ${shellCmd}\n(exit code ${code})`
+        setMessages(prev => [...prev, { role: 'assistant', content: result }])
+      } catch (err) {
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: `$ ${shellCmd}\nError: ${err instanceof Error ? err.message : String(err)}`
+        }])
+      }
       return
     }
 
