@@ -1,7 +1,8 @@
 /**
- * Memoization utilities — ported from CC's utils/memoize.ts (core subset)
+ * Memoization utilities — ported from CC's utils/memoize.ts
  *
  * memoizeWithTTL(): stale-while-revalidate TTL cache (sync)
+ * memoizeWithTTLAsync(): same, but for async functions (deduplicates in-flight cold misses)
  * memoizeWithLRU(): LRU cache with custom key function
  */
 
@@ -44,6 +45,62 @@ export function memoizeWithTTL<Args extends unknown[], Result>(
 
   memoized.cache = { clear: () => cache.clear() }
   return memoized
+}
+
+/**
+ * Async stale-while-revalidate TTL memoization.
+ * Deduplicates concurrent cold-miss calls via in-flight Map.
+ * Ported from CC's utils/memoize.ts.
+ */
+export function memoizeWithTTLAsync<Args extends unknown[], Result>(
+  f: (...args: Args) => Promise<Result>,
+  cacheLifetimeMs = 5 * 60 * 1000,
+): ((...args: Args) => Promise<Result>) & { cache: { clear: () => void } } {
+  const cache = new Map<string, CacheEntry<Result>>()
+  const inFlight = new Map<string, Promise<Result>>()
+
+  const memoized = async (...args: Args): Promise<Result> => {
+    const key = JSON.stringify(args)
+    const cached = cache.get(key)
+    const now = Date.now()
+
+    if (!cached) {
+      const pending = inFlight.get(key)
+      if (pending) return pending
+      const promise = f(...args)
+      inFlight.set(key, promise)
+      try {
+        const result = await promise
+        if (inFlight.get(key) === promise) {
+          cache.set(key, { value: result, timestamp: now, refreshing: false })
+        }
+        return result
+      } finally {
+        if (inFlight.get(key) === promise) inFlight.delete(key)
+      }
+    }
+
+    if (now - cached.timestamp > cacheLifetimeMs && !cached.refreshing) {
+      const staleEntry = cached
+      cached.refreshing = true
+      f(...args)
+        .then(newValue => {
+          if (cache.get(key) === staleEntry) {
+            cache.set(key, { value: newValue, timestamp: Date.now(), refreshing: false })
+          }
+        })
+        .catch(() => {
+          if (cache.get(key) === staleEntry) cache.delete(key)
+        })
+    }
+
+    return cached.value
+  }
+
+  memoized.cache = {
+    clear: () => { cache.clear(); inFlight.clear() },
+  }
+  return memoized as ((...args: Args) => Promise<Result>) & { cache: { clear: () => void } }
 }
 
 /** LRU memoization with custom key function and size limit. */
