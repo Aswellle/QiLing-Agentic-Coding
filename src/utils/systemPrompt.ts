@@ -114,6 +114,8 @@ The most recent Claude model family is Claude 4.X. Model IDs — Opus 4.7: 'clau
 Today's date is ${today}.`
 }
 
+import { CYBER_RISK_INSTRUCTION } from '../constants/cyberRiskInstruction'
+
 function buildPromptFromParts(workingDir: string, settings: Settings, extraContext: string): string {
   const platform = process.platform === 'win32' ? 'Windows' : process.platform === 'darwin' ? 'macOS' : 'Linux'
   const shell = process.platform === 'win32' ? 'PowerShell and bash (WSL/Git Bash)' : 'bash'
@@ -121,6 +123,8 @@ function buildPromptFromParts(workingDir: string, settings: Settings, extraConte
 
   return `You are QiLing (启灵), an expert AI programming agent running in the terminal.
 You help developers understand codebases, edit files, run commands, and complete complex programming tasks autonomously.
+
+${CYBER_RISK_INSTRUCTION}
 
 ${envSection}
 
