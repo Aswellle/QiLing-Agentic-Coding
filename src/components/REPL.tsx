@@ -52,6 +52,7 @@ const SLASH_COMMANDS: SlashCommand[] = BUILTIN_COMMANDS.map(c => ({
   { name: '/bg', description: '查看后台会话列表，/bg <id> 切换' },
   { name: '/clear', description: '清空当前对话' },
   { name: '/compact', description: '压缩对话上下文' },
+  { name: '/memory', description: '查看当前内存文件内容（QILING.md / CLAUDE.md）' },
   { name: '/exit', description: '退出' },
   { name: '! <cmd>', description: '直接执行 Shell 命令，不经过 AI（CC bash 模式）' },
 ])
@@ -545,6 +546,18 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
           content: `已加载的 Skills（${skills.length} 个）:\n\n${formatSkillList(skills)}`,
         }])
         return
+
+      case '/memory': {
+        const { readMemories } = await import('../services/memory/store')
+        const memContent = readMemories(workingDir)
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: memContent
+            ? `当前内存文件内容:\n\n${memContent}\n\n提示: 编辑 QILING.md / CLAUDE.md 来更新记忆，或 ~/.qiling/QILING.md 来添加全局记忆。`
+            : `暂无内存文件。创建 QILING.md 或 ~/.qiling/QILING.md 来添加持久化记忆。`,
+        }])
+        return
+      }
 
       case '/resume': {
         if (args) {
