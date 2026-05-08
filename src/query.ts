@@ -35,6 +35,7 @@ import { isPromptTooLong, isMediaSizeError, tryReactiveCompact } from './compact
 import { createBudgetTracker, checkTokenBudget } from './compact/tokenBudget'
 import { generateToolUseSummary, extractToolInfoFromResults } from './services/toolUseSummary/generator'
 import { applyCollapsesIfNeeded, recoverFromOverflow } from './services/contextCollapse/index'
+import { snipCompactIfNeeded } from './compact/snipCompact'
 import { calculateTokenWarningState } from './compact/autoCompact'
 import { roughTokenCountEstimationForMessages } from './utils/tokens'
 
@@ -273,7 +274,22 @@ export async function runQuery(
       }
     }
 
-    // ── 2a. ContextCollapse: fold old tool rounds (no AI calls) ───────────────
+    // ── 2a. History snip: remove oldest messages when context is very large ─────
+    //    CC's HISTORY_SNIP: runs BEFORE microcompact to pre-free tokens
+    //    so microcompact/autocompact thresholds reflect the true remaining size.
+    //    Only runs on rounds > 0 to avoid snipping the initial user message.
+    if (rounds > 0) {
+      const snipResult = snipCompactIfNeeded(workingMessages)
+      if (snipResult.tokensFreed > 0) {
+        workingMessages.length = 0
+        workingMessages.push(...snipResult.messages)
+        if (process.env.QILING_DEBUG === '1') {
+          process.stderr.write(`[snip] Removed ${snipResult.tokensFreed.toLocaleString()} estimated tokens\n`)
+        }
+      }
+    }
+
+    // ── 2b. ContextCollapse: fold old tool rounds (no AI calls) ───────────────
     if (rounds > 1) {
       const collapsed = applyCollapsesIfNeeded(workingMessages)
       if (collapsed !== workingMessages) {
@@ -282,7 +298,7 @@ export async function runQuery(
       }
     }
 
-    // ── 2b. Microcompact: truncate verbose old tool_results ────────────────────
+    // ── 2c. Microcompact: truncate verbose old tool_results ────────────────────
     if (rounds > 0) {
       const compacted = microcompact(workingMessages)
       workingMessages.length = 0
