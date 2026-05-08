@@ -1,0 +1,55 @@
+/**
+ * Path utilities — ported from CC's utils/path.ts (core subset)
+ *
+ * Key functions:
+ * - expandPath(): expand ~ and resolve relative paths
+ * - toRelativePath(): make path relative to cwd when possible
+ */
+
+import { homedir } from 'os'
+import { isAbsolute, join, normalize, relative, resolve } from 'path'
+
+/**
+ * Expand ~ notation and resolve relative paths to absolute.
+ * Mirrors CC's expandPath() from utils/path.ts.
+ *
+ * @param path - Path that may contain ~, relative, or absolute forms
+ * @param baseDir - Base for relative resolution (default: process.cwd())
+ */
+export function expandPath(path: string, baseDir = process.cwd()): string {
+  if (!path || typeof path !== 'string') throw new TypeError(`Path must be a string, received ${typeof path}`)
+
+  // Expand ~
+  if (path === '~') return homedir()
+  if (path.startsWith('~/') || path.startsWith('~\\')) {
+    return join(homedir(), path.slice(2))
+  }
+
+  // Absolute path — just normalize
+  if (isAbsolute(path)) return normalize(path)
+
+  // Relative path — resolve from baseDir
+  return resolve(baseDir, path)
+}
+
+/**
+ * Convert an absolute path to relative if it's under cwd.
+ * Returns the original path if not under cwd.
+ * Mirrors CC's toRelativePath() pattern.
+ */
+export function toRelativePath(filePath: string, cwd = process.cwd()): string {
+  if (!isAbsolute(filePath)) return filePath
+  const rel = relative(cwd, filePath)
+  // Don't use relative paths that go up too many levels
+  if (rel.startsWith('../../')) return filePath
+  return rel || filePath
+}
+
+/**
+ * Check if a path contains path traversal sequences (../).
+ * Useful for security validation.
+ */
+export function containsPathTraversal(path: string): boolean {
+  const normalized = normalize(path)
+  return normalized.includes('..') || path.includes('../') || path.includes('..\\')
+}
