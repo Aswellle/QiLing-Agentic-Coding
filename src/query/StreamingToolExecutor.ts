@@ -13,6 +13,7 @@
  */
 
 import type { ToolResultContent } from '../types/message'
+import { createChildAbortController } from '../utils/abortController'
 
 type ToolStatus = 'queued' | 'executing' | 'completed' | 'yielded'
 
@@ -54,13 +55,14 @@ export class StreamingToolExecutor {
     private readonly parallelSafeNames: Set<string>,
     parentSignal?: AbortSignal
   ) {
-    this.siblingAbortCtrl = new AbortController()
-    // Propagate parent abort to sibling controller
-    parentSignal?.addEventListener('abort', () => {
-      if (!this.siblingAbortCtrl.signal.aborted) {
-        this.siblingAbortCtrl.abort(parentSignal.reason)
-      }
-    }, { once: true })
+    // Use CC's createChildAbortController for memory-safe parent propagation
+    if (parentSignal) {
+      const parent = new AbortController()
+      parentSignal.addEventListener('abort', () => parent.abort(parentSignal.reason), { once: true })
+      this.siblingAbortCtrl = createChildAbortController(parent)
+    } else {
+      this.siblingAbortCtrl = new AbortController()
+    }
   }
 
   /**
