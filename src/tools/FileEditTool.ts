@@ -4,6 +4,12 @@ import { resolve } from 'path'
 import type { Tool, ToolResult, ToolContext, ToolDefinition } from '../types/tool'
 import { backupFile } from '../utils/fileHistory'
 
+// CC's writeTextContent: preserve CRLF line endings (Windows compat)
+function hasCRLF(text: string): boolean { return text.includes('\r\n') }
+function normalizeToCRLF(text: string): string {
+  return text.replaceAll('\r\n', '\n').split('\n').join('\r\n')
+}
+
 const inputSchema = z.object({
   file_path: z.string().describe('Path to the file to edit'),
   old_string: z.string().describe('The exact string to replace (must be unique in the file)'),
@@ -74,7 +80,9 @@ export const FileEditTool: Tool<Input> = {
       ? content.split(effectiveOldString).join(effectiveNewString)
       : content.replace(effectiveOldString, effectiveNewString)
 
-    writeFileSync(filePath, newContent, 'utf-8')
+    // CC's writeTextContent: preserve CRLF line endings from source file
+    const contentToWrite = hasCRLF(content) ? normalizeToCRLF(newContent) : newContent
+    writeFileSync(filePath, contentToWrite, 'utf-8')
 
     const occurrences = countOccurrences(content, effectiveOldString)
     // Embed diff metadata as JSON comment so ToolCallDisplay can render it

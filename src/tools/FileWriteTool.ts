@@ -1,8 +1,22 @@
 import { z } from 'zod'
-import { writeFileSync, mkdirSync, existsSync } from 'fs'
+import { writeFileSync, mkdirSync, existsSync, readFileSync } from 'fs'
 import { resolve, dirname } from 'path'
 import type { Tool, ToolResult, ToolContext, ToolDefinition, PermissionDecision } from '../types/tool'
 import { backupFile } from '../utils/fileHistory'
+
+// CC's writeTextContent: detect and preserve CRLF line endings from existing files
+function detectCRLF(filePath: string): boolean {
+  try {
+    const sample = readFileSync(filePath, 'utf-8').slice(0, 4096)
+    return sample.includes('\r\n')
+  } catch { return false }
+}
+
+function normalizeLineEndings(content: string, useCRLF: boolean): string {
+  if (!useCRLF) return content
+  // Normalize to LF first (prevent double CRLF), then convert to CRLF
+  return content.replaceAll('\r\n', '\n').split('\n').join('\r\n')
+}
 
 const inputSchema = z.object({
   file_path: z.string().describe('Path to the file to write'),
@@ -35,7 +49,10 @@ export const FileWriteTool: Tool<Input> = {
     await backupFile(filePath, context.workingDir)
 
     mkdirSync(dir, { recursive: true })
-    writeFileSync(filePath, input.content, 'utf-8')
+    // CC's writeTextContent: preserve CRLF line endings from existing files (Windows compat)
+    const useCRLF = existsSync(filePath) && detectCRLF(filePath)
+    const contentToWrite = normalizeLineEndings(input.content, useCRLF)
+    writeFileSync(filePath, contentToWrite, 'utf-8')
 
     const lineCount = input.content.split('\n').length
     return {
