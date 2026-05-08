@@ -407,6 +407,30 @@ export async function getGithubRepo(cwd = process.cwd()): Promise<string | null>
   return match?.[1] ?? null
 }
 
+/** Comprehensive git repo state snapshot (CC's getGitState pattern). */
+export interface GitRepoState {
+  commitHash: string
+  branchName: string
+  remoteUrl: string | null
+  isHeadOnRemote: boolean
+  isClean: boolean
+}
+
+export async function getGitState(cwd = process.cwd()): Promise<GitRepoState | null> {
+  try {
+    const [commitHash, branchName, remoteUrlResult, isClean, headOnRemote] = await Promise.all([
+      getHead(cwd),
+      getBranch(cwd),
+      getGithubRepo(cwd).then(r => r ?? null),
+      getIsClean(cwd),
+      hasUnpushedCommits(cwd).then(has => !has),
+    ])
+    return { commitHash, branchName, remoteUrl: remoteUrlResult, isHeadOnRemote: headOnRemote, isClean }
+  } catch {
+    return null
+  }
+}
+
 /** Format diff stats as compact string, e.g. "+42 -7 (3 files)" */
 export function formatDiffStats(stats: GitDiffStats): string {
   const parts: string[] = []
