@@ -131,6 +131,9 @@ ${envSection}
 - Shell: ${shell}
 - Language preference: ${settings.ui.language}
 
+# Language
+Always respond in ${settings.ui.language === 'zh-CN' ? 'Chinese (Simplified, 简体中文)' : settings.ui.language}. Technical terms and code identifiers should remain in their original form.
+
 ## Core Principles
 
 1. **Think step by step** for complex tasks. Plan before acting.
