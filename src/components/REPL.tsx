@@ -19,6 +19,7 @@ import { readMemories } from '../services/memory/store'
 import { resolveMentions } from '../utils/mentions'
 import { loadAllSkills, formatSkillList } from '../skills/loader'
 import { getUserContext, getSystemContext } from '../context'
+import { parseTokenBudget, stripTokenBudget } from '../utils/tokenBudget'
 import { loadLastSession, listSessions, formatSessionList } from '../session/resume'
 import { HistoryManager } from '../history/manager'
 import { formatErrorMessage } from '../utils/errorMessages'
@@ -402,6 +403,15 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
     if (rawInput.includes('@')) {
       const { text } = await resolveMentions(rawInput, workingDir)
       resolvedInput = text
+    }
+
+    // CC's parseTokenBudget: detect inline token budget expressions
+    // Example: "+500k verify this codebase" → strips budget, sets 500k token budget
+    const inlineBudget = parseTokenBudget(resolvedInput)
+    if (inlineBudget && inlineBudget > 0) {
+      setNotification(`💰 Token 预算已设置：${inlineBudget >= 1_000_000 ? `${(inlineBudget / 1_000_000).toFixed(1)}M` : `${Math.round(inlineBudget / 1000)}k`} tokens`)
+      setTimeout(() => setNotification(null), 3000)
+      resolvedInput = stripTokenBudget(resolvedInput) || resolvedInput
     }
 
     // CC's ultrathink keyword: when user types "ultrathink" in prompt,
