@@ -9,7 +9,21 @@
  */
 
 import { z } from 'zod'
-import { readFileSync, existsSync, statSync } from 'fs'
+import { readFileSync, existsSync, statSync, readdirSync } from 'fs'
+import { basename, extname, dirname, join as joinPath } from 'path'
+
+// CC's findSimilarFile: suggest files with same name but different extension
+function findSimilarFile(filePath: string): string | undefined {
+  try {
+    const dir = dirname(filePath)
+    const base = basename(filePath, extname(filePath))
+    const files = readdirSync(dir, { withFileTypes: true })
+    const match = files.find(f =>
+      f.isFile() && basename(f.name, extname(f.name)) === base && joinPath(dir, f.name) !== filePath
+    )
+    return match?.name
+  } catch { return undefined }
+}
 import { resolve } from 'path'
 import type { Tool, ToolResult, ToolContext, ToolDefinition } from '../types/tool'
 
@@ -185,7 +199,9 @@ Usage:
     const filePath = resolve(context.workingDir, input.file_path)
 
     if (!existsSync(filePath)) {
-      return { content: [{ type: 'text', text: `File not found: ${input.file_path}` }], isError: true }
+      const similar = findSimilarFile(filePath)
+      const hint = similar ? ` Did you mean: ${similar}?` : ''
+      return { content: [{ type: 'text', text: `File not found: ${input.file_path}${hint}` }], isError: true }
     }
 
     const stat = statSync(filePath)
