@@ -144,6 +144,7 @@ program
     }
     return v.toLowerCase() as typeof allowed[number]
   })
+  .option('--proactive', '主动模式: AI 不等待指令，自主探索和执行任务，适合后台监控场景')
   .option('--no-session-persistence', '禁用会话持久化（不写入磁盘，不可恢复）— 仅在 -p 模式有效')
   .action(async (prompt: string | undefined, options) => {
     const workingDir = options.cwd
@@ -320,8 +321,28 @@ program
     const { buildSystemPrompt } = await import('./utils/systemPrompt')
     // CC's --system-prompt: replace; --append-system-prompt: append to default
     const builtPrompt = options.systemPrompt ?? buildSystemPrompt(workingDir, settings)
-    const baseSystemPrompt = options.appendSystemPrompt
-      ? `${builtPrompt}\n\n${options.appendSystemPrompt}`
+    let appendPrompt = options.appendSystemPrompt ?? ''
+
+    // ─── Proactive mode system prompt addendum (CC's proactive mode pattern) ─
+    // --proactive: AI takes initiative without waiting for instructions.
+    // Adds a system prompt section instructing the agent to explore, act, and
+    // respond to periodic <tick> check-ins. Ported from CC's proactive mode.
+    if ((options as { proactive?: boolean }).proactive || process.env.QILING_PROACTIVE === '1') {
+      const proactiveAddendum = `
+# 主动模式 (Proactive Mode)
+
+你正在主动模式下运行。主动采取行动 — 探索、执行，持续推进任务，无需等待指令。
+
+首先简短问候用户，然后开始工作。
+
+你会收到周期性的 <tick> 提示。这是例行检查。做任何你认为最有价值的事情，或者如果没有任务可做，调用 Sleep 工具等待。
+
+用户可以在你工作时随时发送消息来调整方向。`
+      appendPrompt = appendPrompt ? `${appendPrompt}\n\n${proactiveAddendum}` : proactiveAddendum
+    }
+
+    const baseSystemPrompt = appendPrompt
+      ? `${builtPrompt}\n\n${appendPrompt}`
       : builtPrompt
     const systemPromptSync = coordinatorActive
       ? getCoordinatorSystemPrompt() + '\n\n---\n\n' + baseSystemPrompt
