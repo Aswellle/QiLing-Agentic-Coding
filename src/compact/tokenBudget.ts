@@ -81,10 +81,9 @@ export function checkTokenBudget(
   tracker.lastDeltaTokens = delta
   tracker.lastGlobalTurnTokens = turnTokens
 
-  const nudgeMessage =
-    pct >= 80
-      ? `You have used ${pct}% of your context window. Wrap up the current task concisely — avoid starting new long operations.`
-      : `You have used ${pct}% of your context window.`
+  // CC's getBudgetContinuationMessage() exact wording
+  const fmt = (n: number) => new Intl.NumberFormat('en-US').format(n)
+  const nudgeMessage = `Stopped at ${pct}% of token target (${fmt(turnTokens)} / ${fmt(budget)}). Keep working — do not summarize.`
 
   return { action: 'continue', pct, nudgeMessage }
 }
