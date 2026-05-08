@@ -40,6 +40,11 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024  // 10 MB
 const DEFAULT_LINE_LIMIT = 2000
 const MAX_PDF_PAGES = 20
 
+// CC's FILE_UNCHANGED_STUB: return stub instead of re-reading unmodified files
+const FILE_READ_CACHE = new Map<string, { mtime: number }>()
+const FILE_UNCHANGED_STUB =
+  'File unchanged since last read. The content from the earlier Read tool_result in this conversation is still current — refer to that instead of re-reading.'
+
 // CC's MaxFileReadTokenExceededError pattern: guard against token-heavy files
 // Before yielding content, estimate token count and warn/truncate if needed.
 // ~4 bytes/token for text; CC uses 100k token limit per file read.
@@ -221,6 +226,17 @@ Usage:
         isError: true,
       }
     }
+
+    // CC's FILE_UNCHANGED_STUB: if file was recently read and hasn't changed, return stub
+    // Only applies to full reads (no offset/limit/pages specified)
+    const isFullRead = !input.offset && !input.limit && !input.pages
+    const mtime = stat.mtimeMs
+    const cached = FILE_READ_CACHE.get(filePath)
+    if (isFullRead && cached && cached.mtime === mtime) {
+      return { content: [{ type: 'text', text: FILE_UNCHANGED_STUB }] }
+    }
+    // Record this read for next time
+    if (isFullRead) FILE_READ_CACHE.set(filePath, { mtime })
 
     // Jupyter notebooks
     if (filePath.endsWith('.ipynb')) return readJupyter(filePath)
