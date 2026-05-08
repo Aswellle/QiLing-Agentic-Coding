@@ -68,6 +68,25 @@ const DEFAULT_MICROCOMPACT_THRESHOLD = parseInt(
   process.env.QILING_MICROCOMPACT_THRESHOLD ?? '5000', 10
 )
 
+// CC's time-based microcompact: when cache has expired (> CACHE_TTL_MINUTES),
+// use a more aggressive threshold to clear old tool results before API call.
+// The server's 1h cache TTL is expired, so clearing saves tokens on the rewrite.
+const CACHE_TTL_MINUTES = parseInt(process.env.QILING_CACHE_TTL_MINUTES ?? '60', 10)
+const CACHE_EXPIRED_THRESHOLD = parseInt(
+  process.env.QILING_CACHE_EXPIRED_THRESHOLD ?? '2000', 10
+)
+
+let _lastAssistantResponseTime = Date.now()
+
+export function recordAssistantResponseTime(): void {
+  _lastAssistantResponseTime = Date.now()
+}
+
+function isCacheExpired(): boolean {
+  const gapMs = Date.now() - _lastAssistantResponseTime
+  return gapMs > CACHE_TTL_MINUTES * 60 * 1000
+}
+
 // Tools whose output can be truncated (mirrors CC's COMPACTABLE_TOOLS set)
 const COMPACTABLE_TOOLS = new Set([
   'FileRead', 'FileWrite', 'FileEdit',
@@ -82,7 +101,8 @@ export function microcompact(messages: Message[], keepLastN = 6): Message[] {
   if (messages.length <= keepLastN) return messages
 
   const preserveFrom = messages.length - keepLastN
-  const threshold = DEFAULT_MICROCOMPACT_THRESHOLD
+  // CC's time-based microcompact: use tighter threshold when cache has expired
+  const threshold = isCacheExpired() ? CACHE_EXPIRED_THRESHOLD : DEFAULT_MICROCOMPACT_THRESHOLD
 
   return messages.map((msg, idx) => {
     if (idx >= preserveFrom) return msg

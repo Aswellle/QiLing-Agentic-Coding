@@ -29,7 +29,7 @@ import { ENTER_PLAN_MODE_TOOL_NAME } from './tools/EnterPlanModeTool'
 import { EXIT_PLAN_MODE_TOOL_NAME } from './tools/ExitPlanModeTool'
 import { getActiveWorktreeSession } from './services/worktree/store'
 import { StreamingToolExecutor } from './query/StreamingToolExecutor'
-import { microcompact, compactConversation } from './compact/engine'
+import { microcompact, compactConversation, recordAssistantResponseTime } from './compact/engine'
 import { shouldAutoCompact } from './compact/autoCompact'
 import { isPromptTooLong, isMediaSizeError, tryReactiveCompact } from './compact/reactiveCompact'
 import { createBudgetTracker, checkTokenBudget } from './compact/tokenBudget'
@@ -417,6 +417,8 @@ export async function runQuery(
               stopReasonThisRound = chunk.stopReason
               finalStopReason = chunk.stopReason
               callbacks.onUsageUpdate?.(totalUsage)
+              // CC's time-based microcompact: record when model responded
+              recordAssistantResponseTime()
               break
 
             case 'thinking_block':
