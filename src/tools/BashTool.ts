@@ -73,6 +73,20 @@ IMPORTANT: Avoid using this tool to run \`find\`, \`grep\`, \`cat\`, \`head\`, \
   },
 
   async call(input: Input, context: ToolContext): Promise<ToolResult> {
+    // CC's detectBlockedSleepPattern: block long sleep commands, suggest run_in_background
+    const sleepBlock = detectBlockedSleepPattern(input.command)
+    if (sleepBlock) {
+      return {
+        content: [{
+          type: 'text',
+          text: `Blocked: ${sleepBlock}. Run blocking commands in the background with run_in_background: true — ` +
+            `you'll get a completion notification when done. ` +
+            `If you genuinely need a delay (rate limiting, deliberate pacing), keep it under 2 seconds.`,
+        }],
+        isError: true,
+      }
+    }
+
     // Clamp timeout to [1000, MAX_TIMEOUT_MS]
     const timeout = Math.min(
       Math.max(input.timeout ?? DEFAULT_TIMEOUT_MS, 1_000),
@@ -198,6 +212,22 @@ function buildOutput(stdout: string, stderr: string, exitCode: number): string {
   if (stderr.trim()) parts.push(`[stderr]\n${stderr.trimEnd()}`)
   if (exitCode !== 0) parts.push(`[exit code: ${exitCode}]`)
   return parts.join('\n') || '(no output)'
+}
+
+/**
+ * Detect standalone `sleep N` (N >= 2) patterns that should use run_in_background instead.
+ * Mirrors CC's detectBlockedSleepPattern() from BashTool.tsx.
+ * Float durations (sleep 0.5) are allowed — those are legitimate pacing.
+ */
+function detectBlockedSleepPattern(command: string): string | null {
+  const trimmed = command.trim()
+  // Match: bare `sleep N` or `sleep N && ...` or `sleep N; ...`
+  const m = /^sleep\s+(\d+)\s*(?:$|&&|;)/.exec(trimmed)
+  if (!m) return null
+  const secs = parseInt(m[1]!, 10)
+  if (secs < 2) return null  // sub-2s is fine (rate limiting, pacing)
+  const rest = trimmed.slice(m[0].length).trim()
+  return rest ? `sleep ${secs} followed by: ${rest}` : `standalone sleep ${secs}`
 }
 
 /** List all background tasks currently running. */
