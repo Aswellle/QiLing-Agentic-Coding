@@ -636,7 +636,7 @@ const HELP_TEXT = `QiLing (启灵) — 编程代理工具
   /open <file>  在外部编辑器中打开文件（VSCode/Cursor/vim 等）
   /test [cmd]   运行测试并自动修复（最多 3 次循环）
   /review [PR#] 代码审查 (本地 diff 或 PR)
-  /init         分析代码库，创建 QILING.md
+  /init         分析代码库，创建 QILING.md（CC 三阶段格式）
   /repomap      显示仓库文件和符号索引
   /memory       查看记忆文件
   /memory edit  编辑记忆文件
@@ -645,9 +645,16 @@ const HELP_TEXT = `QiLing (启灵) — 编程代理工具
   /model        切换 AI 模型
   /config       查看当前配置
   /cost         显示 token 成本统计
-  /compact      压缩对话上下文
-  /clear        清空当前对话
+  /compact      压缩对话上下文（保留 9 节结构化摘要）
+  /clear        清空当前对话（自动重置上下文缓存）
   /exit         退出
+
+## 高级功能
+
+  ultrathink    在提示中加入 "ultrathink" 自动启用扩展思考 (16k tokens)
+  +500k         内联 token 预算: "+500k 分析整个代码库"
+  @file         注入文件内容, @url 抓取网页, @git 注入 git 状态
+  $ARGUMENTS    技能文件中的参数占位符 (use /skill-name <args>)
 
 ## 工具能力
 
