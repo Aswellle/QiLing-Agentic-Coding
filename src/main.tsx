@@ -95,6 +95,7 @@ program
   .option('--settings <file-or-json>', 'Path to a settings JSON file, or a JSON string to load additional settings from')
   .option('--max-budget-usd <amount>', 'Maximum USD cost before stopping (print mode); formats: 0.50, 1.00', parseFloat)
   .option('--add-dir <directories...>', 'Additional directories to include CLAUDE.md/QILING.md from (useful for monorepos)')
+  .option('--append-system-prompt <prompt>', 'Append text to the default system prompt without replacing it')
   .action(async (prompt: string | undefined, options) => {
     const workingDir = options.cwd
       ? (await import('path')).resolve(options.cwd)
@@ -245,7 +246,11 @@ program
 
     // Sync prompt first (no RepoMap) so TUI appears fast
     const { buildSystemPrompt } = await import('./utils/systemPrompt')
-    const baseSystemPrompt = buildSystemPrompt(workingDir, settings)
+    // CC's --system-prompt: replace; --append-system-prompt: append to default
+    const builtPrompt = options.systemPrompt ?? buildSystemPrompt(workingDir, settings)
+    const baseSystemPrompt = options.appendSystemPrompt
+      ? `${builtPrompt}\n\n${options.appendSystemPrompt}`
+      : builtPrompt
     const systemPromptSync = coordinatorActive
       ? getCoordinatorSystemPrompt() + '\n\n---\n\n' + baseSystemPrompt
       : baseSystemPrompt
