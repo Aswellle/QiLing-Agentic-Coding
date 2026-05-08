@@ -55,6 +55,7 @@ const SLASH_COMMANDS: SlashCommand[] = BUILTIN_COMMANDS.map(c => ({
   { name: '/memory', description: '查看当前内存文件内容（QILING.md / CLAUDE.md）' },
   { name: '/fast', description: '切换快速模式：claude-opus-4-6（更快响应，CC /fast 模式）' },
   { name: '/cost', description: '显示当前会话的 Token 使用量和费用统计' },
+  { name: '/review', description: 'AI 代码审查 — /review <PR号> 或不带参数显示 PR 列表' },
   { name: '/exit', description: '退出' },
   { name: '! <cmd>', description: '直接执行 Shell 命令，不经过 AI（CC bash 模式）' },
 ])
@@ -598,6 +599,40 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
             `估算费用: $${totalUSD.toFixed(4)} USD`,
           ].join('\n'),
         }])
+        return
+      }
+
+      case '/review': {
+        // AI-driven PR code review — ported from CC's review command
+        // Uses GitHub CLI (gh) to fetch PR diff and asks AI to review it
+        const prNum = args.trim()
+        const reviewPrompt = prNum
+          ? `You are an expert code reviewer. Follow these steps:
+
+1. Run \`gh pr view ${prNum}\` to get PR details
+2. Run \`gh pr diff ${prNum}\` to get the diff
+3. Analyze the changes and provide a thorough code review that includes:
+   - Overview of what the PR does
+   - Analysis of code quality and style
+   - Specific suggestions for improvements
+   - Any potential issues or risks
+
+Keep your review concise but thorough. Focus on:
+- Code correctness
+- Following project conventions
+- Performance implications
+- Test coverage
+- Security considerations
+
+Format your review with clear sections and bullet points.
+
+PR number: ${prNum}`
+          : `Please run \`gh pr list\` to show the open PRs for this repository, then help me choose one to review.`
+
+        const userMsg: Message = { role: 'user', content: `/review${prNum ? ` ${prNum}` : ''}` }
+        const newMessages = [...messagesRef.current, userMsg, { role: 'user' as const, content: reviewPrompt }]
+        setMessages([...messagesRef.current, userMsg])
+        await runAIQuery(newMessages)
         return
       }
 
