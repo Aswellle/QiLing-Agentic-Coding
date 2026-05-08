@@ -404,10 +404,31 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
       resolvedInput = text
     }
 
+    // CC's ultrathink keyword: when user types "ultrathink" in prompt,
+    // automatically enable extended thinking with a generous budget.
+    // Mirrors CC's hasUltrathinkKeyword() + modelSupportsThinking() behavior.
+    const hasUltrathink = /\bultrathink\b/i.test(resolvedInput)
+    if (hasUltrathink) {
+      // Temporarily boost thinking budget for this query
+      const ultrathinkBudget = 16_000  // CC's typical ultrathink budget
+      const supportsThinking = /claude-(opus|sonnet)-4/i.test(settings.model)
+      if (supportsThinking && settings.thinkingBudget === 0) {
+        setNotification('🧠 Ultrathink 模式已激活 — 扩展思考预算：16,000 tokens')
+        setTimeout(() => setNotification(null), 4000)
+        // Temporarily increase thinking budget for this query only
+        ;(settings as { thinkingBudget: number }).thinkingBudget = ultrathinkBudget
+      }
+    }
+
     const userMessage: Message = { role: 'user', content: resolvedInput }
     const newMessages = [...messagesRef.current, { role: 'user' as const, content: rawInput }]
     setMessages(newMessages)
     await runAIQuery([...messagesRef.current, userMessage])
+
+    // Reset ultrathink budget after query
+    if (hasUltrathink && settings.thinkingBudget === 16_000) {
+      ;(settings as { thinkingBudget: number }).thinkingBudget = 0
+    }
   }, [runAIQuery, workingDir, skills])
 
   async function handleCommand(cmd: string) {
