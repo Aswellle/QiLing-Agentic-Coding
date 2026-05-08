@@ -466,38 +466,52 @@ ${args
 
 以清晰的章节和列表形式格式化审查。`.trim()
 
-const INIT_PROMPT = (workingDir: string) => `分析当前代码库 (${workingDir})，创建一个 QILING.md 文件作为项目记忆。
+// CC's NEW_INIT_PROMPT (upgraded from the old simple version)
+// Mirrors CC's commands/init.ts NEW_INIT_PROMPT for creating CLAUDE.md/QILING.md
+const INIT_PROMPT = (_workingDir: string) => `Set up a minimal CLAUDE.md (and optionally .qiling/skills/ and .qiling/settings.json hooks) for this repo. CLAUDE.md is loaded into every QiLing session, so it must be concise — only include what QiLing would get wrong without it.
 
-## 步骤
+## Phase 1: Explore the codebase
 
-1. **探索代码库**：
-   - 读取 README.md, package.json/Cargo.toml/go.mod 等清单文件
-   - 读取已有的 CLAUDE.md, QILING.md, .cursorrules, .github/copilot-instructions.md
-   - 检查构建/测试/lint 命令
-   - 了解项目结构和技术栈
+Survey the codebase by reading key files:
+- Manifest files: package.json, Cargo.toml, pyproject.toml, go.mod, pom.xml, etc.
+- README.md, Makefile/build configs, CI config (.github/workflows/)
+- Existing CLAUDE.md, QILING.md, .claude/rules/, .cursor/rules or .cursorrules
+- .github/copilot-instructions.md, AGENTS.md, .mcp.json
 
-2. **创建 QILING.md**：
-   - 放在项目根目录
-   - 包含：构建/测试命令、代码架构概述、重要约定、已知注意事项
-   - 不包含：可轻易发现的文件列表、通用开发实践、明显的指令
+Detect:
+- Build, test, and lint commands (especially non-standard ones)
+- Languages, frameworks, and package manager
+- Project structure (monorepo, multi-module, or single project)
+- Code style rules that differ from language defaults
+- Non-obvious gotchas, required env vars, or workflow quirks
+- Formatter configuration (prettier, biome, ruff, black, gofmt, rustfmt)
 
-3. **格式**：
+## Phase 2: Create CLAUDE.md
+
+Create \`CLAUDE.md\` in the project root with only what's non-obvious:
+
 \`\`\`
-# QILING.md
+# CLAUDE.md
 
-This file provides guidance to QiLing AI agent when working in this repository.
+This file provides guidance to QiLing (and Claude Code) when working with code in this repository.
 
-## Build & Test
-[命令]
+## Commands
+[build/test/lint commands]
 
 ## Architecture
-[架构概述]
-
-## Conventions
-[约定]
+[high-level structure requiring multiple files to understand]
 \`\`\`
 
-如果已有 QILING.md，提出改进建议而不是直接覆盖。`.trim()
+Rules:
+- DO NOT include obvious things like "write tests" or "use meaningful names"
+- DO NOT list every file or component (they can be discovered)
+- DO include: non-standard commands, architecture decisions, gotchas, env setup
+- If CLAUDE.md already exists, suggest improvements only
+- Prefix with the exact header above
+
+## Phase 3: Suggest skills (optional)
+
+If the project has repeatable workflows (testing, deploy, code review), suggest creating \`.qiling/skills/<name>.md\` files. Offer but don't force.`.trim()
 
 const DOCTOR_PROMPT = (workingDir: string) => `诊断当前环境配置，检查以下各项并给出状态报告：
 
