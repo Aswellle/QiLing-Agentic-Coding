@@ -13,6 +13,7 @@ import { z } from 'zod'
 import type { Tool, ToolResult, ToolContext, ToolDefinition, PermissionDecision } from '../types/tool'
 import { classifyBashCommand } from '../permissions/classifier'
 import { EndTruncatingAccumulator } from '../utils/stringUtils'
+import { subprocessEnv } from '../utils/subprocessEnv'
 
 // ─── Timeout constants (mirrors CC's utils/timeouts.ts) ───────────────────────
 const DEFAULT_TIMEOUT_MS = parseInt(process.env.BASH_DEFAULT_TIMEOUT_MS ?? '', 10) || 120_000
@@ -111,7 +112,7 @@ IMPORTANT: Avoid using this tool to run \`find\`, \`grep\`, \`cat\`, \`head\`, \
       try {
         const proc = Bun.spawn(['bash', '-c', input.command], {
           cwd: context.workingDir,
-          env: { ...process.env },
+          env: subprocessEnv(),
           stdout: 'pipe',
           stderr: 'pipe',
         })
@@ -143,7 +144,7 @@ IMPORTANT: Avoid using this tool to run \`find\`, \`grep\`, \`cat\`, \`head\`, \
     try {
       const proc = Bun.spawn(['bash', '-c', input.command], {
         cwd: context.workingDir,
-        env: { ...process.env },
+        env: subprocessEnv(),
         stdout: 'pipe',
         stderr: 'pipe',
       })
