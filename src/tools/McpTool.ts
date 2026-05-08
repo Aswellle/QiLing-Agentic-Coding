@@ -6,6 +6,7 @@
  */
 import { z } from 'zod'
 import type { Tool, ToolResult, ToolContext, ToolDefinition } from '../types/tool'
+import { partiallySanitizeUnicode } from '../utils/sanitization'
 
 interface McpServerConfig {
   name: string
@@ -331,10 +332,13 @@ export async function loadMcpTools(config: McpServerConfig): Promise<Tool[]> {
       async call(input: Record<string, unknown>, _ctx: ToolContext): Promise<ToolResult> {
         try {
           const result = await client.callTool(mcpTool.name, input)
-          const text = result.content
+          const raw = result.content
             .filter(c => c.type === 'text')
             .map(c => c.text ?? '')
             .join('\n')
+          // CC's sanitization: strip hidden Unicode chars from MCP output
+          // (ASCII Smuggling / Hidden Prompt Injection protection)
+          const text = partiallySanitizeUnicode(raw)
           return { content: [{ type: 'text', text }] }
         } catch (error) {
           return {
