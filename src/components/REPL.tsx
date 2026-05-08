@@ -20,6 +20,7 @@ import { resolveMentions } from '../utils/mentions'
 import { loadAllSkills, formatSkillList } from '../skills/loader'
 import { getUserContext, getSystemContext, resetContextCaches } from '../context'
 import { parseTokenBudget, stripTokenBudget } from '../utils/tokenBudget'
+import { getRandomSpinnerVerb } from '../constants/spinnerVerbs'
 import { substituteArguments } from '../utils/argumentSubstitution'
 import { loadLastSession, listSessions, formatSessionList } from '../session/resume'
 import { HistoryManager } from '../history/manager'
@@ -712,7 +713,7 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
       {/* Streaming assistant response */}
       {isStreaming && (streamingText || toolCalls.length > 0) && (
         <Box flexDirection="column" borderStyle="round" borderColor="green" marginBottom={1} paddingX={1}>
-          <Text color="green" bold>─ assistant </Text>
+          <Text color="green" bold>─ {getRandomSpinnerVerb()}… </Text>
           {streamingText && <Text>{streamingText}</Text>}
           {toolCalls.map(tc => (
             <ToolCallDisplay key={tc.id} toolCall={tc} />
