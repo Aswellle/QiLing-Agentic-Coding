@@ -70,10 +70,11 @@ function loadGitignorePatterns(startDir: string): string[] {
 
 export const GlobTool: Tool<Input> = {
   name: 'Glob',
-  description:
-    'Find files matching a glob pattern. Returns sorted list of matching file paths. ' +
-    'Supports patterns like "**/*.ts", "src/**/*.{js,ts}", "*.json". ' +
-    'Automatically respects .gitignore and ignores node_modules, .git, dist.',
+  description: `- Fast file pattern matching tool that works with any codebase size
+- Supports glob patterns like "**/*.js" or "src/**/*.ts"
+- Returns matching file paths sorted by modification time
+- Use this tool when you need to find files by name patterns
+- When you are doing an open ended search that may require multiple rounds of globbing and grepping, use the Agent tool instead`,
   inputSchema,
 
   async call(input: Input, context: ToolContext): Promise<ToolResult> {

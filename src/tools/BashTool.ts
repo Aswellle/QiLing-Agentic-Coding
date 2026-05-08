@@ -57,10 +57,22 @@ IMPORTANT: Avoid using this tool to run \`find\`, \`grep\`, \`cat\`, \`head\`, \
  - Write files: Use Write (NOT echo >/cat <<EOF)
 
 # Instructions
- - If your command will create new directories or files, first use this tool to run \`ls\` to verify the parent directory exists.
- - Always quote file paths that contain spaces with double quotes.
+ - If your command will create new directories or files, first use this tool to run \`ls\` to verify the parent directory exists and is the correct location.
+ - Always quote file paths that contain spaces with double quotes in your command (e.g., cd "path with spaces/file.txt")
+ - Try to maintain your current working directory throughout the session by using absolute paths and avoiding usage of \`cd\`. You may use \`cd\` if the User explicitly requests it. In particular, never prepend \`cd <current-directory>\` to a \`git\` command — \`git\` already operates on the current working tree, and the compound triggers a permission prompt.
  - You may specify an optional timeout in milliseconds (max ${MAX_TIMEOUT_MS}ms / ${MAX_TIMEOUT_MS / 60000} minutes). By default, your command will timeout after ${DEFAULT_TIMEOUT_MS}ms (${DEFAULT_TIMEOUT_MS / 60000} minutes).
- - You can use the \`run_in_background\` parameter to run the command in the background. Only use this if you don't need the result immediately and are OK being notified when the command completes later.
+ - You can use the \`run_in_background\` parameter to run the command in the background. Only use this if you don't need the result immediately and are OK being notified when the command completes later. You do not need to use '&' at the end of the command when using this parameter.
+ - When issuing multiple commands:
+  - If the commands are independent and can run in parallel, make multiple Bash tool calls in a single message.
+  - If the commands depend on each other and must run sequentially, use a single Bash call with '&&' to chain them together.
+ - For git commands:
+  - Prefer to create a new commit rather than amending an existing commit.
+  - Never skip hooks (--no-verify) or bypass signing (--no-gpg-sign, -c commit.gpgsign=false) unless the user has explicitly asked for it.
+  - NEVER run additional commands to read or explore code, besides git bash commands.
+ - Avoid unnecessary \`sleep\` commands:
+  - Do not sleep between commands that can run immediately — just run them.
+  - Use the \`run_in_background\` parameter to run blocking commands in the background.
+  - Long leading \`sleep\` commands are blocked. To poll until a condition is met, use a loop (e.g. \`until <check>; do sleep 2; done\`).
 `,
 
   inputSchema,
