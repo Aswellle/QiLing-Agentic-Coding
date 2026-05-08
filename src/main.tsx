@@ -641,4 +641,92 @@ program
     console.log(`Config:   ${import.meta.dir}`)
   })
 
+// ─── MCP subcommand group (CC's 'claude mcp' pattern) ────────────────────────
+// Provides MCP server management without starting the TUI.
+const mcp = program
+  .command('mcp')
+  .description('Configure and manage MCP servers')
+
+mcp
+  .command('list')
+  .description('List configured MCP servers from settings.json')
+  .action(() => {
+    const { loadSettings } = require('./settings') as typeof import('./settings')
+    const settings = loadSettings(process.cwd())
+    const servers = settings.mcpServers ?? {}
+    const names = Object.keys(servers)
+    if (names.length === 0) {
+      console.log('未配置 MCP 服务器。')
+      console.log('在 ~/.qiling/settings.json 的 mcpServers 字段中添加服务器。')
+    } else {
+      console.log(`已配置 ${names.length} 个 MCP 服务器:`)
+      for (const name of names) {
+        const server = servers[name]!
+        const cmd = 'command' in server ? server.command : 'url' in server ? (server as { url: string }).url : '?'
+        console.log(`  ${name}: ${cmd}`)
+      }
+    }
+  })
+
+mcp
+  .command('add <name> <command>')
+  .description('Add an MCP server (stdio) to ~/.qiling/settings.json')
+  .option('-s, --scope <scope>', 'Configuration scope (global or project)', 'global')
+  .option('--args <args...>', 'Additional arguments for the command')
+  .action((name: string, command: string, options: { scope: string; args?: string[] }) => {
+    const { join } = require('path') as typeof import('path')
+    const { homedir } = require('os') as typeof import('os')
+    const { existsSync, readFileSync, writeFileSync, mkdirSync } = require('fs') as typeof import('fs')
+
+    const isGlobal = options.scope === 'global'
+    const settingsPath = isGlobal
+      ? join(homedir(), '.qiling', 'settings.json')
+      : join(process.cwd(), '.qiling', 'settings.json')
+
+    mkdirSync(join(settingsPath, '..'), { recursive: true })
+    let config: Record<string, unknown> = {}
+    if (existsSync(settingsPath)) {
+      try { config = JSON.parse(readFileSync(settingsPath, 'utf-8')) } catch {}
+    }
+    const servers = (config.mcpServers ?? {}) as Record<string, unknown>
+    servers[name] = {
+      command,
+      ...(options.args && options.args.length > 0 ? { args: options.args } : {}),
+    }
+    config.mcpServers = servers
+    writeFileSync(settingsPath, JSON.stringify(config, null, 2) + '\n', 'utf-8')
+    console.log(`✓ 已添加 MCP 服务器 "${name}" 到 ${settingsPath}`)
+  })
+
+mcp
+  .command('remove <name>')
+  .description('Remove an MCP server from settings.json')
+  .option('-s, --scope <scope>', 'Configuration scope (global or project)', 'global')
+  .action((name: string, options: { scope: string }) => {
+    const { join } = require('path') as typeof import('path')
+    const { homedir } = require('os') as typeof import('os')
+    const { existsSync, readFileSync, writeFileSync } = require('fs') as typeof import('fs')
+
+    const isGlobal = options.scope === 'global'
+    const settingsPath = isGlobal
+      ? join(homedir(), '.qiling', 'settings.json')
+      : join(process.cwd(), '.qiling', 'settings.json')
+
+    if (!existsSync(settingsPath)) {
+      console.error(`✗ 设置文件不存在: ${settingsPath}`)
+      process.exit(1)
+    }
+    let config: Record<string, unknown> = {}
+    try { config = JSON.parse(readFileSync(settingsPath, 'utf-8')) } catch {}
+    const servers = (config.mcpServers ?? {}) as Record<string, unknown>
+    if (!(name in servers)) {
+      console.error(`✗ MCP 服务器 "${name}" 不存在`)
+      process.exit(1)
+    }
+    delete servers[name]
+    config.mcpServers = servers
+    writeFileSync(settingsPath, JSON.stringify(config, null, 2) + '\n', 'utf-8')
+    console.log(`✓ 已删除 MCP 服务器 "${name}"`)
+  })
+
 program.parse(process.argv)
