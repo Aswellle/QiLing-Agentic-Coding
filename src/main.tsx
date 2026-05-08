@@ -14,6 +14,7 @@ import { checkForUpdates } from './utils/updater'
 import { loadLastSession } from './session/resume'
 import { initFileHistory } from './utils/fileHistory'
 import { isCoordinatorMode, getCoordinatorSystemPrompt } from './coordinator/coordinatorMode'
+import { eagerParseCliFlag } from './utils/cliArgs'
 
 // ─── Terminal cursor restoration on exit (CC's resetCursor pattern) ───────────
 // If the process exits while the cursor is hidden (Ink does this), the terminal
