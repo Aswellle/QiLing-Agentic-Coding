@@ -23,3 +23,22 @@ export function isNonessentialTrafficEnabled(): boolean {
 export function isTelemetryEnabled(): boolean {
   return getPrivacyLevel() !== 'essential-traffic'
 }
+
+// CC-compatible aliases
+export function isEssentialTrafficOnly(): boolean {
+  return getPrivacyLevel() === 'essential-traffic'
+}
+
+export function isTelemetryDisabled(): boolean {
+  return getPrivacyLevel() !== 'default'
+}
+
+export function getEssentialTrafficOnlyReason(): string | null {
+  if (process.env.QILING_DISABLE_NONESSENTIAL_TRAFFIC) {
+    return 'QILING_DISABLE_NONESSENTIAL_TRAFFIC'
+  }
+  if (process.env.CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC) {
+    return 'CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC'
+  }
+  return null
+}
