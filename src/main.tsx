@@ -15,6 +15,11 @@ import { loadLastSession } from './session/resume'
 import { initFileHistory } from './utils/fileHistory'
 import { isCoordinatorMode, getCoordinatorSystemPrompt } from './coordinator/coordinatorMode'
 import { eagerParseCliFlag } from './utils/cliArgs'
+import { registerProcessOutputErrorHandlers } from './utils/process'
+
+// ─── Register EPIPE handlers early (CC's registerProcessOutputErrorHandlers) ──
+// Prevents memory leaks when stdout/stderr pipes are broken (e.g., | head -1)
+registerProcessOutputErrorHandlers()
 
 // ─── Terminal cursor restoration on exit (CC's resetCursor pattern) ───────────
 // If the process exits while the cursor is hidden (Ink does this), the terminal
