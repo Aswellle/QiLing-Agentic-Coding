@@ -516,10 +516,23 @@ program
     }
 
     // ─── Set terminal title (CC's session title pattern) ─────────────────
+    // Two approaches: OSC 8 escape for tab title + process.title for ps list.
     if (process.stdout.isTTY) {
       const titleModel = settings.model.split('-').slice(0, 2).join('-')
       process.stdout.write(`\x1b]0;QiLing (${titleModel})\x07`)
+      process.title = `qiling (${titleModel})`
     }
+
+    // ─── Deferred background prefetches (CC's startDeferredPrefetches pattern) ─
+    // Fire cache-warming work after the REPL renders so the user sees the UI
+    // immediately. These run while the user types their first message.
+    // We use setImmediate() so the Ink render loop gets its first tick first.
+    setImmediate(() => {
+      // Warm context caches: CLAUDE.md + git status needed for first API call
+      const { getUserContext, getSystemContext } = require('./context') as typeof import('./context')
+      void getUserContext(workingDir).catch(() => {})
+      void getSystemContext(workingDir).catch(() => {})
+    })
 
     // ─── Launch TUI ───────────────────────────────────────────────────────
     const { waitUntilExit } = render(
