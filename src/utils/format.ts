@@ -113,3 +113,56 @@ export function formatLocalDate(date: Date, timeZone?: string): string {
     timeZone: timeZone ?? getTimeZone(),
   })
 }
+
+/**
+ * Format a date as "X minutes/hours ago" — ported from CC's utils/format.ts.
+ */
+export function formatRelativeTimeAgo(
+  date: Date,
+  options: { style?: 'long' | 'short' | 'narrow'; numeric?: 'always' | 'auto'; now?: Date } = {},
+): string {
+  const { now = new Date(), ...restOptions } = options
+  if (date > now) return formatRelativeTime(date, { ...restOptions, now })
+  const diffMs = now.getTime() - date.getTime()
+  const diffSec = Math.round(diffMs / 1000)
+  const diffMin = Math.round(diffSec / 60)
+  const diffHour = Math.round(diffMin / 60)
+  const diffDay = Math.round(diffHour / 24)
+  if (diffSec < 60) return 'just now'
+  if (diffMin < 60) return `${diffMin} minute${diffMin === 1 ? '' : 's'} ago`
+  if (diffHour < 24) return `${diffHour} hour${diffHour === 1 ? '' : 's'} ago`
+  return `${diffDay} day${diffDay === 1 ? '' : 's'} ago`
+}
+
+/**
+ * Format a Unix timestamp (seconds) as a localized time/date string.
+ * Returns undefined if no timestamp. Ported from CC's utils/format.ts.
+ */
+export function formatResetTime(
+  timestampInSeconds: number | undefined,
+  showTimezone = false,
+  showTime = true,
+): string | undefined {
+  if (!timestampInSeconds) return undefined
+  const date = new Date(timestampInSeconds * 1000)
+  const now = new Date()
+  const sameDay = date.toDateString() === now.toDateString()
+  const timeStr = showTime
+    ? date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', ...(showTimezone ? { timeZoneName: 'short' } : {}) })
+    : ''
+  if (sameDay) return showTime ? timeStr : 'today'
+  const dateStr = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+  return showTime ? `${dateStr} at ${timeStr}` : dateStr
+}
+
+/**
+ * Format an ISO reset timestamp string. Ported from CC's utils/format.ts.
+ */
+export function formatResetText(
+  resetsAt: string,
+  showTimezone = false,
+  showTime = true,
+): string {
+  const dt = new Date(resetsAt)
+  return formatResetTime(Math.floor(dt.getTime() / 1000), showTimezone, showTime) ?? resetsAt
+}
