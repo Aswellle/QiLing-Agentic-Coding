@@ -104,7 +104,10 @@ export class StreamingToolExecutor {
   private canStart(isSafe: boolean): boolean {
     const executing = this.tools.filter(t => t.status === 'executing')
     if (executing.length === 0) return true
-    return isSafe && executing.every(t => t.isConcurrencySafe)
+    // CC's CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY: cap concurrent safe tool count
+    const maxConcurrency = parseInt(process.env.QILING_MAX_TOOL_CONCURRENCY ?? '', 10) || 10
+    if (isSafe && executing.every(t => t.isConcurrencySafe) && executing.length < maxConcurrency) return true
+    return false
   }
 
   private async tryStart(tool: TrackedTool): Promise<void> {
