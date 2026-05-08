@@ -20,6 +20,7 @@ import { resolveMentions } from '../utils/mentions'
 import { loadAllSkills, formatSkillList } from '../skills/loader'
 import { getUserContext, getSystemContext } from '../context'
 import { parseTokenBudget, stripTokenBudget } from '../utils/tokenBudget'
+import { substituteArguments } from '../utils/argumentSubstitution'
 import { loadLastSession, listSessions, formatSessionList } from '../session/resume'
 import { HistoryManager } from '../history/manager'
 import { formatErrorMessage } from '../utils/errorMessages'
@@ -382,7 +383,9 @@ export function REPL({ tools, provider, permissions, systemPrompt, workingDir, v
       const skill = skills.find(s => s.name === skillName)
       if (skill) {
         const userMsg: Message = { role: 'user', content: `/${skillName}${skillMatch[2]}` }
-        const skillPrompt = `${skill.instructions}\n\n${skillMatch[2].trim() ? `User arguments: ${skillMatch[2].trim()}` : ''}`.trim()
+        // CC's substituteArguments: replace $ARGUMENTS, $ARGUMENTS[0], $0 etc. in skill prompts
+        const skillArgs = skillMatch[2].trim()
+        const skillPrompt = substituteArguments(skill.instructions, skillArgs || undefined)
         const newMessages = [...messagesRef.current, userMsg]
         setMessages(newMessages)
         await runAIQuery([...newMessages, { role: 'user', content: skillPrompt }])
