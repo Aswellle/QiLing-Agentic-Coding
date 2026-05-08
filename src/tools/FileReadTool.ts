@@ -40,6 +40,16 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024  // 10 MB
 const DEFAULT_LINE_LIMIT = 2000
 const MAX_PDF_PAGES = 20
 
+// CC's MaxFileReadTokenExceededError pattern: guard against token-heavy files
+// Before yielding content, estimate token count and warn/truncate if needed.
+// ~4 bytes/token for text; CC uses 100k token limit per file read.
+const MAX_FILE_READ_TOKENS = parseInt(process.env.QILING_MAX_FILE_READ_TOKENS ?? '', 10) || 100_000
+const BYTES_PER_TOKEN = 4
+
+function estimateTokens(content: string): number {
+  return Math.ceil(content.length / BYTES_PER_TOKEN)
+}
+
 // Magic bytes for image detection
 const IMAGE_MAGIC: Array<{ bytes: number[]; mime: string; ext: string }> = [
   { bytes: [0x89, 0x50, 0x4e, 0x47], mime: 'image/png', ext: 'png' },
@@ -264,7 +274,23 @@ Usage:
       ? `\n[File truncated. Showing lines ${startLine + 1}-${startLine + lineLimit} of ${lines.length}. Use offset/limit to read more.]`
       : ''
 
-    return { content: [{ type: 'text', text: numbered + footer }] }
+    const resultText = numbered + footer
+    // CC's token guard: warn if estimated token count exceeds threshold
+    const tokenCount = estimateTokens(resultText)
+    if (tokenCount > MAX_FILE_READ_TOKENS) {
+      const msg = `File content (~${tokenCount.toLocaleString()} tokens) exceeds the limit (${MAX_FILE_READ_TOKENS.toLocaleString()}). ` +
+        `Use offset and limit parameters to read specific portions, or use Grep to search for content. ` +
+        `[Set QILING_MAX_FILE_READ_TOKENS to override. Showing first ${MAX_FILE_READ_TOKENS * BYTES_PER_TOKEN} chars.]`
+      return {
+        content: [{
+          type: 'text',
+          text: resultText.slice(0, MAX_FILE_READ_TOKENS * BYTES_PER_TOKEN) + `\n\n⚠ ${msg}`,
+        }],
+        isError: false,  // Not an error, just truncated
+      }
+    }
+
+    return { content: [{ type: 'text', text: resultText }] }
   },
 
   toDefinition(): ToolDefinition {
