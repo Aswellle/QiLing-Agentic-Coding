@@ -15,7 +15,7 @@ import { loadLastSession } from './session/resume'
 import { initFileHistory } from './utils/fileHistory'
 import { isCoordinatorMode, getCoordinatorSystemPrompt } from './coordinator/coordinatorMode'
 import { eagerParseCliFlag } from './utils/cliArgs'
-import { registerProcessOutputErrorHandlers } from './utils/process'
+import { registerProcessOutputErrorHandlers, peekForStdinData } from './utils/process'
 
 // ─── Register EPIPE handlers early (CC's registerProcessOutputErrorHandlers) ──
 // Prevents memory leaks when stdout/stderr pipes are broken (e.g., | head -1)
@@ -31,7 +31,20 @@ function resetCursor(): void {
 }
 process.on('exit', resetCursor)
 
+// ─── SIGINT handler (CC's print-mode-aware SIGINT pattern) ───────────────────
+// In print mode (-p), the query loop installs its own abort handler; skip here
+// to avoid preempting it with a synchronous process.exit().
+// In interactive mode, let REPL.tsx handle Ctrl+C for abort-vs-exit logic.
+process.on('SIGINT', () => {
+  if (process.argv.includes('-p') || process.argv.includes('--print')) {
+    // Print mode: the running query handles its own abort — don't exit here
+    return
+  }
+  process.exit(0)
+})
+
 // ─── Windows: prevent current-dir PATH injection (CC's security fix) ─────────
+// See: https://docs.microsoft.com/en-us/windows/win32/api/processenv/nf-processenv-searchpathw
 if (process.platform === 'win32') {
   process.env.NoDefaultCurrentDirectoryInExePath = '1'
 }
@@ -62,6 +75,26 @@ process.on('warning', (warning: Error & { code?: string }) => {
     process.stderr.write(`[warning] ${warning.name}: ${warning.message}\n`)
   }
 })
+
+// ─── Deprecated model registry (CC's getModelDeprecationWarning pattern) ─────
+const DEPRECATED_MODELS: Record<string, string> = {
+  'claude-2': 'claude-3-5-sonnet-20241022',
+  'claude-2.0': 'claude-3-5-sonnet-20241022',
+  'claude-2.1': 'claude-3-5-sonnet-20241022',
+  'claude-instant-1': 'claude-haiku-4-5-20251001',
+  'claude-instant-1.2': 'claude-haiku-4-5-20251001',
+  'claude-3-opus-20240229': 'claude-opus-4-7',
+  'claude-3-haiku-20240307': 'claude-haiku-4-5-20251001',
+}
+function getModelDeprecationWarning(model: string): string | null {
+  const normalized = model.toLowerCase()
+  for (const [deprecated, replacement] of Object.entries(DEPRECATED_MODELS)) {
+    if (normalized.includes(deprecated)) {
+      return `模型 "${model}" 已弃用，建议迁移至 ${replacement}`
+    }
+  }
+  return null
+}
 
 const VERSION = '0.3.0'
 
@@ -101,12 +134,42 @@ program
   .option('--max-budget-usd <amount>', 'Maximum USD cost before stopping (print mode); formats: 0.50, 1.00', parseFloat)
   .option('--add-dir <directories...>', 'Additional directories to include CLAUDE.md/QILING.md from (useful for monorepos)')
   .option('--append-system-prompt <prompt>', 'Append text to the default system prompt without replacing it')
+  .option('--verbose', 'Show verbose output (tool names, durations) in non-interactive mode', false)
+  .option('--effort <level>', 'Thinking effort level (low / medium / high / max) — maps to extended thinking budget', (v: string) => {
+    const allowed = ['low', 'medium', 'high', 'max'] as const
+    if (!allowed.includes(v.toLowerCase() as typeof allowed[number])) {
+      process.stderr.write(`⚠ --effort: 无效级别 "${v}"，有效值: ${allowed.join(', ')}\n`)
+      process.exit(1)
+    }
+    return v.toLowerCase() as typeof allowed[number]
+  })
+  .option('--no-session-persistence', '禁用会话持久化（不写入磁盘，不可恢复）— 仅在 -p 模式有效')
   .action(async (prompt: string | undefined, options) => {
     const workingDir = options.cwd
       ? (await import('path')).resolve(options.cwd)
       : process.cwd()
 
     process.chdir(workingDir)
+
+    // ─── Process title (CC's process.title pattern) ───────────────────────
+    // Sets the process name shown in `ps`, terminal tabs, and process managers.
+    // CC sets this after init(); we set it here since we don't have a blocking init step.
+    if (!process.env.QILING_DISABLE_TERMINAL_TITLE) {
+      process.title = 'qiling'
+    }
+
+    // ─── Effort → thinking budget mapping (CC's --effort flag) ───────────
+    // Maps --effort levels to extended thinking token budgets:
+    //   low → 1,024  | medium → 4,096  | high → 16,384  | max → 32,768
+    if (options.effort) {
+      const EFFORT_BUDGETS: Record<string, number> = {
+        low: 1_024, medium: 4_096, high: 16_384, max: 32_768,
+      }
+      const budget = EFFORT_BUDGETS[options.effort]
+      if (budget && !options.thinking) {
+        options.thinking = budget
+      }
+    }
 
     // ─── Update check (non-blocking, runs in background) ──────────────────
     if (options.updateCheck !== false) {
@@ -322,8 +385,14 @@ program
     //            echo "prompt" | qiling -p
     const isPrint = options.print || (prompt && !process.stdout.isTTY)
     const finalPrompt = prompt
-      || (isPrint && !process.stdin.isTTY ? await readStdin() : undefined)
+      || (isPrint && !process.stdin.isTTY ? await readStdinWithTimeout() : undefined)
       || (options.systemPrompt ? '' : undefined)
+
+    // ─── Model deprecation warning (CC's getModelDeprecationWarning pattern) ─
+    const deprecationWarning = getModelDeprecationWarning(settings.model)
+    if (deprecationWarning) {
+      process.stderr.write(`⚠  ${deprecationWarning}\n`)
+    }
 
     if (isPrint && finalPrompt !== undefined) {
       await enrichPromptAsync  // ensure RepoMap is ready
@@ -488,21 +557,37 @@ program
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-async function readStdin(): Promise<string> {
-  // If stdin is a TTY (interactive terminal), don't try to read it
+/**
+ * Read stdin with a 3s timeout — ported from CC's getInputPrompt pattern.
+ * If no data arrives within 3 seconds, warns and proceeds without stdin data.
+ * Prevents silent hangs when stdin is an inherited-but-idle pipe from a parent.
+ */
+async function readStdinWithTimeout(): Promise<string> {
   if (process.stdin.isTTY) return ''
+
+  process.stdin.setEncoding('utf8')
+  const chunks: string[] = []
+  const onData = (chunk: string) => { chunks.push(chunk) }
+  process.stdin.on('data', onData)
+
+  // Peek for data with a 3s timeout (CC's peekForStdinData pattern)
+  const timedOut = await peekForStdinData(process.stdin, 3000)
+  process.stdin.off('data', onData)
+
+  if (timedOut) {
+    process.stderr.write(
+      'Warning: 3 秒内未收到 stdin 数据，将忽略 stdin。' +
+      '若正在通过管道传入数据，请使用较长的超时或直接提供 prompt 参数。\n'
+    )
+    return ''
+  }
+
+  // Collect remaining data until stream closes
   return new Promise((resolve) => {
-    const chunks: Buffer[] = []
-    let resolved = false
-    const done = () => {
-      if (!resolved) {
-        resolved = true
-        resolve(Buffer.concat(chunks).toString('utf-8').trim())
-      }
-    }
-    process.stdin.on('data', (c: Buffer) => chunks.push(c))
-    process.stdin.on('end', done)
-    process.stdin.on('error', done)
+    const remaining: string[] = [...chunks]
+    process.stdin.on('data', (chunk: string) => remaining.push(chunk))
+    process.stdin.on('end', () => resolve(remaining.join('').trim()))
+    process.stdin.on('error', () => resolve(remaining.join('').trim()))
     process.stdin.resume()
   })
 }
