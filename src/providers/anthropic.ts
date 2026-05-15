@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import type { Provider, ProviderConfig, StreamOptions, StreamChunkType } from '../types/provider'
 import type { Message, TokenUsage } from '../types/message'
 import type { ToolDefinition } from '../types/tool'
+import { modelSupportsEffort, getEffortThinkingBudget, resolveEffortLevel } from '../utils/effort'
 
 const MODEL_CONTEXT_WINDOWS: Record<string, number> = {
   'claude-opus-4-7': 200_000,
@@ -77,8 +78,23 @@ export class AnthropicProvider implements Provider {
 
     try {
       // Extended thinking support (Claude 3.5+ / 3 Opus)
-      const thinkingConfig = (options as { thinking?: { type: string; budget_tokens: number } }).thinking
+      // Priority: explicit options.thinking > effort level from config > default (none)
+      let thinkingConfig = (options as { thinking?: { type: string; budget_tokens: number } }).thinking
       const supportsThinking = this.config.model.includes('opus') || this.config.model.includes('sonnet-4')
+
+      // If no explicit thinking config, check effort level from provider config
+      if (!thinkingConfig && supportsThinking && modelSupportsEffort(this.config.model)) {
+        const effortLevel = resolveEffortLevel(
+          { effortLevel: this.config.effortLevel },
+          this.config.model
+        )
+        if (effortLevel !== 'low') {
+          const budget = getEffortThinkingBudget(effortLevel)
+          if (budget > 0) {
+            thinkingConfig = { type: 'enabled', budget_tokens: budget }
+          }
+        }
+      }
 
       // Also cache the tools definition (rarely changes across turns)
       const toolsWithCache = supportsCaching && tools.length > 0

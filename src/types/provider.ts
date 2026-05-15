@@ -8,6 +8,8 @@ export interface ProviderConfig {
   apiKey?: string
   endpoint?: string
   maxTokens?: number
+  /** Effort level — controls extended thinking token budget for supported models */
+  effortLevel?: 'low' | 'medium' | 'high' | 'max'
 }
 
 export interface StreamOptions {

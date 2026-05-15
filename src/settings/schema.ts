@@ -81,6 +81,21 @@ export const settingsSchema = z.object({
     env: z.record(z.string()).optional(),
   })).optional(),
 
+  // Auto memory — enabled by default, can be disabled globally or per project
+  autoMemoryEnabled: z.boolean().optional().default(true),
+
+  // Effort level — controls extended thinking token budget
+  effortLevel: z.enum(['low', 'medium', 'high', 'max']).optional(),
+
+  // Output style — name of the active output style (from .qiling/output-styles/)
+  outputStyle: z.string().optional(),
+
+  // Fast mode — use a faster/cheaper model for quick queries
+  fastMode: z.boolean().optional().default(false),
+
+  // Internal — used by /fast to restore the original model when toggling off
+  _originalModel: z.string().optional(),
+
   // Internal — not user-editable
   _version: z.number().default(1),
 })

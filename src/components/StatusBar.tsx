@@ -6,6 +6,7 @@ import { formatCostUSD, getCacheHitRate } from '../cost-tracker'
 import { getCurrentTip, maybeAdvanceTip } from '../services/tips'
 import { calculateTokenWarningState } from '../compact/autoCompact'
 import { type PrStatus, fetchPrStatus } from '../utils/ghPrStatus'
+import { type EffortLevel, getEffortSuffix } from '../utils/effort'
 
 interface Props {
   model: string
@@ -21,13 +22,14 @@ interface Props {
   vimDisplayMode?: 'INSERT' | 'NORMAL'
   pendingVimOp?: string  // e.g. "d" "c" "y" when operator is pending
   showTips?: boolean
+  effortLevel?: EffortLevel
 }
 
 export function StatusBar({
   model, usage, contextWindow, isStreaming, rounds,
   retryStatus, mode = 'act', totalCostUSD, bgSessionCount = 0,
   vimMode = false, vimDisplayMode = 'INSERT', pendingVimOp,
-  showTips = true,
+  showTips = true, effortLevel,
 }: Props) {
   const totalTokens = usage.inputTokens + usage.outputTokens
   const usagePct = contextWindow > 0 ? Math.round((totalTokens / contextWindow) * 100) : 0
@@ -46,6 +48,7 @@ export function StatusBar({
         : null
     : null
 
+  const effortSuffix = effortLevel && effortLevel !== 'low' ? getEffortSuffix(effortLevel) : ''
   const shortModel = model.length > 24 ? model.slice(0, 22) + '…' : model
   const showCost = totalCostUSD !== undefined && totalCostUSD > 0
 
@@ -115,7 +118,7 @@ export function StatusBar({
           {mode === 'plan' && (
             <Text color="cyan" bold>[PLAN]</Text>
           )}
-          <Text color="gray">{shortModel}</Text>
+          <Text color="gray">{shortModel}{effortSuffix}</Text>
           {isStreaming && <Text color="yellow">⟳</Text>}
           {rounds > 0 && <Text color="gray">·{rounds}r</Text>}
           {bgSessionCount > 0 && (

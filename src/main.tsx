@@ -16,6 +16,8 @@ import { initFileHistory } from './utils/fileHistory'
 import { isCoordinatorMode, getCoordinatorSystemPrompt } from './coordinator/coordinatorMode'
 import { eagerParseCliFlag } from './utils/cliArgs'
 import { registerProcessOutputErrorHandlers, peekForStdinData } from './utils/process'
+import { loadMemoryPrompt } from './services/memdir'
+import { loadOutputStyles } from './services/outputStyles/loader'
 
 // ─── Register EPIPE handlers early (CC's registerProcessOutputErrorHandlers) ──
 // Prevents memory leaks when stdout/stderr pipes are broken (e.g., | head -1)
@@ -219,6 +221,10 @@ program
     }
     if (options.readonly) process.env.QILING_READONLY = '1'
     if (options.thinking) settings.thinkingBudget = options.thinking
+    // Wire --effort level into settings so it flows to the provider (in addition to thinkingBudget)
+    if (options.effort) {
+      settings.effortLevel = options.effort as 'low' | 'medium' | 'high' | 'max'
+    }
 
     // ─── API key validation ────────────────────────────────────────────────
     const needsKey = !['ollama'].includes(settings.provider)
@@ -323,6 +329,17 @@ program
     const builtPrompt = options.systemPrompt ?? buildSystemPrompt(workingDir, settings)
     let appendPrompt = options.appendSystemPrompt ?? ''
 
+    // ─── Output style injection (sync — styles are loaded from disk synchronously) ─
+    // If an output style is configured in settings, append its prompt to the system prompt.
+    const activeStyleName = settings.outputStyle
+    if (activeStyleName) {
+      const outputStyles = loadOutputStyles(workingDir)
+      const style = outputStyles.find(s => s.name.toLowerCase() === activeStyleName.toLowerCase())
+      if (style) {
+        appendPrompt = appendPrompt ? `${appendPrompt}\n\n${style.prompt}` : style.prompt
+      }
+    }
+
     // ─── Proactive mode system prompt addendum (CC's proactive mode pattern) ─
     // --proactive: AI takes initiative without waiting for instructions.
     // Adds a system prompt section instructing the agent to explore, act, and
@@ -348,15 +365,31 @@ program
       ? getCoordinatorSystemPrompt() + '\n\n---\n\n' + baseSystemPrompt
       : baseSystemPrompt
 
-    // Async enrich: RepoMap + full memory scan (fires after TUI is visible)
+    // Async enrich: RepoMap + full memory scan + auto-memory prompt (fires after TUI is visible)
     let systemPrompt = systemPromptSync
     const enrichPromptAsync = options.repoMap !== false
-      ? buildSystemPromptAsync(workingDir, settings).then(p => {
+      ? buildSystemPromptAsync(workingDir, settings).then(async p => {
+          // Append auto-memory prompt if enabled
+          const memoryPrompt = await loadMemoryPrompt(workingDir, settings)
+          const enriched = memoryPrompt ? `${p}\n\n${memoryPrompt}` : p
+          // Re-apply output style to enriched prompt if active
+          let final = enriched
+          if (activeStyleName) {
+            const outputStyles = loadOutputStyles(workingDir)
+            const style = outputStyles.find(s => s.name.toLowerCase() === activeStyleName.toLowerCase())
+            if (style) final = `${enriched}\n\n${style.prompt}`
+          }
           systemPrompt = coordinatorActive
-            ? getCoordinatorSystemPrompt() + '\n\n---\n\n' + p
-            : p
+            ? getCoordinatorSystemPrompt() + '\n\n---\n\n' + final
+            : final
         }).catch(() => {})
-      : Promise.resolve()
+      : loadMemoryPrompt(workingDir, settings).then(memoryPrompt => {
+          if (memoryPrompt) {
+            systemPrompt = coordinatorActive
+              ? getCoordinatorSystemPrompt() + '\n\n---\n\n' + systemPromptSync + '\n\n' + memoryPrompt
+              : systemPromptSync + '\n\n' + memoryPrompt
+          }
+        }).catch(() => {})
 
     // ─── Session resume (-c / --continue / --resume) ─────────────────────
     let initialMessages = undefined

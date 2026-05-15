@@ -1,8 +1,25 @@
 import type { Message } from '../types/message'
 import { fetchGitDiff, formatDiffStats } from '../utils/gitDiff'
-import { resolve as resolvePath } from 'path'
+import { resolve as resolvePath, join as joinPath } from 'path'
 import { openFileInExternalEditor, getEditorDisplayName } from '../utils/editor'
 import { listBackedUpFiles, restoreFile } from '../utils/fileHistory'
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs'
+import { homedir } from 'os'
+
+// Helper: read raw project settings JSON (bypasses Zod schema for extra keys)
+function readProjectSettingsRaw(workingDir: string): Record<string, unknown> {
+  const path = joinPath(workingDir, '.qiling', 'settings.json')
+  if (!existsSync(path)) return {}
+  try { return JSON.parse(readFileSync(path, 'utf-8')) as Record<string, unknown> }
+  catch { return {} }
+}
+
+// Helper: write raw project settings JSON (bypasses Zod schema for extra keys)
+function writeProjectSettingsRaw(workingDir: string, data: Record<string, unknown>): void {
+  const dir = joinPath(workingDir, '.qiling')
+  mkdirSync(dir, { recursive: true })
+  writeFileSync(joinPath(dir, 'settings.json'), JSON.stringify(data, null, 2) + '\n', 'utf-8')
+}
 
 export interface CommandContext {
   workingDir: string
@@ -406,6 +423,343 @@ export const BUILTIN_COMMANDS: Command[] = [
       return PR_PROMPT(args)
     },
   },
+
+  // ─── New commands ────────────────────────────────────────────────────────────
+
+  {
+    name: '/vim',
+    description: '切换 Vim 编辑模式',
+    execute(args, ctx) {
+      const raw = readProjectSettingsRaw(ctx.workingDir)
+      const current = (raw.vimMode as boolean | undefined) ?? false
+      const newMode = args.trim() === 'off' ? false : args.trim() === 'on' ? true : !current
+      writeProjectSettingsRaw(ctx.workingDir, { ...raw, vimMode: newMode })
+      ctx.onMessage({
+        role: 'assistant',
+        content: newMode
+          ? '已启用 Vim 模式。按 Esc 进入 NORMAL 模式，i 进入 INSERT 模式。'
+          : '已关闭 Vim 模式。',
+      })
+    },
+  },
+
+  {
+    name: '/fast',
+    description: '切换快速模式（使用更快速的模型）',
+    execute(args, ctx) {
+      const raw = readProjectSettingsRaw(ctx.workingDir)
+      const fastModels: Record<string, string> = {
+        anthropic: 'claude-haiku-4-5-20251001',
+        openai: 'gpt-4o-mini',
+        qwen: 'qwen-turbo',
+        glm: 'glm-4-flash',
+        doubao: 'doubao-lite-128k',
+        minimax: 'MiniMax-Text-01',
+        gemini: 'gemini-2.0-flash',
+        ollama: (raw.model as string | undefined) ?? 'llama3.1',
+        bedrock: 'us.anthropic.claude-haiku-4-5-20251001-v1:0',
+        vertex: 'claude-haiku@20241022',
+      }
+      const currentFast = (raw._fastMode as boolean | undefined) ?? false
+      const newFast = args.trim() === 'off' ? false : args.trim() === 'on' ? true : !currentFast
+
+      if (newFast) {
+        const originalModel = (raw.model as string | undefined) ?? 'claude-sonnet-4-6'
+        const provider = (raw.provider as string | undefined) ?? 'anthropic'
+        const fastModel = fastModels[provider] ?? originalModel
+        writeProjectSettingsRaw(ctx.workingDir, { ...raw, _fastMode: true, _originalModel: originalModel, model: fastModel })
+        ctx.onMessage({ role: 'assistant', content: `已启用快速模式 — 使用 ${fastModel}（更快速、成本更低）。再次运行 /fast 恢复。` })
+      } else {
+        const originalModel = (raw._originalModel as string | undefined)
+        const updated: Record<string, unknown> = { ...raw, _fastMode: false }
+        if (originalModel) updated.model = originalModel
+        delete updated._originalModel
+        writeProjectSettingsRaw(ctx.workingDir, updated)
+        ctx.onMessage({ role: 'assistant', content: `已关闭快速模式，恢复正常模型${originalModel ? `（${originalModel}）` : ''}。` })
+      }
+    },
+  },
+
+  {
+    name: '/version',
+    description: '显示版本信息',
+    execute(_args, ctx) {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const pkg = require('../../package.json') as { version: string; name: string }
+      const buildTime = process.env.QILING_BUILD_TIME ?? ''
+      const versionStr = buildTime ? `${pkg.version} (built ${buildTime})` : pkg.version
+      ctx.onMessage({
+        role: 'assistant',
+        content: `${pkg.name} v${versionStr}\nRuntime: Bun ${(process.versions as Record<string, string | undefined>).bun ?? 'unknown'}\nPlatform: ${process.platform}`,
+      })
+    },
+  },
+
+  {
+    name: '/export',
+    description: '将当前对话导出为文本文件',
+    async execute(args, ctx) {
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
+
+      // Get first user message for filename slug
+      const firstUserMsg = ctx.messages.find(m => m.role === 'user')
+      let baseName = timestamp
+      if (firstUserMsg) {
+        const text = typeof firstUserMsg.content === 'string'
+          ? firstUserMsg.content
+          : Array.isArray(firstUserMsg.content)
+            ? (firstUserMsg.content as Array<{ type: string; text?: string }>)
+                .filter(b => b.type === 'text')
+                .map(b => b.text ?? '')
+                .join(' ')
+            : ''
+        const slug = text.trim().slice(0, 50).replace(/[^a-zA-Z0-9一-鿿]+/g, '-').replace(/^-+|-+$/g, '')
+        if (slug) baseName = `${timestamp}-${slug}`
+      }
+
+      const filename = args.trim() || `${baseName}.txt`
+      const filepath = filename.startsWith('/') || /^[A-Za-z]:/.test(filename)
+        ? filename
+        : joinPath(ctx.workingDir, filename)
+
+      // Format messages
+      const lines: string[] = [`# QiLing 对话导出`, `导出时间: ${new Date().toLocaleString()}`, '']
+      for (const msg of ctx.messages) {
+        if ((msg as Message & { isMeta?: boolean }).isMeta) continue
+        const role = msg.role === 'user' ? '用户' : '助手'
+        const content = typeof msg.content === 'string'
+          ? msg.content
+          : Array.isArray(msg.content)
+            ? (msg.content as Array<{ type: string; text?: string }>)
+                .filter(b => b.type === 'text')
+                .map(b => b.text ?? '')
+                .join('\n')
+            : ''
+        if (content.trim()) {
+          lines.push(`## ${role}`, '', content.trim(), '')
+        }
+      }
+
+      try {
+        writeFileSync(filepath, lines.join('\n'), 'utf-8')
+        ctx.onMessage({ role: 'assistant', content: `✓ 已导出对话至: ${filepath}（${ctx.messages.length} 条消息）` })
+      } catch (e) {
+        ctx.onMessage({ role: 'assistant', content: `✗ 导出失败: ${String(e)}` })
+      }
+    },
+  },
+
+  {
+    name: '/summary',
+    description: '总结当前对话的关键点',
+    getPrompt(args, ctx) {
+      const msgCount = ctx.messages.filter(m => !((m as Message & { isMeta?: boolean }).isMeta)).length
+      return `请用简洁的中文总结我们迄今为止对话的关键点：
+
+- 用户的主要目标是什么
+- 我们完成了什么工作
+- 当前的状态如何
+- 还有什么待办事项
+
+格式：简洁的要点列表（不超过 10 条）。当前对话共 ${msgCount} 条消息。${args ? `\n额外要求: ${args}` : ''}`
+    },
+  },
+
+  {
+    name: '/rewind',
+    description: '回溯到对话中的某个时间点（提供历史信息）',
+    execute(_args, ctx) {
+      const userMessages = ctx.messages.filter(
+        m => m.role === 'user' && !((m as Message & { isMeta?: boolean }).isMeta)
+      )
+      ctx.onMessage({
+        role: 'assistant',
+        content: [
+          `**回溯功能**: 当前对话共有 ${userMessages.length} 条用户消息。`,
+          '',
+          '要回溯到某个时间点，可以：',
+          '1. 使用 `/clear` 清空对话重新开始',
+          '2. 使用 `/restore <文件>` 恢复被修改的文件',
+          '3. 完整回溯功能（消息选择器 UI）正在开发中',
+        ].join('\n'),
+      })
+    },
+  },
+
+  {
+    name: '/permissions',
+    description: '查看和管理权限规则',
+    execute(args, ctx) {
+      const { loadSettings } = require('../settings/loader') as typeof import('../settings/loader')
+      const settings = loadSettings(ctx.workingDir)
+      const rules = settings.permissions ?? { allow: [], deny: [] }
+      const allow = rules.allow ?? []
+      const deny = rules.deny ?? []
+
+      const trimmed = args.trim()
+
+      if (trimmed.startsWith('allow ')) {
+        const pattern = trimmed.slice(6).trim()
+        if (pattern) {
+          const raw = readProjectSettingsRaw(ctx.workingDir)
+          const existingPermissions = (raw.permissions as { allow?: string[]; deny?: string[] } | undefined) ?? {}
+          const existingAllow = existingPermissions.allow ?? []
+          writeProjectSettingsRaw(ctx.workingDir, {
+            ...raw,
+            permissions: { ...existingPermissions, allow: [...existingAllow, pattern] },
+          })
+          ctx.onMessage({ role: 'assistant', content: `✓ 已添加允许规则: ${pattern}` })
+          return
+        }
+      }
+
+      if (trimmed.startsWith('deny ')) {
+        const pattern = trimmed.slice(5).trim()
+        if (pattern) {
+          const raw = readProjectSettingsRaw(ctx.workingDir)
+          const existingPermissions = (raw.permissions as { allow?: string[]; deny?: string[] } | undefined) ?? {}
+          const existingDeny = existingPermissions.deny ?? []
+          writeProjectSettingsRaw(ctx.workingDir, {
+            ...raw,
+            permissions: { ...existingPermissions, deny: [...existingDeny, pattern] },
+          })
+          ctx.onMessage({ role: 'assistant', content: `✓ 已添加拒绝规则: ${pattern}` })
+          return
+        }
+      }
+
+      const lines: string[] = ['**当前权限规则**', '']
+      if (allow.length > 0) {
+        lines.push('**允许 (allow):**')
+        allow.forEach(r => lines.push(`  + ${r}`))
+        lines.push('')
+      }
+      if (deny.length > 0) {
+        lines.push('**拒绝 (deny):**')
+        deny.forEach(r => lines.push(`  - ${r}`))
+        lines.push('')
+      }
+      if (allow.length === 0 && deny.length === 0) {
+        lines.push('暂无自定义规则（所有工具均受交互确认管控）')
+        lines.push('')
+      }
+      lines.push('用法:')
+      lines.push('  /permissions allow <pattern>  — 添加允许规则（如: Bash(git *), FileRead)')
+      lines.push('  /permissions deny <pattern>   — 添加拒绝规则')
+      ctx.onMessage({ role: 'assistant', content: lines.join('\n') })
+    },
+  },
+
+  {
+    name: '/output-style',
+    description: '查看或设置输出样式（从 .qiling/output-styles/ 加载）',
+    execute(args, ctx) {
+      const { loadOutputStyles } = require('../services/outputStyles/loader') as typeof import('../services/outputStyles/loader')
+      const styles = loadOutputStyles(ctx.workingDir)
+
+      const styleName = args.trim()
+      if (styleName) {
+        const style = styles.find(s => s.name.toLowerCase() === styleName.toLowerCase())
+        if (!style) {
+          ctx.onMessage({
+            role: 'assistant',
+            content: `找不到输出样式 "${styleName}"。\n可用样式: ${styles.map(s => s.name).join(', ') || '（无）'}`,
+          })
+          return
+        }
+        ctx.onMessage({
+          role: 'assistant',
+          content: `已应用输出样式: **${style.name}**\n\n${style.description || style.prompt.slice(0, 100)}`,
+        })
+        return
+      }
+
+      if (styles.length === 0) {
+        ctx.onMessage({
+          role: 'assistant',
+          content: [
+            '暂无输出样式。',
+            '',
+            '要添加样式，在以下目录创建 .md 文件：',
+            `  项目级: ${ctx.workingDir}/.qiling/output-styles/`,
+            `  全局级: ${joinPath(homedir(), '.qiling', 'output-styles')}/`,
+            '',
+            '文件格式：',
+            '```',
+            '---',
+            'name: 样式名称',
+            'description: 样式描述',
+            '---',
+            '',
+            '样式提示词内容...',
+            '```',
+          ].join('\n'),
+        })
+        return
+      }
+
+      const lines = ['**可用输出样式**', '']
+      for (const s of styles) {
+        lines.push(`  **${s.name}** (${s.source}) — ${s.description || '（无描述）'}`)
+      }
+      lines.push('', '用法: /output-style <样式名>')
+      ctx.onMessage({ role: 'assistant', content: lines.join('\n') })
+    },
+  },
+
+  {
+    name: '/hooks',
+    description: '查看当前钩子配置',
+    execute(_args, ctx) {
+      const { loadSettings } = require('../settings/loader') as typeof import('../settings/loader')
+      const settings = loadSettings(ctx.workingDir)
+      const hooks = settings.hooks ?? {}
+
+      const events = Object.keys(hooks)
+      if (events.length === 0) {
+        ctx.onMessage({
+          role: 'assistant',
+          content: [
+            '暂无配置的钩子。',
+            '',
+            '在 .qiling/settings.json 中配置钩子：',
+            '```json',
+            '{',
+            '  "hooks": {',
+            '    "PostToolUse": [{',
+            '      "matcher": "FileEdit|FileWrite",',
+            '      "hooks": [{ "type": "command", "command": "npx prettier --write \\"$QILING_FILE_PATH\\"" }]',
+            '    }],',
+            '    "Stop": [{',
+            '      "hooks": [{ "type": "command", "command": "echo \'任务完成\'" }]',
+            '    }]',
+            '  }',
+            '}',
+            '```',
+            '',
+            '支持的事件: PreToolUse, PostToolUse, Stop, UserPromptSubmit, SessionStart/End, PreCompact/PostCompact',
+            '支持的钩子类型: command (shell), http (HTTP POST), prompt (LLM条件判断)',
+          ].join('\n'),
+        })
+        return
+      }
+
+      const lines = ['**已配置的钩子**', '']
+      for (const event of events) {
+        const entries = (hooks as Record<string, Array<{ matcher?: string; hooks: Array<{ type: string; command?: string; url?: string }> }>>)[event] ?? []
+        lines.push(`**${event}** (${entries.length} 条规则):`)
+        for (const entry of entries) {
+          const matcher = entry.matcher ? ` [${entry.matcher}]` : ' [所有工具]'
+          for (const h of entry.hooks) {
+            const detail = h.type === 'command' ? h.command : h.url ?? h.type
+            lines.push(`  ${h.type}${matcher}: ${detail}`)
+          }
+        }
+        lines.push('')
+      }
+      ctx.onMessage({ role: 'assistant', content: lines.join('\n') })
+    },
+  },
 ]
 
 // ─── Prompt Templates ────────────────────────────────────────────────────────
@@ -627,27 +981,36 @@ const HELP_TEXT = `QiLing (启灵) — 编程代理工具
 
 ## 内置命令
 
-  /help         显示此帮助
-  /plan         进入计划模式（只读探索，安全分析）
-  /act          退出计划模式，进入执行模式
-  /commit       创建 git commit (AI 辅助，含安全协议)
-  /diff         显示当前 git 变更统计（文件级，不启动 AI）
-  /restore [file] 恢复文件到会话前状态（不带参数列出所有已修改文件）
-  /open <file>  在外部编辑器中打开文件（VSCode/Cursor/vim 等）
-  /test [cmd]   运行测试并自动修复（最多 3 次循环）
-  /review [PR#] 代码审查 (本地 diff 或 PR)
-  /init         分析代码库，创建 QILING.md（CC 三阶段格式）
-  /repomap      显示仓库文件和符号索引
-  /memory       查看记忆文件
-  /memory edit  编辑记忆文件
-  /pr           创建 Pull Request
-  /doctor       诊断环境配置
-  /model        切换 AI 模型
-  /config       查看当前配置
-  /cost         显示 token 成本统计
-  /compact      压缩对话上下文（保留 9 节结构化摘要）
-  /clear        清空当前对话（自动重置上下文缓存）
-  /exit         退出
+  /help              显示此帮助
+  /plan              进入计划模式（只读探索，安全分析）
+  /act               退出计划模式，进入执行模式
+  /commit            创建 git commit (AI 辅助，含安全协议)
+  /diff              显示当前 git 变更统计（文件级，不启动 AI）
+  /restore [file]    恢复文件到会话前状态（不带参数列出所有已修改文件）
+  /open <file>       在外部编辑器中打开文件（VSCode/Cursor/vim 等）
+  /test [cmd]        运行测试并自动修复（最多 3 次循环）
+  /review [PR#]      代码审查 (本地 diff 或 PR)
+  /init              分析代码库，创建 QILING.md（CC 三阶段格式）
+  /repomap           显示仓库文件和符号索引
+  /memory            查看记忆文件
+  /memory edit       编辑记忆文件
+  /pr                创建 Pull Request
+  /doctor            诊断环境配置
+  /model             切换 AI 模型
+  /config            查看当前配置
+  /cost              显示 token 成本统计
+  /compact           压缩对话上下文（保留 9 节结构化摘要）
+  /clear             清空当前对话（自动重置上下文缓存）
+  /exit              退出
+  /vim               切换 Vim 编辑模式（on/off 或直接切换）
+  /fast              切换快速模式（使用更快速的模型，再次运行恢复）
+  /version           显示版本信息
+  /export [file]     导出对话到文本文件
+  /summary           总结当前对话关键点
+  /rewind            回溯到对话历史（查看选项）
+  /permissions       查看和管理权限规则
+  /output-style      查看或设置输出样式（从 .qiling/output-styles/ 加载）
+  /hooks             查看当前钩子配置
 
 ## 高级功能
 

@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef } from 'react'
-import { Box, Text, useInput } from 'ink'
+import { Box, Text, useInput, type Key } from 'ink'
 import { Cursor } from '../utils/Cursor'
 import { lastGrapheme } from '../utils/intl'
 import {
@@ -13,6 +13,10 @@ import {
   createInitialVimState, createInitialPersistentState,
   type VimState, type PersistentState, type RecordedChange, type VimMode,
 } from '../vim/types'
+import { loadKeybindingsSync, resolveKey } from '../keybindings'
+
+// Load keybindings once at module level (sync, cheap)
+const BINDINGS = loadKeybindingsSync()
 
 export interface SlashCommand {
   name: string
@@ -128,12 +132,7 @@ export function PromptInput({ onSubmit, isDisabled, commands, placeholder, vimMo
   // ── Main input handler ───────────────────────────────────────────────────────
 
   useInput(
-    useCallback((input: string, key: {
-      upArrow: boolean; downArrow: boolean; return: boolean;
-      backspace: boolean; delete: boolean; tab: boolean; escape: boolean;
-      ctrl: boolean; meta: boolean; shift: boolean;
-      leftArrow: boolean; rightArrow: boolean;
-    }) => {
+    useCallback((input: string, key: Key) => {
       if (isDisabled) return
 
       // ── VIM MODE ───────────────────────────────────────────────────────────
@@ -244,9 +243,62 @@ export function PromptInput({ onSubmit, isDisabled, commands, placeholder, vimMo
 
       if (key.escape) { setShowCommands(false); setCommandFilter(''); setSelectedCommand(0); return }
 
+      // ── Keybinding system: resolve action from user-configurable bindings ──
+      // Try to match the keypress against Chat + Global context bindings.
+      // If an action is resolved, dispatch it and return early.
+      // Existing hardcoded paths below act as fallback for unbound keys.
+      {
+        const action = resolveKey(input, key, ['Chat', 'Global'], BINDINGS)
+        if (action !== undefined) {
+          switch (action) {
+            case 'chat:cycleMode':
+              onCycleMode?.()
+              return
+            case 'chat:submit': {
+              if (!showCommands) {
+                const trimmed = value.trim()
+                if (trimmed) {
+                  if (inputHistory[0] !== trimmed) { inputHistory.unshift(trimmed); if (inputHistory.length > 100) inputHistory.pop() }
+                  historyIndex = -1
+                  onSubmit(trimmed); setValue(''); setCursorOffset(0); setShowCommands(false); setCommandFilter('')
+                }
+                return
+              }
+              break
+            }
+            case 'chat:cancel':
+              setShowCommands(false); setCommandFilter(''); setSelectedCommand(0)
+              return
+            case 'history:previous':
+              if (!showCommands && inputHistory.length > 0) {
+                const newIdx = Math.min(historyIndex + 1, inputHistory.length - 1); historyIndex = newIdx
+                const h = inputHistory[newIdx]!; setValue(h); setCursorOffset(h.length); return
+              }
+              break
+            case 'history:next':
+              if (!showCommands) {
+                if (historyIndex > 0) { const newIdx = historyIndex - 1; historyIndex = newIdx; const h = inputHistory[newIdx]!; setValue(h); setCursorOffset(h.length) }
+                else { historyIndex = -1; setValue(''); setCursorOffset(0) }
+                return
+              }
+              break
+            case 'app:interrupt':
+              // Ctrl+C is handled at a higher level; let it fall through
+              break
+            case null:
+              // Explicitly unbound — consume the key without action
+              return
+            default:
+              // Unknown action — fall through to existing behavior
+              break
+          }
+        }
+      }
+
       // ── Shift+Tab: cycle permission modes (CC's chat:cycleMode pattern) ───
       // CC: default → acceptEdits → plan → default (Shift+Tab each step)
       // On Windows without VT mode: also accept meta+m as fallback
+      // (kept as hardcoded fallback in case keybinding system is not loaded)
       if ((key.shift && key.tab) || (key.meta && input === 'm')) {
         onCycleMode?.()
         return

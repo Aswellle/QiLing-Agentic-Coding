@@ -32,6 +32,7 @@ export function createProvider(settings: Settings): Provider {
     apiKey,
     endpoint: settings.endpoint,
     maxTokens: settings.maxTokens,
+    effortLevel: settings.effortLevel,
   }
 
   switch (settings.provider) {

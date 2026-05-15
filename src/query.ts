@@ -107,6 +107,12 @@ export interface QueryOptions {
   /** System context to inject each turn (git status etc.) */
   systemContext?: { [k: string]: string }
   /**
+   * Memory directory prompt to inject into the system prompt.
+   * Built by loadMemoryPrompt() from src/services/memdir/index.ts.
+   * Appended after the base system prompt so the AI knows how to read/write memories.
+   */
+  memoryPrompt?: string
+  /**
    * Optional callback to refresh the tool list between turns.
    * Called after each round if provided. Mirrors CC's refreshTools() pattern
    * for dynamically adding newly connected MCP tools.
@@ -357,10 +363,14 @@ export async function runQuery(
         executor.discard()
         executor = new StreamingToolExecutor(STREAMING_SAFE_TOOLS, signal)
 
-        // Append systemContext (git status, etc.) to system prompt (CC's appendSystemContext)
-        const effectiveSystemPrompt = options.systemContext && Object.keys(options.systemContext).length > 0
-          ? buildSystemPromptWithContext(options.systemPrompt, options.systemContext)
+        // Append memory prompt (memdir system) then systemContext (git status, etc.)
+        // Memory comes first so the AI sees it before per-turn dynamic context.
+        const baseSystemPrompt = options.memoryPrompt
+          ? (options.systemPrompt ? `${options.systemPrompt}\n\n${options.memoryPrompt}` : options.memoryPrompt)
           : options.systemPrompt
+        const effectiveSystemPrompt = options.systemContext && Object.keys(options.systemContext).length > 0
+          ? buildSystemPromptWithContext(baseSystemPrompt, options.systemContext)
+          : baseSystemPrompt
 
         const streamOpts = {
           systemPrompt: effectiveSystemPrompt,
@@ -757,11 +767,11 @@ function addUsage(a: TokenUsage, b: TokenUsage): TokenUsage {
 
 /**
  * Run Stop hooks and return structured result.
- * Currently QiLing's hooks return void — the infrastructure exists for
- * future blocking error re-entry support (CC's stop_hook_blocking pattern).
+ * Uses the HookResult return value to support future blocking error re-entry
+ * (CC's stop_hook_blocking pattern).
  */
 async function runStopHooksWithBlocking(
-  runHooks: (event: 'PreToolUse' | 'PostToolUse' | 'Stop', hooks: HooksConfig | undefined, ctx: { toolName: string; input: Record<string, unknown>; workingDir: string; sessionId: string }) => Promise<void>,
+  runHooks: (event: 'PreToolUse' | 'PostToolUse' | 'Stop', hooks: HooksConfig | undefined, ctx: { toolName: string; input: Record<string, unknown>; workingDir: string; sessionId: string }) => Promise<{ blocked: boolean; reason?: string }>,
   hooks: HooksConfig,
   context: ToolContext,
   _messages: Message[],

@@ -18,6 +18,12 @@
  *   QILING_SESSION_ID    — 会话 ID
  */
 
+export interface HookResult {
+  blocked: boolean
+  reason?: string
+  modifiedInput?: Record<string, unknown>  // CC supports modifying tool input
+}
+
 export interface HookCommand {
   type: 'command'
   command: string
@@ -179,14 +185,85 @@ async function runHookCommand(
   }
 }
 
+/**
+ * Blocking version of runHookCommand for PreToolUse.
+ * Non-zero exit code blocks the tool call; stdout is used as the reason.
+ */
+async function runHookCommandBlocking(
+  cmd: HookCommand,
+  env: Record<string, string>,
+  workingDir: string
+): Promise<HookResult> {
+  const timeout = cmd.timeout ?? 10_000
+  const isWin = process.platform === 'win32'
+  const shellArgs = isWin
+    ? ['powershell.exe', '-NonInteractive', '-NoProfile', '-Command', cmd.command]
+    : ['bash', '-c', cmd.command]
+
+  try {
+    const proc = Bun.spawn(shellArgs, {
+      cwd: workingDir,
+      env: { ...process.env, ...env },
+      stdout: 'pipe',
+      stderr: 'pipe',
+    })
+
+    const timer = setTimeout(() => proc.kill(), timeout)
+    const exitCode = await proc.exited
+    clearTimeout(timer)
+
+    if (exitCode !== 0) {
+      // Non-zero exit = block, use stdout as reason
+      const reason = await new Response(proc.stdout).text()
+      return { blocked: true, reason: reason.trim() || `Hook exited with code ${exitCode}` }
+    }
+    return { blocked: false }
+  } catch {
+    return { blocked: false }
+  }
+}
+
+/**
+ * Blocking PreToolUse hook runner.
+ * Command hooks: non-zero exit code blocks the tool call.
+ * Prompt hooks: {"ok": false} blocks the tool call.
+ * HTTP hooks: always non-blocking (fire-and-forget).
+ */
+export async function runPreToolUseHooks(
+  config: HooksConfig | undefined,
+  ctx: HookContext
+): Promise<HookResult> {
+  if (!config?.PreToolUse) return { blocked: false }
+  const entries = config.PreToolUse
+
+  const env = buildHookEnv(ctx)
+
+  for (const entry of entries) {
+    if (!matchesTool(entry.matcher, ctx.toolName)) continue
+    for (const hook of entry.hooks) {
+      if (hook.type === 'command') {
+        // Command hooks for PreToolUse: if exit code != 0, block
+        const result = await runHookCommandBlocking(hook, env, ctx.workingDir)
+        if (result.blocked) return result
+      } else if (hook.type === 'http') {
+        await runHookHttp(hook, ctx)
+      } else if (hook.type === 'prompt') {
+        const result = await runHookPrompt(hook, ctx)
+        if (result.blocked) return { blocked: true, reason: result.reason }
+      }
+    }
+  }
+  return { blocked: false }
+}
+
 export async function runHooks(
   event: HookEvent,
   config: HooksConfig | undefined,
   ctx: HookContext
-): Promise<void> {
-  if (!config) return
+): Promise<HookResult> {
+  if (!config) return { blocked: false }
   const entries = config[event]
-  if (!entries || entries.length === 0) return
+  if (!entries || entries.length === 0) return { blocked: false }
 
   const env = buildHookEnv(ctx)
 
@@ -202,11 +279,11 @@ export async function runHooks(
         if (result.blocked) {
           // Blocking hook: surface reason to user via stderr
           process.stderr.write(`[hook:prompt] 阻止操作: ${result.reason}\n`)
-          // Could throw to block the tool call — currently non-fatal for simplicity
         }
       }
     }
   }
+  return { blocked: false }
 }
 
 /**
