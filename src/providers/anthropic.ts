@@ -3,6 +3,14 @@ import type { Provider, ProviderConfig, StreamOptions, StreamChunkType } from '.
 import type { Message, TokenUsage } from '../types/message'
 import type { ToolDefinition } from '../types/tool'
 import { modelSupportsEffort, getEffortThinkingBudget, resolveEffortLevel } from '../utils/effort'
+import { FallbackTriggeredError } from '../utils/errors'
+
+// ─── Fallback model resolution (CC's model fallback pattern) ──────────────────
+// Opus overloaded → try Sonnet; Sonnet/Haiku overloaded → no fallback
+function resolveFallbackModel(model: string): string | null {
+  if (model?.includes('opus')) return 'claude-sonnet-4-6'
+  return null
+}
 
 const MODEL_CONTEXT_WINDOWS: Record<string, number> = {
   'claude-opus-4-7': 200_000,
@@ -191,6 +199,16 @@ export class AnthropicProvider implements Provider {
       yield { type: 'stop', stopReason: finalMessage.stop_reason ?? 'end_turn', usage }
 
     } catch (error) {
+      // ── 529 / overloaded_error: throw FallbackTriggeredError so the query
+      // loop can transparently switch to a lighter-weight fallback model.
+      // CC pattern: provider throws, query catches, user sees a switch notice.
+      const apiErr = error as { status?: number; error?: { type?: string } }
+      if (apiErr.status === 529 || apiErr.error?.type === 'overloaded_error') {
+        const fallback = resolveFallbackModel(this.config.model)
+        if (fallback) {
+          throw new FallbackTriggeredError(this.config.model, fallback)
+        }
+      }
       yield {
         type: 'error',
         error: error instanceof Error ? error.message : String(error),

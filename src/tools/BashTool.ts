@@ -7,6 +7,10 @@
  *  - EndTruncatingAccumulator: output capped at MAX_OUTPUT_CHARS, beginning preserved
  *  - run_in_background flag: fire-and-forget with PID return
  *  - Truncation marker shows total bytes received vs shown
+ *  - looksLongRunning: advisory hint for server/watch commands
+ *  - dangerouslyDisableSandbox: no-op parameter matching CC's interface
+ *  - Image output detection: base64 data-URL images returned as image content blocks
+ *  - Improved timeout and truncation messages
  */
 
 import { z } from 'zod'
@@ -24,6 +28,37 @@ const MAX_TIMEOUT_MS = parseInt(process.env.BASH_MAX_TIMEOUT_MS ?? '', 10) || 60
 // ~100k chars ≈ 25k tokens — generous but prevents context explosion.
 const MAX_OUTPUT_CHARS = 100_000
 
+// ─── Long-running command detection ──────────────────────────────────────────
+// Mirrors CC's heuristic to suggest run_in_background for server/watch commands.
+const LONG_RUNNING_PATTERNS = [
+  /\bserver\b/i,
+  /\bserve\b/i,
+  /\bwatch\b/i,
+  /\bdev\b/i,
+  /tail\s+-f/i,
+  /^sleep\s+\d{3,}/,          // sleep 100+ seconds
+  /\bnpx\s+.*dev\b/i,
+  /\bbun\s+.*dev\b/i,
+  /\bpython\s+-m\s+http/i,
+  /\bnpm\s+(start|run\s+dev|run\s+watch)/i,
+  /\bpnpm\s+(dev|start|watch)/i,
+  /\bng\s+serve\b/i,
+  /\byarn\s+(dev|start|watch)/i,
+]
+
+function looksLongRunning(command: string): boolean {
+  return LONG_RUNNING_PATTERNS.some(p => p.test(command))
+}
+
+// ─── Base64 image detection ───────────────────────────────────────────────────
+function tryExtractBase64Image(output: string): { mediaType: string; data: string } | null {
+  const dataUrlMatch = output.match(/data:(image\/(?:png|jpeg|gif|webp));base64,([A-Za-z0-9+/]+=*)/)
+  if (dataUrlMatch) {
+    return { mediaType: dataUrlMatch[1]!, data: dataUrlMatch[2]! }
+  }
+  return null
+}
+
 const inputSchema = z.object({
   command: z.string().describe('The command to execute'),
   description: z.string().optional().describe('Clear, concise description of what this command does in active voice.'),
@@ -35,6 +70,10 @@ const inputSchema = z.object({
     "Set to true to run the command in the background. " +
     "Only use this if you don't need the result immediately and are OK being notified when it completes. " +
     "You do not need to check the output right away — you'll be notified when it finishes."
+  ),
+  dangerouslyDisableSandbox: z.boolean().optional().describe(
+    'Set this to true to dangerously override sandbox mode and run commands without sandboxing. ' +
+    'Only use when explicitly requested by the user.'
   ),
 })
 
@@ -63,6 +102,7 @@ IMPORTANT: Avoid using this tool to run \`find\`, \`grep\`, \`cat\`, \`head\`, \
  - Try to maintain your current working directory throughout the session by using absolute paths and avoiding usage of \`cd\`. You may use \`cd\` if the User explicitly requests it. In particular, never prepend \`cd <current-directory>\` to a \`git\` command — \`git\` already operates on the current working tree, and the compound triggers a permission prompt.
  - You may specify an optional timeout in milliseconds (max ${MAX_TIMEOUT_MS}ms / ${MAX_TIMEOUT_MS / 60000} minutes). By default, your command will timeout after ${DEFAULT_TIMEOUT_MS}ms (${DEFAULT_TIMEOUT_MS / 60000} minutes).
  - You can use the \`run_in_background\` parameter to run the command in the background. Only use this if you don't need the result immediately and are OK being notified when the command completes later. You do not need to use '&' at the end of the command when using this parameter.
+ - When a command looks long-running (server, watch, dev, tail -f, etc.), prefer \`run_in_background: true\` to avoid blocking the conversation.
  - When issuing multiple commands:
   - If the commands are independent and can run in parallel, make multiple Bash tool calls in a single message.
   - If the commands depend on each other and must run sequentially, use a single Bash call with '&&' to chain them together.
@@ -105,6 +145,9 @@ IMPORTANT: Avoid using this tool to run \`find\`, \`grep\`, \`cat\`, \`head\`, \
       Math.max(input.timeout ?? DEFAULT_TIMEOUT_MS, 1_000),
       MAX_TIMEOUT_MS
     )
+
+    // Detect long-running commands and set advisory flag
+    const suggestBackground = !input.run_in_background && looksLongRunning(input.command)
 
     // ── Background mode ────────────────────────────────────────────────────────
     if (input.run_in_background) {
@@ -173,18 +216,50 @@ IMPORTANT: Avoid using this tool to run \`find\`, \`grep\`, \`cat\`, \`head\`, \
       clearTimeout(timeoutId)
 
       if (timedOut) {
+        const partialOutput = buildOutput(stdoutAcc.toString(), stderrAcc.toString(), 1)
+        const bgTip = suggestBackground
+          ? '\n\n[Tip: Use run_in_background: true for long-running commands]'
+          : ''
         return {
           content: [{
             type: 'text',
-            text: `Command timed out after ${timeout}ms:\n${input.command}\n\n${buildOutput(stdoutAcc.toString(), stderrAcc.toString(), 1)}`,
+            text: `Command timed out after ${timeout.toLocaleString()}ms.\n\n` +
+              `Partial output (first ${MAX_OUTPUT_CHARS.toLocaleString()} chars):\n${partialOutput}${bgTip}`,
           }],
           isError: true,
         }
       }
 
-      const output = buildOutput(stdoutAcc.toString(), stderrAcc.toString(), exitCode ?? 0)
+      const stdoutStr = stdoutAcc.toString()
+      const stderrStr = stderrAcc.toString()
+      const output = buildOutput(stdoutStr, stderrStr, exitCode ?? 0)
+
+      // Append long-running advisory if applicable
+      const bgNote = suggestBackground
+        ? '\n\n[Note: This command matched long-running patterns. Consider using run_in_background: true for server/watch commands.]'
+        : ''
+
+      // Check for base64-encoded image in stdout
+      const imageData = tryExtractBase64Image(stdoutStr)
+      if (imageData) {
+        return {
+          content: [
+            { type: 'text', text: output + bgNote },
+            {
+              type: 'image',
+              source: {
+                type: 'base64',
+                media_type: imageData.mediaType as 'image/png' | 'image/jpeg' | 'image/gif' | 'image/webp',
+                data: imageData.data,
+              },
+            },
+          ],
+          isError: (exitCode ?? 0) !== 0,
+        }
+      }
+
       return {
-        content: [{ type: 'text', text: output }],
+        content: [{ type: 'text', text: output + bgNote }],
         isError: (exitCode ?? 0) !== 0,
       }
     } catch (error) {
@@ -211,6 +286,10 @@ IMPORTANT: Avoid using this tool to run \`find\`, \`grep\`, \`cat\`, \`head\`, \
           run_in_background: {
             type: 'boolean',
             description: 'Run in background (fire-and-forget)',
+          },
+          dangerouslyDisableSandbox: {
+            type: 'boolean',
+            description: 'Set this to true to dangerously override sandbox mode. Only use when explicitly requested by the user.',
           },
         },
         required: ['command'],

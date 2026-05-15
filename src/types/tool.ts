@@ -6,10 +6,21 @@ export type PermissionDecision =
   | { type: 'deny'; reason: string }
   | { type: 'ask'; description: string }
 
-export interface ToolResultItem {
+export interface ToolResultTextItem {
   type: 'text'
   text: string
 }
+
+export interface ToolResultImageItem {
+  type: 'image'
+  source: {
+    type: 'base64'
+    media_type: 'image/png' | 'image/jpeg' | 'image/gif' | 'image/webp'
+    data: string
+  }
+}
+
+export type ToolResultItem = ToolResultTextItem | ToolResultImageItem
 
 export interface ToolResult {
   content: ToolResultItem[]

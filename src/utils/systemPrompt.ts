@@ -71,7 +71,8 @@ async function buildRepoMapSection(workingDir: string): Promise<string> {
       { max_tokens: 1000 },
       { workingDir, sessionId: 'init' }
     )
-    const text = result.content[0]?.text ?? ''
+    const first = result.content[0]
+    const text = first?.type === 'text' ? first.text : ''
     if (!text || text.includes('No files found')) return ''
     return `\n\n## Repository Overview\n\n${text}`
   } catch {

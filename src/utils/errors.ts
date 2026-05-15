@@ -68,3 +68,18 @@ export function isFsInaccessible(e: unknown): boolean {
   const code = getErrnoCode(e)
   return ['ENOENT', 'EACCES', 'EPERM', 'ENOTDIR', 'ELOOP'].includes(code ?? '')
 }
+
+/**
+ * Thrown by provider when the primary model is overloaded and a fallback was used.
+ * Matches CC's withRetry.ts FallbackTriggeredError pattern.
+ * The query loop catches this to seamlessly switch to the fallback model.
+ */
+export class FallbackTriggeredError extends Error {
+  constructor(
+    public readonly originalModel: string,
+    public readonly fallbackModel: string,
+  ) {
+    super(`Model overloaded: switching ${originalModel} → ${fallbackModel}`)
+    this.name = 'FallbackTriggeredError'
+  }
+}

@@ -11,6 +11,25 @@ let _permissions: PermissionManager | null = null
 let _getTools: (() => Map<string, Tool>) | null = null
 let _systemPrompt = ''
 
+// ── Model shortcut resolution ─────────────────────────────────────────────────
+const MODEL_SHORTCUTS: Record<string, string> = {
+  sonnet: 'claude-sonnet-4-6',
+  opus: 'claude-opus-4-7',
+  haiku: 'claude-haiku-4-5-20251001',
+}
+
+// ── Background agent registry ─────────────────────────────────────────────────
+interface BackgroundAgent {
+  promise: Promise<string>
+  startedAt: number
+  description: string
+  status: 'running' | 'completed' | 'failed'
+  result?: string
+  name?: string
+}
+
+export const backgroundAgents = new Map<string, BackgroundAgent>()
+
 export function configureAgentTool(
   provider: Provider,
   permissions: PermissionManager,
@@ -43,6 +62,18 @@ const inputSchema = z.object({
     .describe('Permission mode override for this agent (default: inherits parent)'),
   cwd: z.string().optional()
     .describe('Absolute path to run the agent in. Overrides the working directory for all filesystem and shell operations within this agent. Mutually exclusive with isolation: "worktree".'),
+  model: z.enum(['sonnet', 'opus', 'haiku']).optional().describe(
+    'Optional model override for this agent. If omitted, uses the same model as the parent. ' +
+    '"sonnet" = claude-sonnet-4-6, "opus" = claude-opus-4-7, "haiku" = claude-haiku-4-5-20251001'
+  ),
+  run_in_background: z.boolean().optional().describe(
+    'Set to true to launch the agent in the background. Returns immediately with an agent ID. ' +
+    'The agent runs asynchronously — use the agent ID to track its status.'
+  ),
+  name: z.string().optional().describe(
+    'Optional name for this agent (used for coordinator mode inter-agent communication). ' +
+    'Makes this agent addressable by name in the background agent registry.'
+  ),
 })
 
 type Input = z.infer<typeof inputSchema>
@@ -140,13 +171,67 @@ export const AgentTool: Tool<Input> = {
 
     context.onProgress?.(`Launching agent: ${taskDesc}`)
 
+    // ── Model override resolution ─────────────────────────────────────────────
+    const resolvedModel = input.model ? (MODEL_SHORTCUTS[input.model] ?? input.model) : undefined
+
+    // ── Background agent launch ───────────────────────────────────────────────
+    if (input.run_in_background) {
+      const agentId = `agent-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
+
+      const runAgentQuery = () => runQuery(
+        agentMessages,
+        agentToolsNoSelf,
+        _provider!,
+        _permissions!,
+        { systemPrompt: agentSystemPrompt, maxRounds: 15, modelOverride: resolvedModel },
+        {}
+      ).then(result => {
+        const assistantMessages = result.messages.filter(m => m.role === 'assistant')
+        const lastMsg = assistantMessages[assistantMessages.length - 1]
+        if (!lastMsg) return '(Agent produced no output)'
+        return typeof lastMsg.content === 'string'
+          ? lastMsg.content
+          : (lastMsg.content as Array<{ type: string; text?: string }>)
+              .filter(b => b.type === 'text')
+              .map(b => b.text ?? '')
+              .join('\n')
+      })
+
+      const promise = runAgentQuery()
+        .then(result => {
+          const entry = backgroundAgents.get(agentId)
+          if (entry) { entry.status = 'completed'; entry.result = result }
+          return result
+        })
+        .catch(err => {
+          const entry = backgroundAgents.get(agentId)
+          if (entry) { entry.status = 'failed'; entry.result = String(err) }
+          throw err
+        })
+
+      backgroundAgents.set(agentId, {
+        promise,
+        startedAt: Date.now(),
+        description: taskDesc,
+        status: 'running',
+        name: input.name,
+      })
+
+      return {
+        content: [{
+          type: 'text',
+          text: `Agent launched in background.\nAgent ID: ${agentId}\nDescription: ${taskDesc}${input.name ? `\nName: ${input.name}` : ''}\n\nThe agent is working asynchronously.`,
+        }],
+      }
+    }
+
     try {
       const result = await runQuery(
         agentMessages,
         agentToolsNoSelf,
         _provider,
         _permissions,
-        { systemPrompt: agentSystemPrompt, maxRounds: 15 },
+        { systemPrompt: agentSystemPrompt, maxRounds: 15, modelOverride: resolvedModel },
         {} // No callbacks for sub-agents
       )
 
@@ -226,6 +311,9 @@ export const AgentTool: Tool<Input> = {
           isolation: { type: 'string', enum: ['none', 'worktree'], default: 'none', description: 'Run in git worktree for safe isolation' },
           mode: { type: 'string', enum: ['acceptEdits', 'auto', 'bypassPermissions', 'default', 'dontAsk', 'plan'], description: 'Permission mode override' },
           cwd: { type: 'string', description: 'Absolute path to run agent in (mutually exclusive with isolation: worktree)' },
+          model: { type: 'string', enum: ['sonnet', 'opus', 'haiku'], description: 'Optional model override. "sonnet" = claude-sonnet-4-6, "opus" = claude-opus-4-7, "haiku" = claude-haiku-4-5-20251001' },
+          run_in_background: { type: 'boolean', description: 'Launch agent asynchronously and return immediately with an agent ID' },
+          name: { type: 'string', description: 'Optional name for coordinator mode addressability' },
         },
         required: ['prompt'],
       },

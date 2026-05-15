@@ -6,6 +6,11 @@ export interface RetryOptions {
   onRetry?: (attempt: number, totalAttempts: number, error: string, delayMs: number) => void
 }
 
+// Errors that must pass through withRetry without retrying (checked by name, not message).
+// FallbackTriggeredError: the provider already handled the overload by switching models;
+// retrying with the same overloaded model is useless.
+const NON_RETRY_ERROR_NAMES = new Set(['FallbackTriggeredError'])
+
 // Errors that should be retried
 const RETRYABLE_PATTERNS = [
   /429/,
@@ -93,6 +98,12 @@ export async function withRetry<T>(
         (error instanceof DOMException && error.name === 'AbortError') ||
         (error instanceof Error && error.message === 'Aborted')
       ) {
+        throw error
+      }
+
+      // Don't retry sentinel errors that represent intentional control flow
+      // (e.g. FallbackTriggeredError — the caller handles these directly)
+      if (error instanceof Error && NON_RETRY_ERROR_NAMES.has(error.name)) {
         throw error
       }
 

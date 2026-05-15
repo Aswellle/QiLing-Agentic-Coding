@@ -39,6 +39,8 @@ import { snipCompactIfNeeded } from './compact/snipCompact'
 import { calculateTokenWarningState } from './compact/autoCompact'
 import { roughTokenCountEstimationForMessages } from './utils/tokens'
 import { ACCEPT_EDITS_AUTO_TOOLS } from './modes/planMode'
+import { FallbackTriggeredError } from './utils/errors'
+import { loadMemoryPrompt } from './services/memdir'
 
 // ─── Context injection (CC's prependUserContext pattern) ──────────────────────
 // Wraps userContext as a <system-reminder> block prepended to messages.
@@ -113,6 +115,19 @@ export interface QueryOptions {
    */
   memoryPrompt?: string
   /**
+   * Working directory for async memory prefetch inside the query loop.
+   * When set (and memoryPrompt is not already provided), loadMemoryPrompt()
+   * is fired as a non-blocking prefetch at the start of runQuery() and awaited
+   * just before the first provider.stream() call — saving serial latency.
+   * CC's async memory prefetch pattern.
+   */
+  workingDir?: string
+  /**
+   * Settings for memory prefetch (passed to loadMemoryPrompt).
+   * Only the autoMemoryEnabled flag is used.
+   */
+  memorySettings?: { autoMemoryEnabled?: boolean }
+  /**
    * Optional callback to refresh the tool list between turns.
    * Called after each round if provided. Mirrors CC's refreshTools() pattern
    * for dynamically adding newly connected MCP tools.
@@ -125,6 +140,12 @@ export interface QueryOptions {
    * 'act': default, all permissions go through normal check.
    */
   permissionMode?: 'act' | 'acceptEdits' | 'plan'
+  /**
+   * Override the model used for this query.
+   * When set, wraps the provider so this specific runQuery call uses the
+   * specified model ID instead of the provider's configured default.
+   */
+  modelOverride?: string
 }
 
 export interface QueryCallbacks {
@@ -174,9 +195,30 @@ export async function runQuery(
   const maxRounds = options.maxRounds ?? 20
   const signal = options.signal
   const streamingEnabled = options.enableStreamingTools !== false
+
+  // Apply model override: wrap provider with a proxy that substitutes the model ID.
+  // Only wraps when modelOverride is provided — otherwise passes through unchanged.
+  if (options.modelOverride) {
+    provider = {
+      ...provider,
+      config: { ...provider.config, model: options.modelOverride },
+    }
+  }
+
   const modelName = provider.config.model
   // CC's acceptEdits mode: auto-allow file edit tools without asking
   const isAcceptEditsMode = options.permissionMode === 'acceptEdits'
+
+  // ── Memory prefetch (CC's async memory prefetch pattern) ──────────────────
+  // Fire loadMemoryPrompt() immediately — don't await yet.
+  // Awaited just before the first provider.stream() call so the I/O latency
+  // overlaps with any pre-loop setup. Only fires when workingDir is provided
+  // AND memoryPrompt is not already set (backward compat: if caller pre-built
+  // the prompt, we use that; prefetch only runs when we're expected to do it).
+  let memoryPrefetchPromise: Promise<string | null> | null = null
+  if (options.workingDir && !options.memoryPrompt) {
+    memoryPrefetchPromise = loadMemoryPrompt(options.workingDir, options.memorySettings)
+  }
 
   let totalUsage: TokenUsage = { inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0 }
   let finalStopReason = 'end_turn'
@@ -223,7 +265,7 @@ export async function runQuery(
         })
         const parsedInput = tool.inputSchema.parse(input)
         const result = await tool.call(parsedInput, context)
-        const text = result.content.map(c => c.text).join('\n')
+        const text = result.content.map(c => c.type === 'text' ? c.text : '[image]').join('\n')
         await runHooks('PostToolUse', options.hooks, {
           toolName: name, input: input as Record<string, unknown>,
           workingDir: context.workingDir, sessionId: context.sessionId,
@@ -363,6 +405,21 @@ export async function runQuery(
         executor.discard()
         executor = new StreamingToolExecutor(STREAMING_SAFE_TOOLS, signal)
 
+        // ── Memory prefetch: await the background loadMemoryPrompt() started at
+        //    the top of runQuery(). Only consumes once (memoryPrefetchPromise set
+        //    to null after first use). Subsequent rounds reuse the value stored
+        //    in options.memoryPrompt after the first round.
+        //    Backward compat: if options.memoryPrompt was already provided by the
+        //    caller, that takes precedence and the prefetch is skipped entirely.
+        if (memoryPrefetchPromise !== null) {
+          const prefetched = await memoryPrefetchPromise
+          memoryPrefetchPromise = null  // consume once
+          if (prefetched && !options.memoryPrompt) {
+            // Persist into options so all subsequent rounds also get it
+            options = { ...options, memoryPrompt: prefetched }
+          }
+        }
+
         // Append memory prompt (memdir system) then systemContext (git status, etc.)
         // Memory comes first so the AI sees it before per-turn dynamic context.
         const baseSystemPrompt = options.memoryPrompt
@@ -470,6 +527,26 @@ export async function runQuery(
 
       if ((error instanceof DOMException && error.name === 'AbortError') || errMsg === 'Aborted') {
         finalStopReason = 'aborted'; break
+      }
+
+      // ── FallbackTriggeredError: primary model overloaded, switch to fallback ──
+      // CC pattern: provider throws FallbackTriggeredError when it detects HTTP 529
+      // or overloaded_error. The query loop catches it, notifies the user, and
+      // retries with the fallback model by swapping the provider's model reference.
+      if (error instanceof FallbackTriggeredError) {
+        // Notify user with a visible system message
+        callbacks.onTextDelta?.(
+          `\n[模型切换] ${error.originalModel} 当前过载，已自动切换至 ${error.fallbackModel}\n`
+        )
+        // Swap the provider model reference for all subsequent rounds
+        provider = {
+          ...provider,
+          config: { ...provider.config, model: error.fallbackModel },
+        }
+        // Decrement rounds so this iteration is not counted as a wasted turn
+        rounds--
+        lastTransition = { reason: 'next_turn' }
+        continue
       }
 
       // ── 4. ReactiveCompact: recover from prompt-too-long ──────────────────

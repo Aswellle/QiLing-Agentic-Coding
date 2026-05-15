@@ -113,8 +113,13 @@ export class EndTruncatingAccumulator {
 
   toString(): string {
     if (!this.isTruncated) return this.content
-    const truncatedKB = Math.round((this.totalBytesReceived - this.maxSize) / 1024)
-    return this.content + `\n... [output truncated - ${truncatedKB}KB removed]`
+    const shownLines = this.content.split('\n').length
+    const totalEstimatedLines = Math.round(shownLines * (this.totalBytesReceived / this.content.length))
+    return (
+      this.content +
+      `\n[Output truncated: showing first ${shownLines.toLocaleString()} of ~${totalEstimatedLines.toLocaleString()} lines. ` +
+      `Use head_limit/offset to paginate, or pipe to a file.]`
+    )
   }
 
   clear(): void {

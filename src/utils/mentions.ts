@@ -230,7 +230,8 @@ async function resolveRepoMap(arg: string | undefined, workingDir: string): Prom
       { max_tokens: 1500, focus_path: arg },
       ctx
     )
-    return { content: result.content[0].text }
+    const first = result.content[0]
+    return { content: first?.type === 'text' ? first.text : '' }
   } catch (e) {
     return { content: '', error: String(e) }
   }
