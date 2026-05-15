@@ -10,13 +10,13 @@ const mockCtx: HookContext = {
 
 describe('runHooks — basic behavior', () => {
   test('does nothing when no hooks configured', async () => {
-    await expect(runHooks('PreToolUse', undefined, mockCtx)).resolves.toBeUndefined()
-    await expect(runHooks('PostToolUse', {}, mockCtx)).resolves.toBeUndefined()
+    await expect(runHooks('PreToolUse', undefined, mockCtx)).resolves.toEqual({ blocked: false })
+    await expect(runHooks('PostToolUse', {}, mockCtx)).resolves.toEqual({ blocked: false })
   })
 
   test('does nothing when event has no entries', async () => {
     const config: HooksConfig = { PreToolUse: [], PostToolUse: [] }
-    await expect(runHooks('PreToolUse', config, mockCtx)).resolves.toBeUndefined()
+    await expect(runHooks('PreToolUse', config, mockCtx)).resolves.toEqual({ blocked: false })
   })
 
   test('skips hooks that do not match tool name', async () => {
@@ -42,7 +42,8 @@ describe('runHooks — basic behavior', () => {
       }],
     }
     // Should complete without error
-    await expect(runHooks('PreToolUse', config, mockCtx)).resolves.toBeUndefined()
+    const result = await runHooks('PreToolUse', config, mockCtx)
+    expect(result.blocked).toBe(false)
   })
 
   test('wildcard matcher (no matcher) matches any tool', async () => {
@@ -51,7 +52,8 @@ describe('runHooks — basic behavior', () => {
         hooks: [{ type: 'command', command: 'echo stop_hook', timeout: 3000 }],
       }],
     }
-    await expect(runHooks('Stop', config, mockCtx)).resolves.toBeUndefined()
+    const result = await runHooks('Stop', config, mockCtx)
+    expect(result.blocked).toBe(false)
   })
 
   test('hook failure is non-fatal', async () => {
@@ -60,8 +62,9 @@ describe('runHooks — basic behavior', () => {
         hooks: [{ type: 'command', command: 'this-command-does-not-exist-12345', timeout: 2000 }],
       }],
     }
-    // Should NOT throw
-    await expect(runHooks('PostToolUse', config, mockCtx)).resolves.toBeUndefined()
+    // Should NOT throw, blocked stays false (non-fatal hooks don't block)
+    const result = await runHooks('PostToolUse', config, mockCtx)
+    expect(result.blocked).toBe(false)
   })
 })
 
@@ -74,6 +77,7 @@ describe('runHooks — environment variables', () => {
       }],
     }
     // Should run without error (test command exits 0 if var is set correctly)
-    await expect(runHooks('PreToolUse', config, mockCtx)).resolves.toBeUndefined()
+    const result = await runHooks('PreToolUse', config, mockCtx)
+    expect(result.blocked).toBe(false)
   })
 })
