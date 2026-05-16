@@ -1141,6 +1141,81 @@ export const BUILTIN_COMMANDS: Command[] = [
       ctx.onMessage({ role: 'assistant', content: '用法:\n  /config list — 查看所有配置\n  /config get <key> — 查看某项配置\n  /config set <key> <value> — 设置配置' })
     },
   },
+
+  // ─── CC-aligned: /agents ────────────────────────────────────────────────────
+  {
+    name: '/agents',
+    description: '列出所有可用的内置和自定义 Agent 定义',
+    execute(_args, ctx) {
+      const { BUILT_IN_AGENTS } = require('../tools/AgentTool/builtInAgents') as typeof import('../tools/AgentTool/builtInAgents')
+      const { loadCustomAgents } = require('../tools/AgentTool/loadAgentsDir') as typeof import('../tools/AgentTool/loadAgentsDir')
+
+      const custom = loadCustomAgents(ctx.workingDir)
+      const customTypes = new Set(custom.map((a: { agentType: string }) => a.agentType.toLowerCase()))
+      const builtInFiltered = BUILT_IN_AGENTS.filter((a: { agentType: string }) => !customTypes.has(a.agentType.toLowerCase()))
+
+      const lines = ['**可用 Agent 列表**', '']
+
+      if (custom.length > 0) {
+        lines.push('**自定义 Agent** (.qiling/agents/ or ~/.qiling/agents/):')
+        for (const a of custom) {
+          const src = (a as { source?: string }).source === 'project' ? '项目' : '全局'
+          lines.push(`  **${a.agentType}** (${src}) — ${a.whenToUse.slice(0, 80)}${a.whenToUse.length > 80 ? '…' : ''}`)
+        }
+        lines.push('')
+      }
+
+      lines.push('**内置 Agent**:')
+      for (const a of builtInFiltered) {
+        const model = (a as { model?: string }).model ? ` [${(a as { model: string }).model}]` : ''
+        lines.push(`  **${a.agentType}**${model} — ${a.whenToUse.slice(0, 80)}${a.whenToUse.length > 80 ? '…' : ''}`)
+      }
+
+      lines.push('')
+      lines.push('创建自定义 Agent: 在 .qiling/agents/<name>.md 或 .qiling/agents/<name>.json 中添加定义')
+      lines.push('使用: Agent 工具的 subagent_type 参数')
+
+      ctx.onMessage({ role: 'assistant', content: lines.join('\n') })
+    },
+  },
+
+  // ─── CC-aligned: /tasks ─────────────────────────────────────────────────────
+  {
+    name: '/tasks',
+    description: '查看当前活跃的后台任务（TaskCreate/TaskUpdate 创建的）',
+    execute(_args, ctx) {
+      try {
+        const { listTasks } = require('../services/tasks/store') as typeof import('../services/tasks/store')
+        const tasks = listTasks()
+
+        if (tasks.length === 0) {
+          ctx.onMessage({ role: 'assistant', content: '当前没有活跃任务。\n使用 TaskCreate 工具创建任务。' })
+          return
+        }
+
+        const STATUS_ICONS: Record<string, string> = {
+          pending: '⏳',
+          in_progress: '⟳',
+          completed: '✅',
+          cancelled: '❌',
+          failed: '✗',
+        }
+
+        const lines = [`**活跃任务** (${tasks.length} 条)`, '']
+        for (const task of tasks) {
+          const icon = STATUS_ICONS[task.status] ?? '?'
+          const age = Math.round((Date.now() - (task.createdAt ?? 0)) / 1000)
+          lines.push(`${icon} **${task.id?.slice(-8) ?? '?'}** [${task.status}] ${age}s ago`)
+          if (task.subject) lines.push(`   ${task.subject}`)
+          if (task.description) lines.push(`   ${task.description.slice(0, 80)}`)
+        }
+
+        ctx.onMessage({ role: 'assistant', content: lines.join('\n') })
+      } catch {
+        ctx.onMessage({ role: 'assistant', content: '任务系统不可用。' })
+      }
+    },
+  },
 ]
 
 // ─── Prompt Templates ────────────────────────────────────────────────────────
