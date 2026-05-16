@@ -18,6 +18,7 @@ import type { Tool, ToolResult, ToolContext, ToolDefinition, PermissionDecision 
 import { classifyBashCommand } from '../permissions/classifier'
 import { EndTruncatingAccumulator } from '../utils/stringUtils'
 import { subprocessEnv } from '../utils/subprocessEnv'
+import { getDestructiveCommandWarning } from './BashTool/destructiveCommandWarning'
 
 // ─── Timeout constants (mirrors CC's utils/timeouts.ts) ───────────────────────
 const DEFAULT_TIMEOUT_MS = parseInt(process.env.BASH_DEFAULT_TIMEOUT_MS ?? '', 10) || 120_000
@@ -122,7 +123,9 @@ IMPORTANT: Avoid using this tool to run \`find\`, \`grep\`, \`cat\`, \`head\`, \
     const { level, reason } = classifyBashCommand(input.command)
     if (level === 'safe') return { type: 'allow' }
     const prefix = level === 'high' ? '🔴 高风险' : level === 'medium' ? '🟡 中等风险' : '🟢 低风险'
-    return { type: 'ask', description: `${prefix}: ${reason}\n\n  ${input.command}` }
+    const destructiveWarning = getDestructiveCommandWarning(input.command)
+    const warningLine = destructiveWarning ? `\n⚠️  ${destructiveWarning}` : ''
+    return { type: 'ask', description: `${prefix}: ${reason}${warningLine}\n\n  ${input.command}` }
   },
 
   async call(input: Input, context: ToolContext): Promise<ToolResult> {

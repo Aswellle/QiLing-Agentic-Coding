@@ -124,8 +124,17 @@ export const AgentTool: Tool<Input> = {
     // ── Built-in agent type dispatch ──────────────────────────────────────
     const builtIn = input.subagent_type ? getBuiltInAgent(input.subagent_type) : null
     if (builtIn) {
-      for (const disallowed of builtIn.disallowedTools) {
-        agentToolsNoSelf.delete(disallowed)
+      // If agent has explicit tool allowlist, use it
+      if (builtIn.tools && builtIn.tools.length > 0) {
+        const allowed = new Set(builtIn.tools)
+        for (const name of [...agentToolsNoSelf.keys()]) {
+          if (!allowed.has(name)) agentToolsNoSelf.delete(name)
+        }
+      } else {
+        // Otherwise apply disallowed list
+        for (const disallowed of builtIn.disallowedTools) {
+          agentToolsNoSelf.delete(disallowed)
+        }
       }
     }
 
@@ -172,7 +181,13 @@ export const AgentTool: Tool<Input> = {
     context.onProgress?.(`Launching agent: ${taskDesc}`)
 
     // ── Model override resolution ─────────────────────────────────────────────
-    const resolvedModel = input.model ? (MODEL_SHORTCUTS[input.model] ?? input.model) : undefined
+    // Priority: explicit input.model > built-in agent model > undefined (inherit parent)
+    let resolvedModel: string | undefined
+    if (input.model) {
+      resolvedModel = MODEL_SHORTCUTS[input.model] ?? input.model
+    } else if (builtIn?.model && builtIn.model !== 'inherit') {
+      resolvedModel = MODEL_SHORTCUTS[builtIn.model] ?? builtIn.model
+    }
 
     // ── Background agent launch ───────────────────────────────────────────────
     if (input.run_in_background) {

@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import type { Tool, ToolResult, ToolContext, ToolDefinition, PermissionDecision } from '../types/tool'
 import { EndTruncatingAccumulator } from '../utils/stringUtils'
+import { getDestructiveCommandWarningPS } from './PowerShellTool/destructiveCommandWarning'
 
 const DEFAULT_PS_TIMEOUT_MS = parseInt(process.env.BASH_DEFAULT_TIMEOUT_MS ?? '', 10) || 120_000
 const MAX_PS_TIMEOUT_MS = parseInt(process.env.BASH_MAX_TIMEOUT_MS ?? '', 10) || 600_000
@@ -11,38 +12,42 @@ const inputSchema = z.object({
   description: z.string().optional().describe('Clear, concise description of what this command does in active voice.'),
   timeout: z.number().optional().describe(
     `Optional timeout in milliseconds (max ${MAX_PS_TIMEOUT_MS}ms / ${MAX_PS_TIMEOUT_MS / 60000} minutes). ` +
-    `By default, your command will timeout after ${DEFAULT_PS_TIMEOUT_MS}ms.`
+    `By default, your command will timeout after ${DEFAULT_PS_TIMEOUT_MS}ms (${DEFAULT_PS_TIMEOUT_MS / 60000} minutes).`
   ),
   run_in_background: z.boolean().optional().describe(
-    'Run the command in the background. Only use this if you do not need the result immediately.'
+    'Set to true to run the command in the background. Only use this if you do not need the result immediately and are OK being notified when it completes later.'
+  ),
+  dangerouslyDisableSandbox: z.boolean().optional().describe(
+    'Set this to true to dangerously override sandbox mode and run commands without sandboxing. Only use when explicitly requested by the user.'
   ),
 })
 
 type Input = z.infer<typeof inputSchema>
 
-const DESTRUCTIVE_PATTERNS = [
-  /Remove-Item.*-Force/i,
-  /rm\s+-Force/i,
-  /Format-Volume/i,
-  /\|\s*Remove-Item/i,
-  /Clear-Disk/i,
-]
-
 export const PowerShellTool: Tool<Input> = {
   name: 'PowerShell',
   description:
-    'Execute a PowerShell command. ' +
-    'Returns stdout and stderr. Commands run with a 120-second timeout by default. ' +
-    'Preferred for Windows systems. Use Bash tool on Unix/macOS.',
+    'Executes a given PowerShell command with optional timeout. Working directory persists between commands; shell state does not.\n\n' +
+    'IMPORTANT: This tool is for terminal operations via PowerShell: git, npm, docker, and PS cmdlets. ' +
+    'DO NOT use it for file operations (reading, writing, editing, searching, finding files) — use the specialized tools for this instead.\n\n' +
+    '# Instructions\n' +
+    ' - If the command will create new directories or files, first use `Get-ChildItem` to verify the parent directory exists.\n' +
+    ' - Always quote file paths that contain spaces with double quotes.\n' +
+    ' - Try to maintain your current working directory throughout the session by using absolute paths and avoiding usage of `cd`.\n' +
+    ` - You may specify an optional timeout in milliseconds (max ${MAX_PS_TIMEOUT_MS}ms / ${MAX_PS_TIMEOUT_MS / 60000} minutes). By default, your command will timeout after ${DEFAULT_PS_TIMEOUT_MS}ms.\n` +
+    ' - You can use the `run_in_background` parameter to run the command in the background.\n' +
+    ' - Avoid unnecessary `Start-Sleep` commands.\n' +
+    ' - For git commands:\n' +
+    '  - Prefer to create a new commit rather than amending an existing commit.\n' +
+    '  - Never skip hooks (--no-verify) unless the user has explicitly asked for it.\n',
   inputSchema,
 
   checkPermissions(input: Input): PermissionDecision {
-    for (const pattern of DESTRUCTIVE_PATTERNS) {
-      if (pattern.test(input.command)) {
-        return {
-          type: 'ask',
-          description: `⚠ Potentially destructive PowerShell command:\n  ${input.command}`,
-        }
+    const destructiveWarning = getDestructiveCommandWarningPS(input.command)
+    if (destructiveWarning) {
+      return {
+        type: 'ask',
+        description: `⚠️  ${destructiveWarning}\n\nRun PowerShell command:\n  ${input.command}`,
       }
     }
     return { type: 'ask', description: `Run PowerShell command:\n  ${input.command}` }

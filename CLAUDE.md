@@ -14,6 +14,7 @@ bun test                           # Run all tests
 bun test tests/unit/permissions/classifier.test.ts  # Run a single test file
 bun test --grep "MEDIUM RISK"      # Run tests matching a pattern
 bun test --coverage                # Run with coverage report
+bun run test:watch                 # Watch mode
 
 # Type checking & linting
 bun run typecheck                  # tsc --noEmit
@@ -24,6 +25,11 @@ bunx @biomejs/biome check --write src/  # Auto-fix
 bun run build                      # Build for current platform
 bun run build:windows              # Build Windows .exe
 bun run build:all                  # Build all platforms
+
+# Releasing
+bun run release:patch              # Bump patch version + git tag
+bun run release:minor              # Bump minor version + git tag
+bun run install:link               # Link for local dev (bun link)
 ```
 
 Tests use Bun's native test runner; import from `bun:test`, not Jest/Vitest.
@@ -69,6 +75,8 @@ main.tsx (CLI entry, Commander.js)
 | `src/coordinator/engine.ts` | Coordinator engine — spawns and manages parallel worker agents |
 | `src/vim/` | Vim mode state machine (INSERT/NORMAL, motions, operators, text objects) |
 | `src/plugins/loader.ts` | Plugin system — loads `.qiling/skills/*.md` and external plugins |
+| `src/keybindings/` | Custom keybinding system — JSON-configurable, chord support, loaded from `~/.qiling/keybindings.json` |
+| `src/services/stats.ts` | Session statistics dashboard — aggregates `.jsonl` history files for token/cost/usage metrics |
 | `src/services/` | Background sessions, memory store, cron, tasks, teams, worktree, messaging |
 | `src/commands/index.ts` | Built-in slash commands (`/commit`, `/review`, `/plan`, `/bg`, `/memory`, etc.) |
 
@@ -122,6 +130,12 @@ Built-in commands (`src/commands/index.ts`): `/help`, `/plan`, `/act`, `/commit`
 - **Validation:** Zod
 - **Linter:** Biome (Rust-based, replaces ESLint + Prettier)
 - **External deps:** `ripgrep` (code search, PATH), optional LSP binaries
+
+### Windows Notes
+
+- `PowerShellTool` is the primary shell on Windows; `BashTool` requires WSL or Git Bash.
+- Shift+Tab (permission mode cycle) requires VT processing — works in Windows Terminal (`WT_SESSION`), ConEmu, VS Code terminal; may not work in raw `cmd.exe`.
+- Build for Windows via `bun run build:windows`; the output is a self-contained `.exe` with Bun embedded.
 
 ## Project Docs
 

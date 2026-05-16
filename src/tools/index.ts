@@ -40,6 +40,7 @@ import { ListMcpResourcesTool } from './ListMcpResourcesTool'
 import { ReadMcpResourceTool } from './ReadMcpResourceTool'
 import { McpAuthTool } from './McpAuthTool'
 import { RemoteTriggerTool } from './RemoteTriggerTool'
+import { SyntheticOutputTool, getSyntheticOutputSchema, createSyntheticOutputTool, isSyntheticOutputToolEnabled } from './SyntheticOutputTool'
 import type { Settings } from '../settings/schema'
 
 export function buildToolRegistry(settings: Settings): Map<string, Tool> {
@@ -100,6 +101,19 @@ export function buildToolRegistry(settings: Settings): Map<string, Tool> {
   // Network tools
   if (settings.tools.webFetch.enabled) tools.push(WebFetchTool)
   if (settings.tools.webSearch.enabled) tools.push(WebSearchTool)
+
+  // SyntheticOutputTool: active in non-interactive mode when QILING_OUTPUT_SCHEMA is set
+  if (isSyntheticOutputToolEnabled()) {
+    const schema = getSyntheticOutputSchema()
+    if (schema) {
+      const result = createSyntheticOutputTool(schema)
+      if ('tool' in result) {
+        tools.push(result.tool)
+      }
+    } else {
+      tools.push(SyntheticOutputTool)
+    }
+  }
 
   const registry = new Map<string, Tool>()
   for (const tool of tools) {

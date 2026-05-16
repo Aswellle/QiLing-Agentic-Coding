@@ -3,7 +3,7 @@ import { fetchGitDiff, formatDiffStats } from '../utils/gitDiff'
 import { resolve as resolvePath, join as joinPath } from 'path'
 import { openFileInExternalEditor, getEditorDisplayName } from '../utils/editor'
 import { listBackedUpFiles, restoreFile } from '../utils/fileHistory'
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs'
+import { existsSync, readFileSync, writeFileSync, mkdirSync, readdirSync } from 'fs'
 import { homedir } from 'os'
 
 // Helper: read raw project settings JSON (bypasses Zod schema for extra keys)
@@ -758,6 +758,387 @@ export const BUILTIN_COMMANDS: Command[] = [
         lines.push('')
       }
       ctx.onMessage({ role: 'assistant', content: lines.join('\n') })
+    },
+  },
+
+  // ─── CC-aligned: /rename ─────────────────────────────────────────────────────
+  {
+    name: '/rename',
+    description: '重命名当前会话（不带参数则自动生成名称）',
+    async execute(args, ctx) {
+      const trimmed = args.trim()
+      let newName: string
+
+      if (!trimmed) {
+        // Auto-generate from first user message
+        const firstUser = ctx.messages.find(m => m.role === 'user' && !(m as Message & { isMeta?: boolean }).isMeta)
+        if (!firstUser) {
+          ctx.onMessage({ role: 'assistant', content: '暂无对话内容，无法自动生成名称。\n用法: /rename <名称>' })
+          return
+        }
+        const content = typeof firstUser.content === 'string'
+          ? firstUser.content
+          : Array.isArray(firstUser.content)
+            ? (firstUser.content as Array<{ type: string; text?: string }>)
+                .filter(b => b.type === 'text').map(b => b.text ?? '').join(' ')
+            : ''
+        newName = content.trim().slice(0, 60).replace(/\n.*/s, '') || `对话 ${new Date().toLocaleDateString()}`
+      } else {
+        newName = trimmed
+      }
+
+      // Save to session file
+      try {
+        const sessionDir = joinPath(homedir(), '.qiling', 'sessions')
+        mkdirSync(sessionDir, { recursive: true })
+        const metaPath = joinPath(sessionDir, `${process.pid}-meta.json`)
+        const existing = existsSync(metaPath)
+          ? JSON.parse(readFileSync(metaPath, 'utf-8')) as Record<string, unknown>
+          : {}
+        writeFileSync(metaPath, JSON.stringify({ ...existing, name: newName, renamedAt: new Date().toISOString() }, null, 2), 'utf-8')
+      } catch { /* best-effort */ }
+
+      ctx.onMessage({ role: 'assistant', content: `✓ 会话已重命名为: **${newName}**` })
+    },
+  },
+
+  // ─── CC-aligned: /tag ────────────────────────────────────────────────────────
+  {
+    name: '/tag',
+    description: '为当前会话添加标签（/tag list 查看所有已标记会话）',
+    execute(args, ctx) {
+      const trimmed = args.trim()
+      const sessionDir = joinPath(homedir(), '.qiling', 'sessions')
+      const metaPath = joinPath(sessionDir, `${process.pid}-meta.json`)
+
+      if (!trimmed || trimmed === 'list') {
+        // List all tagged sessions
+        try {
+          mkdirSync(sessionDir, { recursive: true })
+          const files = readdirSync(sessionDir).filter(f => f.endsWith('-meta.json'))
+          const tagged: string[] = []
+          for (const f of files) {
+            try {
+              const meta = JSON.parse(readFileSync(joinPath(sessionDir, f), 'utf-8')) as Record<string, unknown>
+              if (meta.tags && Array.isArray(meta.tags) && meta.tags.length > 0) {
+                tagged.push(`  ${meta.name ?? f.replace('-meta.json', '')} — ${(meta.tags as string[]).join(', ')}`)
+              }
+            } catch { /* skip */ }
+          }
+          if (tagged.length === 0) {
+            ctx.onMessage({ role: 'assistant', content: '暂无已标记的会话。\n用法: /tag <标签名>' })
+          } else {
+            ctx.onMessage({ role: 'assistant', content: `已标记的会话:\n\n${tagged.join('\n')}` })
+          }
+        } catch (e) {
+          ctx.onMessage({ role: 'assistant', content: `获取标签失败: ${String(e)}` })
+        }
+        return
+      }
+
+      // Add tag to current session
+      try {
+        mkdirSync(sessionDir, { recursive: true })
+        const existing = existsSync(metaPath)
+          ? JSON.parse(readFileSync(metaPath, 'utf-8')) as Record<string, unknown>
+          : {}
+        const tags: string[] = Array.isArray(existing.tags) ? existing.tags as string[] : []
+        if (!tags.includes(trimmed)) tags.push(trimmed)
+        writeFileSync(metaPath, JSON.stringify({ ...existing, tags }, null, 2), 'utf-8')
+        ctx.onMessage({ role: 'assistant', content: `✓ 已添加标签: **${trimmed}**\n当前标签: ${tags.join(', ')}` })
+      } catch (e) {
+        ctx.onMessage({ role: 'assistant', content: `标签失败: ${String(e)}` })
+      }
+    },
+  },
+
+  // ─── CC-aligned: /env ────────────────────────────────────────────────────────
+  {
+    name: '/env',
+    description: '显示当前环境变量（过滤掉敏感信息）',
+    execute(args, ctx) {
+      const filter = args.trim().toLowerCase()
+      const SENSITIVE_KEYS = new Set(['api_key', 'apikey', 'secret', 'password', 'token', 'passwd', 'auth'])
+
+      const isSensitive = (key: string) => {
+        const lower = key.toLowerCase()
+        return SENSITIVE_KEYS.has(lower) || Array.from(SENSITIVE_KEYS).some(k => lower.includes(k))
+      }
+
+      const entries = Object.entries(process.env)
+        .filter(([k]) => !filter || k.toLowerCase().includes(filter))
+        .filter(([k]) => filter || k.startsWith('QILING_') || k.startsWith('ANTHROPIC_') || k.startsWith('CLAUDE_') || k.startsWith('NODE_') || k.startsWith('BUN_') || k === 'PATH' || k === 'HOME' || k === 'USER')
+        .sort(([a], [b]) => a.localeCompare(b))
+
+      if (entries.length === 0) {
+        ctx.onMessage({ role: 'assistant', content: '没有匹配的环境变量。' })
+        return
+      }
+
+      const lines = ['**环境变量**', '']
+      for (const [k, v] of entries) {
+        const display = isSensitive(k) ? '***' : (v ?? '(未设置)')
+        lines.push(`  **${k}** = ${display}`)
+      }
+
+      if (!filter) {
+        lines.push('', '使用 /env <关键字> 筛选，如: /env QILING')
+      }
+
+      ctx.onMessage({ role: 'assistant', content: lines.join('\n') })
+    },
+  },
+
+  // ─── CC-aligned: /status ─────────────────────────────────────────────────────
+  {
+    name: '/status',
+    description: '显示当前会话状态（模型、Token 用量、模式、钩子）',
+    execute(_args, ctx) {
+      const { loadSettings } = require('../settings/loader') as typeof import('../settings/loader')
+      const settings = loadSettings(ctx.workingDir)
+
+      const msgCount = ctx.messages.filter(m => !(m as Message & { isMeta?: boolean }).isMeta).length
+      const userMsgCount = ctx.messages.filter(m => m.role === 'user' && !(m as Message & { isMeta?: boolean }).isMeta).length
+
+      const lines = [
+        '**会话状态**',
+        '',
+        `**模型**: ${settings.model ?? '未设置'}`,
+        `**Provider**: ${settings.provider ?? 'anthropic'}`,
+        `**工作目录**: ${ctx.workingDir}`,
+        `**消息数**: ${msgCount} 条（用户 ${userMsgCount} 条）`,
+        '',
+        `**Vim 模式**: ${settings.vimMode ? '✅ 已启用' : '❌ 未启用'}`,
+        `**Markdown 渲染**: ${settings.markdownRendering !== false ? '✅ 启用' : '❌ 关闭'}`,
+        `**流式输出**: ${settings.ui?.streamingOutput !== false ? '✅ 启用' : '❌ 关闭'}`,
+      ]
+
+      const hookEvents = Object.keys(settings.hooks ?? {})
+      if (hookEvents.length > 0) {
+        lines.push(`**钩子**: ${hookEvents.join(', ')}`)
+      }
+
+      const mcpServers = Object.keys(settings.mcpServers ?? {})
+      if (mcpServers.length > 0) {
+        lines.push(`**MCP 服务器**: ${mcpServers.join(', ')}`)
+      }
+
+      ctx.onMessage({ role: 'assistant', content: lines.join('\n') })
+    },
+  },
+
+  // ─── CC-aligned: /effort ─────────────────────────────────────────────────────
+  {
+    name: '/effort',
+    description: '设置推理深度 [low|medium|high|max|auto]',
+    execute(args, ctx) {
+      const { parseEffortLevel, getEffortDisplayName, resolveEffortLevel, modelSupportsEffort } = require('../utils/effort') as typeof import('../utils/effort')
+      const { loadSettings } = require('../settings/loader') as typeof import('../settings/loader')
+      const settings = loadSettings(ctx.workingDir)
+      const normalized = args.trim().toLowerCase()
+
+      if (!normalized || normalized === 'status' || normalized === 'current') {
+        const current = resolveEffortLevel(settings as Parameters<typeof resolveEffortLevel>[0], settings.model)
+        const supported = modelSupportsEffort(settings.model ?? '')
+        const lines = [
+          `**当前推理深度**: ${getEffortDisplayName(current)} (${current})`,
+          supported ? '' : '⚠️  当前模型不支持扩展思考，effort 设置将被忽略。',
+          '',
+          '可用级别:',
+          '  low   — 标准速度，适合简单任务',
+          '  medium — 中等推理，适合大多数任务',
+          '  high  — 深度推理，适合复杂问题',
+          '  max   — 最大推理能力（仅 Opus/Sonnet 4.6+）',
+          '  auto  — 恢复默认',
+        ].filter(l => l !== '')
+        ctx.onMessage({ role: 'assistant', content: lines.join('\n') })
+        return
+      }
+
+      if (normalized === 'auto' || normalized === 'unset') {
+        const raw = readProjectSettingsRaw(ctx.workingDir)
+        const { effortLevel: _drop, ...rest } = raw as { effortLevel?: unknown } & Record<string, unknown>
+        writeProjectSettingsRaw(ctx.workingDir, rest)
+        ctx.onMessage({ role: 'assistant', content: '已重置推理深度为自动（auto）。' })
+        return
+      }
+
+      const level = parseEffortLevel(normalized)
+      if (!level) {
+        ctx.onMessage({ role: 'assistant', content: `无效的推理级别: "${args}"\n有效值: low, medium, high, max, auto` })
+        return
+      }
+
+      const raw = readProjectSettingsRaw(ctx.workingDir)
+      writeProjectSettingsRaw(ctx.workingDir, { ...raw, effortLevel: level })
+      ctx.onMessage({
+        role: 'assistant',
+        content: `✓ 推理深度已设置为: **${getEffortDisplayName(level)}** (${level})`,
+      })
+    },
+  },
+
+  // ─── CC-aligned: /clear ──────────────────────────────────────────────────────
+  {
+    name: '/clear',
+    description: '清空当前对话历史（保留设置和记忆）',
+    execute(_args, ctx) {
+      // Signal REPL to clear messages — actual implementation in REPL.tsx
+      ctx.onMessage({
+        role: 'assistant',
+        content: `\x00CLEAR_CONVERSATION\x00`,
+      })
+    },
+  },
+
+  // ─── CC-aligned: /compact ────────────────────────────────────────────────────
+  {
+    name: '/compact',
+    description: '手动触发上下文压缩（summary 模式）',
+    execute(args, ctx) {
+      const instruction = args.trim() || '请总结迄今为止的对话要点，保留关键信息。'
+      ctx.onMessage({
+        role: 'assistant',
+        content: `\x00COMPACT_REQUEST\x00${instruction}`,
+      })
+    },
+  },
+
+  // ─── CC-aligned: /copy ───────────────────────────────────────────────────────
+  {
+    name: '/copy',
+    description: '复制最后一条助手回复到剪贴板',
+    async execute(_args, ctx) {
+      const lastAssistant = [...ctx.messages].reverse().find(m => m.role === 'assistant' && !(m as Message & { isMeta?: boolean }).isMeta)
+      if (!lastAssistant) {
+        ctx.onMessage({ role: 'assistant', content: '没有可复制的助手回复。' })
+        return
+      }
+
+      const text = typeof lastAssistant.content === 'string'
+        ? lastAssistant.content
+        : Array.isArray(lastAssistant.content)
+          ? (lastAssistant.content as Array<{ type: string; text?: string }>)
+              .filter(b => b.type === 'text').map(b => b.text ?? '').join('\n')
+          : ''
+
+      // Try platform-specific clipboard
+      try {
+        if (process.platform === 'darwin') {
+          const proc = Bun.spawn(['pbcopy'], { stdin: 'pipe' })
+          proc.stdin.write(text)
+          await proc.stdin.end()
+          await proc.exited
+        } else if (process.platform === 'win32') {
+          const proc = Bun.spawn(['clip'], { stdin: 'pipe' })
+          proc.stdin.write(text)
+          await proc.stdin.end()
+          await proc.exited
+        } else {
+          const proc = Bun.spawn(['xclip', '-selection', 'clipboard'], { stdin: 'pipe' })
+          proc.stdin.write(text)
+          await proc.stdin.end()
+          await proc.exited
+        }
+        ctx.onMessage({ role: 'assistant', content: `✓ 已复制 ${text.length} 字符到剪贴板。` })
+      } catch (e) {
+        ctx.onMessage({ role: 'assistant', content: `✗ 复制失败: ${String(e)}\n请手动复制以下内容:\n\n${text.slice(0, 200)}${text.length > 200 ? '...' : ''}` })
+      }
+    },
+  },
+
+  // ─── CC-aligned: /model ──────────────────────────────────────────────────────
+  {
+    name: '/model',
+    description: '查看或切换当前模型',
+    execute(args, ctx) {
+      const { loadSettings } = require('../settings/loader') as typeof import('../settings/loader')
+      const settings = loadSettings(ctx.workingDir)
+      const trimmed = args.trim()
+
+      if (!trimmed) {
+        const MODEL_INFO: Record<string, string> = {
+          'claude-opus-4-7':            'Claude Opus 4.7 — 最强能力',
+          'claude-sonnet-4-6':          'Claude Sonnet 4.6 — 速度与能力均衡',
+          'claude-haiku-4-5-20251001':  'Claude Haiku 4.5 — 最快速度',
+        }
+        const current = settings.model ?? 'claude-sonnet-4-6'
+        const info = MODEL_INFO[current] ?? current
+        const lines = [
+          `**当前模型**: ${info}`,
+          `**Provider**: ${settings.provider ?? 'anthropic'}`,
+          '',
+          '常用模型:',
+          ...Object.entries(MODEL_INFO).map(([id, desc]) => `  ${id} — ${desc}`),
+          '',
+          '切换模型: /model <model-id>',
+        ]
+        ctx.onMessage({ role: 'assistant', content: lines.join('\n') })
+        return
+      }
+
+      const raw = readProjectSettingsRaw(ctx.workingDir)
+      writeProjectSettingsRaw(ctx.workingDir, { ...raw, model: trimmed })
+      ctx.onMessage({ role: 'assistant', content: `✓ 模型已切换为: **${trimmed}**\n（重启 qiling 后生效，或下次对话时生效）` })
+    },
+  },
+
+  // ─── CC-aligned: /config ─────────────────────────────────────────────────────
+  {
+    name: '/config',
+    description: '查看/设置配置项 (/config set <key> <value> | /config get <key>)',
+    execute(args, ctx) {
+      const { loadSettings } = require('../settings/loader') as typeof import('../settings/loader')
+      const settings = loadSettings(ctx.workingDir)
+      const parts = args.trim().split(/\s+/)
+      const subcmd = parts[0] ?? ''
+
+      if (!subcmd || subcmd === 'list' || subcmd === 'show') {
+        const raw = readProjectSettingsRaw(ctx.workingDir)
+        const lines = ['**当前项目配置** (.qiling/settings.json)', '']
+        if (Object.keys(raw).length === 0) {
+          lines.push('（使用全局默认配置）')
+        } else {
+          for (const [k, v] of Object.entries(raw)) {
+            const display = k.toLowerCase().includes('key') || k.toLowerCase().includes('secret')
+              ? '***'
+              : JSON.stringify(v)
+            lines.push(`  **${k}**: ${display}`)
+          }
+        }
+        lines.push('', '全局配置: ~/.qiling/settings.json', '项目配置: .qiling/settings.json')
+        ctx.onMessage({ role: 'assistant', content: lines.join('\n') })
+        return
+      }
+
+      if (subcmd === 'get') {
+        const key = parts[1]
+        if (!key) {
+          ctx.onMessage({ role: 'assistant', content: '用法: /config get <key>' })
+          return
+        }
+        const value = (settings as Record<string, unknown>)[key]
+        ctx.onMessage({ role: 'assistant', content: `**${key}** = ${JSON.stringify(value ?? null)}` })
+        return
+      }
+
+      if (subcmd === 'set') {
+        const key = parts[1]
+        const valueStr = parts.slice(2).join(' ')
+        if (!key || !valueStr) {
+          ctx.onMessage({ role: 'assistant', content: '用法: /config set <key> <value>' })
+          return
+        }
+        let value: unknown = valueStr
+        try { value = JSON.parse(valueStr) } catch { /* keep as string */ }
+
+        const raw = readProjectSettingsRaw(ctx.workingDir)
+        writeProjectSettingsRaw(ctx.workingDir, { ...raw, [key]: value })
+        ctx.onMessage({ role: 'assistant', content: `✓ 已设置 **${key}** = ${JSON.stringify(value)}` })
+        return
+      }
+
+      ctx.onMessage({ role: 'assistant', content: '用法:\n  /config list — 查看所有配置\n  /config get <key> — 查看某项配置\n  /config set <key> <value> — 设置配置' })
     },
   },
 ]
