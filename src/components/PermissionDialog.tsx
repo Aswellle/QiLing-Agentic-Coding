@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Box, Text, useInput } from 'ink'
+import { useTheme } from '../utils/themeContext'
 
 export interface PermissionRequest {
   toolName: string
@@ -20,12 +21,13 @@ const OPTIONS = [
 
 export function PermissionDialog({ request }: Props) {
   const [selected, setSelected] = useState(0)
+  const { theme } = useTheme()
 
   useInput((input, key) => {
     const lower = input.toLowerCase()
     const match = OPTIONS.findIndex(o => o.key === lower)
     if (match !== -1) {
-      const opt = OPTIONS[match]
+      const opt = OPTIONS[match]!
       request.resolve(opt.decision, opt.remember)
       return
     }
@@ -33,7 +35,7 @@ export function PermissionDialog({ request }: Props) {
     if (key.upArrow) setSelected(s => Math.max(0, s - 1))
     if (key.downArrow) setSelected(s => Math.min(OPTIONS.length - 1, s + 1))
     if (key.return) {
-      const opt = OPTIONS[selected]
+      const opt = OPTIONS[selected]!
       request.resolve(opt.decision, opt.remember)
     }
   })
@@ -42,23 +44,23 @@ export function PermissionDialog({ request }: Props) {
     <Box
       flexDirection="column"
       borderStyle="round"
-      borderColor="yellow"
+      borderColor={theme.permission}
       paddingLeft={1}
       paddingRight={1}
       marginBottom={1}
     >
-      <Text color="yellow" bold>─ 权限请求 ─────────────────────────</Text>
+      <Text color={theme.permission} bold>─ 权限请求 ─────────────────────────</Text>
       <Box marginTop={1} marginBottom={1} flexDirection="column">
-        <Text color="yellow">⚠  {request.toolName} 请求执行：</Text>
-        <Text color="white">{request.description}</Text>
+        <Text color={theme.warning}>⚠  {request.toolName} 请求执行：</Text>
+        <Text>{request.description}</Text>
       </Box>
       <Box flexDirection="row" gap={2}>
         {OPTIONS.map((opt, i) => (
           <Box key={opt.key} flexDirection="row">
-            <Text color={i === selected ? 'cyan' : 'white'} bold={i === selected}>
+            <Text color={i === selected ? theme.suggestion : undefined} bold={i === selected}>
               [{opt.label}]
             </Text>
-            <Text color="gray"> {opt.description}  </Text>
+            <Text color={theme.inactive}> {opt.description}  </Text>
           </Box>
         ))}
       </Box>

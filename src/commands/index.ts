@@ -26,6 +26,8 @@ export interface CommandContext {
   messages: Message[]
   onMessage: (msg: Message) => void
   runQuery: (messages: Message[], systemPrompt?: string, toolNames?: string[]) => Promise<void>
+  /** Live theme switcher — call to switch theme without restart */
+  setTheme?: (setting: string) => void
 }
 
 export interface Command {
@@ -1214,6 +1216,71 @@ export const BUILTIN_COMMANDS: Command[] = [
       } catch {
         ctx.onMessage({ role: 'assistant', content: '任务系统不可用。' })
       }
+    },
+  },
+
+  // ─── CC-aligned: /theme ──────────────────────────────────────────────────────
+  {
+    name: '/theme',
+    description: '切换 TUI 主题（dark/light/dark-ansi/light-ansi/dark-daltonized/light-daltonized/auto）',
+    execute(args, ctx) {
+      const { THEME_SETTINGS, THEME_DESCRIPTIONS, resolveTheme, isWindowsTerminal } = require('../utils/theme') as typeof import('../utils/theme')
+      const raw = args.trim().toLowerCase()
+
+      // List themes
+      if (!raw || raw === 'list') {
+        const { loadSettings } = require('../settings/loader') as typeof import('../settings/loader')
+        const settings = loadSettings(ctx.workingDir)
+        const current = (settings.ui?.theme ?? 'auto') as string
+        const resolved = resolveTheme(current as typeof THEME_SETTINGS[number])
+        const wtNote = isWindowsTerminal() ? ' [当前终端: Windows Terminal]' : ''
+        const lines = [
+          `**当前主题**: ${current}${current === 'auto' ? ` → ${resolved}` : ''}${wtNote}`,
+          '',
+          '**可用主题**:',
+          ...THEME_SETTINGS.map(name => {
+            const active = name === current ? ' ◀ 当前' : ''
+            return `  **${name}**${active} — ${THEME_DESCRIPTIONS[name]}`
+          }),
+          '',
+          '用法: /theme <主题名>',
+          '示例: /theme dark  |  /theme dark-ansi  |  /theme auto',
+        ]
+        ctx.onMessage({ role: 'assistant', content: lines.join('\n') })
+        return
+      }
+
+      if (!THEME_SETTINGS.includes(raw as typeof THEME_SETTINGS[number])) {
+        const valid = THEME_SETTINGS.join(', ')
+        ctx.onMessage({ role: 'assistant', content: `无效的主题名: "${raw}"\n有效主题: ${valid}` })
+        return
+      }
+
+      const setting = raw as typeof THEME_SETTINGS[number]
+
+      // Persist to global user settings (~/.qiling/settings.json)
+      const globalSettingsPath = joinPath(homedir(), '.qiling', 'settings.json')
+      try {
+        const existingRaw = existsSync(globalSettingsPath)
+          ? JSON.parse(readFileSync(globalSettingsPath, 'utf-8')) as Record<string, unknown>
+          : {}
+        const ui = (existingRaw.ui as Record<string, unknown>) ?? {}
+        writeFileSync(
+          globalSettingsPath,
+          JSON.stringify({ ...existingRaw, ui: { ...ui, theme: setting } }, null, 2) + '\n',
+          'utf-8'
+        )
+      } catch { /* best-effort */ }
+
+      // Live update (if REPL provided setTheme callback)
+      ctx.setTheme?.(setting)
+
+      const resolved = resolveTheme(setting)
+      const resolvedNote = setting === 'auto' ? ` → 解析为: ${resolved}` : ''
+      ctx.onMessage({
+        role: 'assistant',
+        content: `✓ 主题已切换为: **${setting}**${resolvedNote}\n\n${THEME_DESCRIPTIONS[setting]}`,
+      })
     },
   },
 ]

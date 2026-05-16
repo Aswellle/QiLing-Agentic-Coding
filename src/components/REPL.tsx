@@ -39,6 +39,8 @@ import type { Provider } from '../types/provider'
 import type { PermissionManager } from '../types/tool'
 import type { TokenUsage } from '../types/message'
 import type { Settings } from '../settings/schema'
+import { ThemeProvider, useTheme } from '../utils/themeContext'
+import type { ThemeSetting } from '../utils/theme'
 
 const SLASH_COMMANDS: SlashCommand[] = BUILTIN_COMMANDS.map(c => ({
   name: c.name,
@@ -76,8 +78,9 @@ interface Props {
 const TOKEN_WARN_THRESHOLD = 0.75 // 75%
 const TOKEN_CRITICAL_THRESHOLD = 0.90 // 90%
 
-export function REPL({ tools, provider, permissions, systemPrompt, workingDir, version, settings, initialMessages, initialInput }: Props) {
+function REPLInner({ tools, provider, permissions, systemPrompt, workingDir, version, settings, initialMessages, initialInput }: Props) {
   const { exit } = useApp()
+  const { theme, setTheme: setThemeCtx } = useTheme()
   const [messages, setMessages] = useState<Message[]>(initialMessages ?? [])
   const [toolCalls, setToolCalls] = useState<ToolCallRecord[]>([])
   const [streamingText, setStreamingText] = useState('')
@@ -709,27 +712,23 @@ PR number: ${prNum}`
     )
 
     if (builtinCmd) {
+      const cmdCtx: CommandContext = {
+        workingDir,
+        messages: messagesRef.current,
+        onMessage: (msg) => setMessages(prev => [...prev, msg]),
+        runQuery: async (msgs, sysPrompt, toolNames) => {
+          await runAIQuery(msgs, sysPrompt, toolNames)
+        },
+        setTheme: (setting) => setThemeCtx(setting as ThemeSetting),
+      }
+
       if (builtinCmd.execute) {
-        builtinCmd.execute(args, {
-          workingDir,
-          messages: messagesRef.current,
-          onMessage: (msg) => setMessages(prev => [...prev, msg]),
-          runQuery: async (msgs, sysPrompt, toolNames) => {
-            await runAIQuery(msgs, sysPrompt, toolNames)
-          },
-        })
+        builtinCmd.execute(args, cmdCtx)
         return
       }
 
       if (builtinCmd.getPrompt) {
-        const prompt = await builtinCmd.getPrompt(args, {
-          workingDir,
-          messages: messagesRef.current,
-          onMessage: (msg) => setMessages(prev => [...prev, msg]),
-          runQuery: async (msgs, sysPrompt, toolNames) => {
-            await runAIQuery(msgs, sysPrompt, toolNames)
-          },
-        })
+        const prompt = await builtinCmd.getPrompt(args, cmdCtx)
 
         // Execute shell command substitutions in the prompt
         const resolvedPrompt = await resolveShellCommands(prompt, workingDir)
@@ -846,7 +845,7 @@ PR number: ${prNum}`
       {/* Scroll indicator — messages above viewport */}
       {hiddenAbove > 0 && (
         <Box marginBottom={0}>
-          <Text color="gray" dimColor>↑ {hiddenAbove} 条消息在上方  [Ctrl+U/PageUp 向上滚动]</Text>
+          <Text color={theme.inactive} dimColor>↑ {hiddenAbove} 条消息在上方  [Ctrl+U/PageUp 向上滚动]</Text>
         </Box>
       )}
 
@@ -857,14 +856,14 @@ PR number: ${prNum}`
       {/* Scroll indicator — currently scrolled up */}
       {isScrolled && hiddenBelow === 0 && (
         <Box marginBottom={0}>
-          <Text color="gray" dimColor>↓ [Ctrl+D/PageDown 回到底部]</Text>
+          <Text color={theme.inactive} dimColor>↓ [Ctrl+D/PageDown 回到底部]</Text>
         </Box>
       )}
 
       {/* Streaming assistant response */}
       {isStreaming && (streamingText || toolCalls.length > 0) && (
-        <Box flexDirection="column" borderStyle="round" borderColor="green" marginBottom={1} paddingX={1}>
-          <Text color="green" bold>─ {getRandomSpinnerVerb()}… </Text>
+        <Box flexDirection="column" borderStyle="round" borderColor={theme.success} marginBottom={1} paddingX={1}>
+          <Text color={theme.success} bold>─ {getRandomSpinnerVerb()}… </Text>
           {streamingText && <Text>{streamingText}</Text>}
           {toolCalls.map(tc => (
             <ToolCallDisplay key={tc.id} toolCall={tc} />
@@ -886,7 +885,7 @@ PR number: ${prNum}`
       {/* Update available banner */}
       {updateInfo?.hasUpdate && (
         <Box marginBottom={0}>
-          <Text color="magenta">
+          <Text color={theme.autoAccept}>
             ↑ 新版本 v{updateInfo.latestVersion} 可用（当前 v{updateInfo.currentVersion}）— 运行 /update 升级
           </Text>
         </Box>
@@ -895,19 +894,19 @@ PR number: ${prNum}`
       {/* Token warning */}
       {isNearLimit && !isCritical && (
         <Box marginBottom={0}>
-          <Text color="yellow">⚠ 上下文已用 {Math.round(usagePct * 100)}%，考虑运行 /compact</Text>
+          <Text color={theme.warning}>⚠ 上下文已用 {Math.round(usagePct * 100)}%，考虑运行 /compact</Text>
         </Box>
       )}
 
       {notification && (
         <Box marginBottom={0}>
-          <Text color="cyan">{notification}</Text>
+          <Text color={theme.suggestion}>{notification}</Text>
         </Box>
       )}
 
       {error && (
         <Box marginBottom={0}>
-          <Text color="red">⚠ {error}</Text>
+          <Text color={theme.error}>⚠ {error}</Text>
         </Box>
       )}
 
@@ -939,6 +938,16 @@ PR number: ${prNum}`
         onCycleMode={handleCycleMode}
       />
     </Box>
+  )
+}
+
+// ─── Public REPL wrapper — provides ThemeContext ──────────────────────────────
+export function REPL(props: Props) {
+  const initialTheme = (props.settings.ui?.theme ?? 'auto') as ThemeSetting
+  return (
+    <ThemeProvider initialSetting={initialTheme}>
+      <REPLInner {...props} />
+    </ThemeProvider>
   )
 }
 

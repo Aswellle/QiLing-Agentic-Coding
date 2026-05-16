@@ -12,7 +12,15 @@ const toolConfigSchema = z.object({
 })
 
 const uiConfigSchema = z.object({
-  theme: z.enum(['auto', 'dark', 'light']).default('auto'),
+  theme: z.enum([
+    'auto',
+    'dark',
+    'light',
+    'dark-ansi',
+    'light-ansi',
+    'dark-daltonized',
+    'light-daltonized',
+  ]).default('auto'),
   language: z.enum(['zh-CN', 'en-US']).default('zh-CN'),
   streamingOutput: z.boolean().default(true),
   showTokenUsage: z.boolean().default(true),
