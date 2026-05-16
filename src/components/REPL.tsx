@@ -41,6 +41,9 @@ import type { TokenUsage } from '../types/message'
 import type { Settings } from '../settings/schema'
 import { ThemeProvider, useTheme } from '../utils/themeContext'
 import type { ThemeSetting } from '../utils/theme'
+import { CompanionSprite } from '../buddy/CompanionSprite'
+import { getCompanion, isCompanionMuted } from '../buddy/companion'
+import type { Companion } from '../buddy/types'
 
 const SLASH_COMMANDS: SlashCommand[] = BUILTIN_COMMANDS.map(c => ({
   name: c.name,
@@ -105,6 +108,15 @@ function REPLInner({ tools, provider, permissions, systemPrompt, workingDir, ver
   // Vim mode state for StatusBar display
   const [vimDisplayMode, setVimDisplayMode] = useState<'INSERT' | 'NORMAL'>('INSERT')
   const [pendingVimOp, setPendingVimOp] = useState<string | undefined>(undefined)
+  // Buddy companion state
+  const [companion, setCompanion] = useState<Companion | undefined>(() => getCompanion())
+  const [companionReaction, setCompanionReaction] = useState<string | null>(null)
+  const [companionPetAt, setCompanionPetAt] = useState(0)
+  const companionMuted = isCompanionMuted()
+
+  // Refresh companion after hatch/release
+  const refreshCompanion = () => setCompanion(getCompanion())
+
   // Update availability notification
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null)
 
@@ -720,6 +732,12 @@ PR number: ${prNum}`
           await runAIQuery(msgs, sysPrompt, toolNames)
         },
         setTheme: (setting) => setThemeCtx(setting as ThemeSetting),
+        petCompanion: () => { setCompanionPetAt(Date.now()); refreshCompanion() },
+        setCompanionReaction: (text) => {
+          setCompanionReaction(text)
+          setTimeout(() => setCompanionReaction(null), 10_000)
+          refreshCompanion()
+        },
       }
 
       if (builtinCmd.execute) {
@@ -925,18 +943,36 @@ PR number: ${prNum}`
         pendingVimOp={pendingVimOp}
       />
 
-      <PromptInput
-        onSubmit={handleSubmit}
-        isDisabled={isStreaming || pendingPermission !== null || pendingUserQuestion !== null || pendingPlanApproval !== null}
-        commands={SLASH_COMMANDS}
-        vimMode={settings.vimMode}
-        onVimModeChange={(mode, op) => {
-          setVimDisplayMode(mode)
-          setPendingVimOp(op)
-        }}
-        initialValue={initialInput}
-        onCycleMode={handleCycleMode}
-      />
+      {/* Companion + PromptInput row */}
+      <Box flexDirection="row" alignItems="flex-end">
+        {/* PromptInput — takes remaining width */}
+        <Box flexGrow={1}>
+          <PromptInput
+            onSubmit={handleSubmit}
+            isDisabled={isStreaming || pendingPermission !== null || pendingUserQuestion !== null || pendingPlanApproval !== null}
+            commands={SLASH_COMMANDS}
+            vimMode={settings.vimMode}
+            onVimModeChange={(mode, op) => {
+              setVimDisplayMode(mode)
+              setPendingVimOp(op)
+            }}
+            initialValue={initialInput}
+            onCycleMode={handleCycleMode}
+          />
+        </Box>
+
+        {/* Companion sprite — sits to the right of the input */}
+        {companion && !companionMuted && (
+          <Box marginLeft={1} flexShrink={0}>
+            <CompanionSprite
+              companion={companion}
+              reaction={companionReaction}
+              petAt={companionPetAt}
+              muted={companionMuted}
+            />
+          </Box>
+        )}
+      </Box>
     </Box>
   )
 }

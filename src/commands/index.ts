@@ -28,6 +28,10 @@ export interface CommandContext {
   runQuery: (messages: Message[], systemPrompt?: string, toolNames?: string[]) => Promise<void>
   /** Live theme switcher — call to switch theme without restart */
   setTheme?: (setting: string) => void
+  /** Pet your companion (trigger heart burst) */
+  petCompanion?: () => void
+  /** Set companion reaction text (shown in speech bubble) */
+  setCompanionReaction?: (text: string) => void
 }
 
 export interface Command {
@@ -1216,6 +1220,213 @@ export const BUILTIN_COMMANDS: Command[] = [
       } catch {
         ctx.onMessage({ role: 'assistant', content: '任务系统不可用。' })
       }
+    },
+  },
+
+  // ─── 宠物伙伴系统: /buddy ────────────────────────────────────────────────────
+  {
+    name: '/buddy',
+    description: '宠物伙伴系统 — /buddy hatch|pet|info|mute|release',
+    async execute(args, ctx) {
+      const {
+        getCompanion, saveCompanion, releaseCompanion, companionUserId, roll,
+        isCompanionMuted, setCompanionMuted, buildHatchPrompt,
+      } = require('../buddy/companion') as typeof import('../buddy/companion')
+      const { RARITY_STARS } = require('../buddy/types') as typeof import('../buddy/types')
+      const { renderFace } = require('../buddy/sprites') as typeof import('../buddy/sprites')
+      const { buildHatchSuccessMessage } = require('../buddy/prompt') as typeof import('../buddy/prompt')
+
+      const sub = args.trim().toLowerCase()
+
+      // ── /buddy (no args) — 显示当前宠物概览 ──────────────────────────────
+      if (!sub || sub === 'status') {
+        const companion = getCompanion()
+        if (!companion) {
+          ctx.onMessage({
+            role: 'assistant',
+            content: [
+              '**你还没有宠物伙伴！**',
+              '',
+              '运行 `/buddy hatch` 孵化你的专属宠物。',
+              '每个用户的宠物由账号唯一确定，不同稀有度（common → legendary）随机抽取。',
+              '',
+              '植物系宠物（sprout/fern/cactus/mushroom）有特殊外观和性格！',
+            ].join('\n'),
+          })
+          return
+        }
+        const muted = isCompanionMuted()
+        const face = renderFace(companion)
+        const shinyMark = companion.shiny ? ' ✨闪光' : ''
+        const lines = [
+          `${RARITY_STARS[companion.rarity]} **${companion.name}**${shinyMark}`,
+          `物种: ${companion.species}  | 稀有度: ${companion.rarity}  | 脸: ${face}`,
+          `性格: ${companion.personality}`,
+          `气泡: ${muted ? '🔇 已静音' : '🔊 开启'}`,
+          '',
+          '命令: `/buddy pet` 抚摸  `/buddy info` 查属性  `/buddy mute` 切换静音  `/buddy release` 放走',
+        ]
+        ctx.onMessage({ role: 'assistant', content: lines.join('\n') })
+        return
+      }
+
+      // ── /buddy hatch — 孵化宠物 ──────────────────────────────────────────
+      if (sub === 'hatch') {
+        const existing = getCompanion()
+        if (existing) {
+          ctx.onMessage({
+            role: 'assistant',
+            content: `你已经有宠物 **${existing.name}**（${existing.species}）了！\n若想更换，先用 \`/buddy release\` 放走它。`,
+          })
+          return
+        }
+        const userId = companionUserId()
+        const { bones, inspirationSeed: _ } = roll(userId)
+        ctx.onMessage({ role: 'assistant', content: `🥚 正在孵化中… 物种: **${bones.species}** 稀有度: **${bones.rarity}**${bones.shiny ? ' ✨' : ''}\n\nAI 正在为它起名和赋予性格…` })
+
+        // 使用 runQuery 让 AI 生成名字和性格
+        const hatchPrompt = buildHatchPrompt(bones)
+        let aiResponse = ''
+        const origOnMsg = ctx.onMessage
+        await ctx.runQuery(
+          [{ role: 'user', content: hatchPrompt }],
+          '你是 QiLing 宠物孵化系统。只输出 JSON，不要任何其他内容。',
+        )
+
+        // 从最后一条 AI 消息提取 JSON
+        const lastAI = ctx.messages.filter(m => m.role === 'assistant').at(-1)
+        if (lastAI) {
+          const text = typeof lastAI.content === 'string'
+            ? lastAI.content
+            : (lastAI.content as Array<{ type: string; text?: string }>)
+                .filter(b => b.type === 'text').map(b => b.text ?? '').join('')
+          const match = text.match(/\{[^}]+\}/)
+          if (match) {
+            try {
+              const soul = JSON.parse(match[0]) as { name: string; personality: string }
+              if (soul.name && soul.personality) {
+                saveCompanion(soul)
+                const companion = getCompanion()!
+                ctx.setCompanionReaction?.(`你好！我是${soul.name}～`)
+                ctx.onMessage({ role: 'assistant', content: buildHatchSuccessMessage(companion) })
+                return
+              }
+            } catch { /* fallback */ }
+          }
+        }
+
+        // AI 响应解析失败时的降级
+        const fallbackSouls: Record<string, { name: string; personality: string }> = {
+          sprout: { name: '豆芽', personality: '刚刚破土而出，对世界充满好奇，遇到代码问题会努力"生长"寻找答案。' },
+          fern:   { name: '绿茵', personality: '古老的智慧储存在每一片蕨叶里，沉默地观察着一切，偶尔低语。' },
+          cactus: { name: '刺刺', personality: '外表刚硬内心柔软，在沙漠般的 debug 中顽强存活，靠代码为生。' },
+          mushroom: { name: '蘑蘑', personality: '靠着腐烂的 bug 茁壮成长，对错误的嗅觉极其灵敏。' },
+        }
+        const fallback = fallbackSouls[bones.species] ?? { name: '小伙伴', personality: '默默陪伴着你的编程之旅。' }
+        saveCompanion(fallback)
+        const companion = getCompanion()!
+        ctx.setCompanionReaction?.(`你好！我是${fallback.name}～`)
+        ctx.onMessage({ role: 'assistant', content: buildHatchSuccessMessage(companion) })
+        return
+      }
+
+      // ── /buddy pet — 抚摸宠物 ────────────────────────────────────────────
+      if (sub === 'pet') {
+        const companion = getCompanion()
+        if (!companion) {
+          ctx.onMessage({ role: 'assistant', content: '你还没有宠物。用 `/buddy hatch` 孵化一只吧！' })
+          return
+        }
+        ctx.petCompanion?.()
+        const reactions = [
+          `谢谢！${companion.name}开心地蹦了起来～`,
+          `${companion.name}的眼睛弯成了月牙形～`,
+          `${companion.name}发出了满足的声音！`,
+          `${companion.name}向你蹭了蹭～`,
+        ]
+        const reactionText = reactions[Math.floor(Math.random() * reactions.length)]!
+        ctx.setCompanionReaction?.(reactionText.replace(companion.name + '', ''))
+        ctx.onMessage({ role: 'assistant', content: `♥ ${reactionText}` })
+        return
+      }
+
+      // ── /buddy info — 详细属性 ───────────────────────────────────────────
+      if (sub === 'info') {
+        const companion = getCompanion()
+        if (!companion) {
+          ctx.onMessage({ role: 'assistant', content: '你还没有宠物。用 `/buddy hatch` 孵化一只吧！' })
+          return
+        }
+        const { STAT_NAMES } = require('../buddy/types') as typeof import('../buddy/types')
+        const statBar = (v: number) => '█'.repeat(Math.round(v / 10)) + '░'.repeat(10 - Math.round(v / 10))
+        const statLines = STAT_NAMES.map((n: string) => {
+          const v = companion.stats[n as keyof typeof companion.stats]
+          return `  ${n.padEnd(10)} ${statBar(v)} ${v}`
+        })
+        const shinyNote = companion.shiny ? '\n✨ **闪光型** — 极其罕见的特殊个体！' : ''
+        const hatchDate = new Date(companion.hatchedAt).toLocaleDateString()
+        const lines = [
+          `${RARITY_STARS[companion.rarity]} **${companion.name}** (${companion.species})${shinyNote}`,
+          `孵化日期: ${hatchDate}`,
+          `性格: ${companion.personality}`,
+          '',
+          '**属性值:**',
+          ...statLines,
+        ]
+        ctx.onMessage({ role: 'assistant', content: lines.join('\n') })
+        return
+      }
+
+      // ── /buddy mute — 切换气泡静音 ──────────────────────────────────────
+      if (sub === 'mute' || sub === 'unmute') {
+        const companion = getCompanion()
+        if (!companion) {
+          ctx.onMessage({ role: 'assistant', content: '你还没有宠物。' })
+          return
+        }
+        const current = isCompanionMuted()
+        const newMuted = !current
+        setCompanionMuted(newMuted)
+        ctx.onMessage({
+          role: 'assistant',
+          content: newMuted
+            ? `🔇 ${companion.name} 的气泡已静音。`
+            : `🔊 ${companion.name} 的气泡已恢复。`,
+        })
+        return
+      }
+
+      // ── /buddy release — 放走宠物 ────────────────────────────────────────
+      if (sub === 'release') {
+        const companion = getCompanion()
+        if (!companion) {
+          ctx.onMessage({ role: 'assistant', content: '你还没有宠物。' })
+          return
+        }
+        releaseCompanion()
+        ctx.onMessage({
+          role: 'assistant',
+          content: `再见，**${companion.name}**！它挥了挥手，消失在代码的星海中… 💫\n\n你可以随时用 \`/buddy hatch\` 孵化新的伙伴。`,
+        })
+        return
+      }
+
+      // ── 帮助 ─────────────────────────────────────────────────────────────
+      ctx.onMessage({
+        role: 'assistant',
+        content: [
+          '**宠物伙伴命令:**',
+          '  `/buddy`         — 查看当前宠物',
+          '  `/buddy hatch`   — 孵化专属宠物（AI 生成名字和性格）',
+          '  `/buddy pet`     — 抚摸宠物（触发爱心动画）',
+          '  `/buddy info`    — 查看详细属性值',
+          '  `/buddy mute`    — 切换气泡静音',
+          '  `/buddy release` — 放走当前宠物',
+          '',
+          '**物种稀有度:** common ★ → uncommon ★★ → rare ★★★ → epic ★★★★ → legendary ★★★★★',
+          '**植物系宠物（QiLing 原创）:** sprout 幼苗 🌱  fern 蕨草 🌿',
+        ].join('\n'),
+      })
     },
   },
 
