@@ -2,6 +2,7 @@ import { z } from 'zod'
 import type { Tool, ToolResult, ToolContext, ToolDefinition, PermissionDecision } from '../types/tool'
 import { EndTruncatingAccumulator } from '../utils/stringUtils'
 import { getDestructiveCommandWarningPS } from './PowerShellTool/destructiveCommandWarning'
+import { commandWritesToGitInternalPath } from './PowerShellTool/gitSafety'
 
 const DEFAULT_PS_TIMEOUT_MS = parseInt(process.env.BASH_DEFAULT_TIMEOUT_MS ?? '', 10) || 120_000
 const MAX_PS_TIMEOUT_MS = parseInt(process.env.BASH_MAX_TIMEOUT_MS ?? '', 10) || 600_000
@@ -42,7 +43,17 @@ export const PowerShellTool: Tool<Input> = {
     '  - Never skip hooks (--no-verify) unless the user has explicitly asked for it.\n',
   inputSchema,
 
-  checkPermissions(input: Input): PermissionDecision {
+  checkPermissions(input: Input, context?: { workingDir?: string }): PermissionDecision {
+    const cwd = context?.workingDir ?? process.cwd()
+
+    // Security: block attempts to write to git-internal paths (bare-repo hook attack)
+    if (commandWritesToGitInternalPath(input.command, cwd)) {
+      return {
+        type: 'deny',
+        reason: 'Security: command attempts to write to git-internal paths (.git/hooks, HEAD, refs, objects). This pattern is used in bare-repo sandbox escape attacks.',
+      }
+    }
+
     const destructiveWarning = getDestructiveCommandWarningPS(input.command)
     if (destructiveWarning) {
       return {

@@ -33,6 +33,21 @@ export const TIPS: Tip[] = [
   { id: 'session-resume', content: '--resume 恢复上次会话，--resume <id> 恢复指定会话' },
   { id: 'bg-agents', content: 'Ctrl+B 将当前 Agent 推入后台，/bg 管理后台任务' },
   { id: 'repo-map', content: '启动时自动生成仓库索引注入 system prompt，--no-repo-map 禁用' },
+  // New CC-aligned tips for Phase 1 features
+  { id: 'agent-claude-code-guide', content: 'Agent 工具支持 subagent_type: "claude-code-guide" — 专门回答 QiLing/CC/API 使用问题' },
+  { id: 'agent-statusline', content: 'Agent 工具支持 subagent_type: "statusline-setup" — 自动配置状态栏命令' },
+  { id: 'agent-memory', content: 'Agent 记忆系统: ~/.qiling/agent-memory/<type>/ 跨会话持久化 agent 的知识' },
+  { id: 'synthetic-output', content: 'QILING_OUTPUT_SCHEMA="{...}" 环境变量激活结构化 JSON 输出模式（SDK 集成）' },
+  { id: 'effort-level', content: '/effort [low|medium|high|max] 控制推理深度 — max 启用最强扩展思考（仅 Opus/Sonnet 4.6+）' },
+  { id: 'rename-session', content: '/rename <名称> 重命名当前会话，/tag <标签> 为会话添加标签' },
+  { id: 'export-session', content: '/export [文件名] 将对话导出为文本文件，方便归档或分享' },
+  { id: 'copy-response', content: '/copy 将最后一条助手回复复制到剪贴板' },
+  { id: 'env-vars', content: '/env 查看运行时环境变量（自动过滤 API key 等敏感信息）' },
+  { id: 'status-check', content: '/status 查看当前会话状态：模型、Provider、Vim 模式、钩子、MCP 服务器' },
+  { id: 'config-command', content: '/config set <key> <value> 动态修改项目配置，无需手动编辑 settings.json' },
+  { id: 'model-switch', content: '/model <model-id> 切换当前模型，/fast 切换到快速模型节省成本' },
+  { id: 'destructive-warn', content: 'Bash/PowerShell 执行前会自动检测破坏性操作并显示 ⚠️ 警告（git reset --hard, rm -rf 等）' },
+  { id: 'mcp-collapse', content: 'MCP 工具的搜索/读取类结果可自动折叠以节省上下文空间（search_*, get_*, read_* 前缀）' },
 ]
 
 // ─── Tip rotation state ───────────────────────────────────────────────────────

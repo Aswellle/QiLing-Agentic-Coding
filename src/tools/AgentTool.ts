@@ -3,7 +3,9 @@ import type { Tool, ToolResult, ToolContext, ToolDefinition } from '../types/too
 import { runQuery } from '../query'
 import type { Provider } from '../types/provider'
 import type { PermissionManager } from '../types/tool'
-import { BUILT_IN_AGENTS, getBuiltInAgent } from './AgentTool/builtInAgents'
+import { BUILT_IN_AGENTS, getBuiltInAgent, type BuiltInAgent } from './AgentTool/builtInAgents'
+import { getAllAgents, loadCustomAgents } from './AgentTool/loadAgentsDir'
+export { loadCustomAgents }
 
 // Shared provider/permissions injected at startup
 let _provider: Provider | null = null
@@ -42,7 +44,7 @@ export function configureAgentTool(
   _systemPrompt = systemPrompt
 }
 
-// Build dynamic subagent_type enum from built-in agents
+// Build dynamic subagent_type enum from built-in agents (custom agents loaded at runtime)
 const SUBAGENT_TYPES = BUILT_IN_AGENTS.map(a => a.agentType) as [string, ...string[]]
 
 const inputSchema = z.object({
@@ -121,8 +123,11 @@ export const AgentTool: Tool<Input> = {
     const agentToolsNoSelf = new Map(agentTools)
     agentToolsNoSelf.delete('Agent') // Prevent infinite recursion
 
-    // ── Built-in agent type dispatch ──────────────────────────────────────
-    const builtIn = input.subagent_type ? getBuiltInAgent(input.subagent_type) : null
+    // ── Built-in agent type dispatch (also checks custom agents from disk) ──
+    const allAgents = getAllAgents(context.workingDir, BUILT_IN_AGENTS)
+    const builtIn: BuiltInAgent | undefined = input.subagent_type
+      ? (allAgents.find(a => a.agentType.toLowerCase() === input.subagent_type!.toLowerCase()) ?? getBuiltInAgent(input.subagent_type))
+      : undefined
     if (builtIn) {
       // If agent has explicit tool allowlist, use it
       if (builtIn.tools && builtIn.tools.length > 0) {
