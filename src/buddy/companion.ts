@@ -7,176 +7,196 @@
  *  - 每次读取时骨骼重新从哈希生成，确保玩家无法通过编辑配置文件作弊
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs'
-import { join } from 'path'
-import { homedir } from 'os'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
 import type {
-  Companion, CompanionBones, Rarity, StatName,
+  Companion,
+  CompanionBones,
+  Rarity,
+  StatName,
   StoredCompanion,
-} from './types'
-import { EYES, HATS, RARITIES, RARITY_WEIGHTS, SPECIES, STAT_NAMES } from './types'
+} from "./types";
+import {
+  EYES,
+  HATS,
+  RARITIES,
+  RARITY_WEIGHTS,
+  SPECIES,
+  STAT_NAMES,
+} from "./types";
 
 // ─── Mulberry32 PRNG（与 CC 完全一致） ──────────────────────────────────────
 function mulberry32(seed: number): () => number {
-  let a = seed >>> 0
-  return function () {
-    a |= 0
-    a = (a + 0x6d2b79f5) | 0
-    let t = Math.imul(a ^ (a >>> 15), 1 | a)
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
-  }
+  let a = seed >>> 0;
+  return () => {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
 }
 
 function hashString(s: string): number {
-  if (typeof Bun !== 'undefined') {
-    return Number(BigInt(Bun.hash(s)) & 0xffffffffn)
+  if (typeof Bun !== "undefined") {
+    return Number(BigInt(Bun.hash(s)) & 0xffffffffn);
   }
   // FNV-1a fallback
-  let h = 2166136261
+  let h = 2166136261;
   for (let i = 0; i < s.length; i++) {
-    h ^= s.charCodeAt(i)
-    h = Math.imul(h, 16777619)
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
   }
-  return h >>> 0
+  return h >>> 0;
 }
 
 function pick<T>(rng: () => number, arr: readonly T[]): T {
-  return arr[Math.floor(rng() * arr.length)]!
+  const idx = Math.floor(rng() * arr.length);
+  return arr[idx] as T;
 }
 
 function rollRarity(rng: () => number): Rarity {
-  const total = Object.values(RARITY_WEIGHTS).reduce((a, b) => a + b, 0)
-  let roll = rng() * total
+  const total = Object.values(RARITY_WEIGHTS).reduce((a, b) => a + b, 0);
+  let roll = rng() * total;
   for (const rarity of RARITIES) {
-    roll -= RARITY_WEIGHTS[rarity]
-    if (roll < 0) return rarity
+    roll -= RARITY_WEIGHTS[rarity];
+    if (roll < 0) return rarity;
   }
-  return 'common'
+  return "common";
 }
 
 const RARITY_FLOOR: Record<Rarity, number> = {
-  common: 5, uncommon: 15, rare: 25, epic: 35, legendary: 50,
-}
+  common: 5,
+  uncommon: 15,
+  rare: 25,
+  epic: 35,
+  legendary: 50,
+};
 
-function rollStats(rng: () => number, rarity: Rarity): Record<StatName, number> {
-  const floor = RARITY_FLOOR[rarity]
-  const peak = pick(rng, STAT_NAMES)
-  let dump = pick(rng, STAT_NAMES)
-  while (dump === peak) dump = pick(rng, STAT_NAMES)
+function rollStats(
+  rng: () => number,
+  rarity: Rarity,
+): Record<StatName, number> {
+  const floor = RARITY_FLOOR[rarity];
+  const peak = pick(rng, STAT_NAMES);
+  let dump = pick(rng, STAT_NAMES);
+  while (dump === peak) dump = pick(rng, STAT_NAMES);
 
-  const stats = {} as Record<StatName, number>
+  const stats = {} as Record<StatName, number>;
   for (const name of STAT_NAMES) {
     if (name === peak) {
-      stats[name] = Math.min(100, floor + 50 + Math.floor(rng() * 30))
+      stats[name] = Math.min(100, floor + 50 + Math.floor(rng() * 30));
     } else if (name === dump) {
-      stats[name] = Math.max(1, floor - 10 + Math.floor(rng() * 15))
+      stats[name] = Math.max(1, floor - 10 + Math.floor(rng() * 15));
     } else {
-      stats[name] = floor + Math.floor(rng() * 40)
+      stats[name] = floor + Math.floor(rng() * 40);
     }
   }
-  return stats
+  return stats;
 }
 
-const SALT = 'qiling-buddy-2026'
+const SALT = "qiling-buddy-2026";
 
-export type Roll = { bones: CompanionBones; inspirationSeed: number }
+export type Roll = { bones: CompanionBones; inspirationSeed: number };
 
 function rollFrom(rng: () => number): Roll {
-  const rarity = rollRarity(rng)
+  const rarity = rollRarity(rng);
   const bones: CompanionBones = {
     rarity,
     species: pick(rng, SPECIES),
     eye: pick(rng, EYES),
-    hat: rarity === 'common' ? 'none' : pick(rng, HATS),
+    hat: rarity === "common" ? "none" : pick(rng, HATS),
     shiny: rng() < 0.01,
     stats: rollStats(rng, rarity),
-  }
-  return { bones, inspirationSeed: Math.floor(rng() * 1e9) }
+  };
+  return { bones, inspirationSeed: Math.floor(rng() * 1e9) };
 }
 
-let rollCache: { key: string; value: Roll } | undefined
+let rollCache: { key: string; value: Roll } | undefined;
 
 export function roll(userId: string): Roll {
-  const key = userId + SALT
-  if (rollCache?.key === key) return rollCache.value
-  const value = rollFrom(mulberry32(hashString(key)))
-  rollCache = { key, value }
-  return value
+  const key = userId + SALT;
+  if (rollCache?.key === key) return rollCache.value;
+  const value = rollFrom(mulberry32(hashString(key)));
+  rollCache = { key, value };
+  return value;
 }
 
 export function rollWithSeed(seed: string): Roll {
-  return rollFrom(mulberry32(hashString(seed)))
+  return rollFrom(mulberry32(hashString(seed)));
 }
 
 // ─── 配置存储 ────────────────────────────────────────────────────────────────
 function getConfigPath(): string {
-  return join(homedir(), '.qiling', 'settings.json')
+  return join(homedir(), ".qiling", "settings.json");
 }
 
 function readConfig(): Record<string, unknown> {
-  const p = getConfigPath()
-  if (!existsSync(p)) return {}
-  try { return JSON.parse(readFileSync(p, 'utf-8')) as Record<string, unknown> } catch { return {} }
+  const p = getConfigPath();
+  if (!existsSync(p)) return {};
+  try {
+    return JSON.parse(readFileSync(p, "utf-8")) as Record<string, unknown>;
+  } catch {
+    return {};
+  }
 }
 
 function writeConfig(data: Record<string, unknown>): void {
-  const dir = join(homedir(), '.qiling')
-  mkdirSync(dir, { recursive: true })
-  writeFileSync(getConfigPath(), JSON.stringify(data, null, 2) + '\n', 'utf-8')
+  const dir = join(homedir(), ".qiling");
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(getConfigPath(), `${JSON.stringify(data, null, 2)}\n`, "utf-8");
 }
 
 // 获取稳定的用户 ID（hostname + 固定后缀，无网络请求）
 export function companionUserId(): string {
-  const cfg = readConfig()
-  if (typeof cfg.companionUserId === 'string') return cfg.companionUserId
+  const cfg = readConfig();
+  if (typeof cfg.companionUserId === "string") return cfg.companionUserId;
   // 生成并持久化一个稳定 ID
-  const id = `qiling-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
-  writeConfig({ ...cfg, companionUserId: id })
-  return id
+  const id = `qiling-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  writeConfig({ ...cfg, companionUserId: id });
+  return id;
 }
 
 export function getCompanion(): Companion | undefined {
-  const cfg = readConfig()
-  const stored = cfg.companion as StoredCompanion | undefined
-  if (!stored) return undefined
-  const { bones } = roll(companionUserId())
-  return { ...stored, ...bones }
+  const cfg = readConfig();
+  const stored = cfg.companion as StoredCompanion | undefined;
+  if (!stored) return undefined;
+  const { bones } = roll(companionUserId());
+  return { ...stored, ...bones };
 }
 
 export function saveCompanion(soul: CompanionSoul): void {
-  const cfg = readConfig()
-  const stored: StoredCompanion = { ...soul, hatchedAt: Date.now() }
-  writeConfig({ ...cfg, companion: stored })
-  rollCache = undefined // 清除缓存，让下次读取重新生成
+  const cfg = readConfig();
+  const stored: StoredCompanion = { ...soul, hatchedAt: Date.now() };
+  writeConfig({ ...cfg, companion: stored });
+  rollCache = undefined; // 清除缓存，让下次读取重新生成
 }
 
 export function releaseCompanion(): void {
-  const cfg = readConfig()
-  const { companion: _, ...rest } = cfg
-  writeConfig(rest)
-  rollCache = undefined
+  const cfg = readConfig();
+  const { companion: _, ...rest } = cfg;
+  writeConfig(rest);
+  rollCache = undefined;
 }
 
 export function isCompanionMuted(): boolean {
-  const cfg = readConfig()
-  return cfg.companionMuted === true
+  const cfg = readConfig();
+  return cfg.companionMuted === true;
 }
 
 export function setCompanionMuted(muted: boolean): void {
-  const cfg = readConfig()
-  writeConfig({ ...cfg, companionMuted: muted })
+  const cfg = readConfig();
+  writeConfig({ ...cfg, companionMuted: muted });
 }
 
-export type CompanionSoul = { name: string; personality: string }
+export type CompanionSoul = { name: string; personality: string };
 
 // ─── 孵化提示生成（供 /buddy hatch 使用）────────────────────────────────────
 export function buildHatchPrompt(bones: CompanionBones): string {
-  const { species, rarity, stats, shiny } = bones
-  const statLines = STAT_NAMES
-    .map(n => `  ${n}: ${stats[n]}`)
-    .join('\n')
-  const shinyNote = shiny ? ' (闪光型！极其罕见)' : ''
+  const { species, rarity, stats, shiny } = bones;
+  const statLines = STAT_NAMES.map((n) => `  ${n}: ${stats[n]}`).join("\n");
+  const shinyNote = shiny ? " (闪光型！极其罕见)" : "";
 
   return `你是 QiLing 宠物孵化系统。为这只刚孵化的伙伴创建名字和性格。
 
@@ -198,5 +218,5 @@ ${statLines}
    - peony（牡丹花）：花中之王，雍容华贵，天生自信，略带傲气
 
 请用以下 JSON 格式回答（只输出 JSON，不要其他内容）：
-{"name": "名字", "personality": "性格描述"}`
+{"name": "名字", "personality": "性格描述"}`;
 }
