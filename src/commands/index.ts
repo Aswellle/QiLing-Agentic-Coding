@@ -1045,7 +1045,10 @@ export const BUILTIN_COMMANDS: Command[] = [
       }
 
       const analysis = analyzeContext(ctx.messages, usage, contextWindowSize, model)
-      ctx.onMessage({ role: 'assistant', content: formatContextAnalysis(analysis, model) })
+      const { generateContextSuggestions, formatContextSuggestions } = require('../utils/contextSuggestions') as typeof import('../utils/contextSuggestions')
+      const suggestions = generateContextSuggestions(analysis)
+      const suggestionText = formatContextSuggestions(suggestions)
+      ctx.onMessage({ role: 'assistant', content: formatContextAnalysis(analysis, model) + suggestionText })
     },
   },
 
