@@ -933,6 +933,49 @@ export const BUILTIN_COMMANDS: Command[] = [
     },
   },
 
+  // ─── CC-aligned: /context ────────────────────────────────────────────────────
+  {
+    name: '/context',
+    description: '显示上下文窗口使用情况（token 用量、剩余空间、消息统计）',
+    execute(_args, ctx) {
+      const { loadSettings } = require('../settings/loader') as typeof import('../settings/loader')
+      const { analyzeContext, formatContextAnalysis } = require('../utils/analyzeContext') as typeof import('../utils/analyzeContext')
+
+      const settings = loadSettings(ctx.workingDir)
+      const model = settings.model ?? 'claude-sonnet-4-6'
+
+      // Get context window size for model
+      const MODEL_WINDOWS: Record<string, number> = {
+        'claude-opus-4-7': 200_000,
+        'claude-sonnet-4-6': 200_000,
+        'claude-haiku-4-5-20251001': 200_000,
+      }
+      const contextWindowSize = MODEL_WINDOWS[model] ?? 200_000
+
+      // Estimate usage from messages (we don't have live usage in command context)
+      const visibleMsgs = ctx.messages.filter(m => !(m as Message & { isMeta?: boolean }).isMeta)
+      const totalText = visibleMsgs.map(m => {
+        if (typeof m.content === 'string') return m.content
+        if (Array.isArray(m.content)) {
+          return (m.content as Array<{ type: string; text?: string }>)
+            .filter(b => b.type === 'text').map(b => b.text ?? '').join('')
+        }
+        return ''
+      }).join('')
+      const estimatedTokens = Math.ceil(totalText.length / 4)
+
+      const usage = {
+        inputTokens: estimatedTokens,
+        outputTokens: 0,
+        cacheReadTokens: 0,
+        cacheWriteTokens: 0,
+      }
+
+      const analysis = analyzeContext(ctx.messages, usage, contextWindowSize, model)
+      ctx.onMessage({ role: 'assistant', content: formatContextAnalysis(analysis, model) })
+    },
+  },
+
   // ─── CC-aligned: /effort ─────────────────────────────────────────────────────
   {
     name: '/effort',

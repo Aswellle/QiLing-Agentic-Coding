@@ -57,6 +57,15 @@ Usage:
     const contentToWrite = normalizeLineEndings(input.content, useCRLF)
     writeFileSync(filePath, contentToWrite, 'utf-8')
 
+    // ── Auto-gitignore .qiling/ directory (CC's gitignore pattern) ──────────
+    // If writing into .qiling/, add it to global gitignore so secrets/settings
+    // aren't accidentally committed when user runs git add .
+    if (input.file_path.includes('/.qiling/') || input.file_path.includes('\\.qiling\\')) {
+      void import('../utils/git/gitignore').then(({ addFileGlobRuleToGitignore }) => {
+        return addFileGlobRuleToGitignore('.qiling/', context.workingDir)
+      }).catch(() => { /* best-effort */ })
+    }
+
     const lineCount = input.content.split('\n').length
     return {
       content: [{

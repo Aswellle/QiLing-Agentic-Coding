@@ -205,6 +205,10 @@ program
       }
     }
 
+    // Run settings migrations before loading (model renames, theme renames, etc.)
+    const { runMigrations } = await import('./utils/migrations')
+    runMigrations(workingDir)
+
     const settings = loadSettings(workingDir, {
       ...(options.model    && { model: options.model }),
       ...(options.provider && { provider: options.provider }),

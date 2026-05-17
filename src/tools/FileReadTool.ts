@@ -306,6 +306,13 @@ Usage:
       }
     }
 
+    // ── Magic Docs detection (CC's magicDocs pattern) ───────────────────────
+    // Detect "# MAGIC DOC: title" headers and register the file for auto-update.
+    void import('../services/MagicDocs/magicDocs').then(({ detectMagicDocHeader, registerMagicDoc }) => {
+      const info = detectMagicDocHeader(resultText)
+      if (info) registerMagicDoc(filePath, info)
+    }).catch(() => { /* non-fatal */ })
+
     return { content: [{ type: 'text', text: resultText }] }
   },
 

@@ -828,9 +828,10 @@ export async function runQuery(
     lastTransition = { reason: 'next_turn' }
   }
 
+  const _notAborted = !signal?.aborted && finalStopReason !== 'aborted'
+
   // ── Auto-memory extraction (fire-and-forget, CC's extractMemories pattern) ──
-  // Runs after Stop hooks; non-blocking so it doesn't delay the response.
-  if (!signal?.aborted && options.workingDir && finalStopReason !== 'aborted') {
+  if (_notAborted && options.workingDir) {
     void import('./services/extractMemories').then(({ maybeExtractMemories }) => {
       return maybeExtractMemories(
         workingMessages,
@@ -839,6 +840,21 @@ export async function runQuery(
         options.memorySettings as { autoMemoryEnabled?: boolean } | undefined,
         signal,
       )
+    }).catch(() => { /* non-fatal */ })
+  }
+
+  // ── Session Memory update (CC's sessionMemory pattern) ────────────────────
+  if (_notAborted) {
+    void import('./services/SessionMemory/sessionMemory').then(({ maybeUpdateSessionMemory }) => {
+      maybeUpdateSessionMemory(workingMessages, provider, rounds, signal)
+    }).catch(() => { /* non-fatal */ })
+  }
+
+  // ── Magic Docs update (CC's magicDocs pattern) ────────────────────────────
+  if (_notAborted) {
+    const hadToolCalls = rounds > 0
+    void import('./services/MagicDocs/magicDocs').then(({ maybeUpdateMagicDocs }) => {
+      maybeUpdateMagicDocs(workingMessages, provider, hadToolCalls, signal)
     }).catch(() => { /* non-fatal */ })
   }
 
