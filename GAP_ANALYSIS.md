@@ -63,10 +63,10 @@
 ### 🟢 P2 — 中等价值、有时间则实现
 
 - [ ] **`thinking.ts` 集成** — 在 PromptInput 检测 ultrathink 关键词并调整 thinkingBudget | `src/components/PromptInput.tsx` | CC: REPL 集成 | S
-- [ ] **`statsCache.ts`** — Stats 带磁盘缓存，避免每次重算 | `src/utils/statsCache.ts` | CC: `utils/statsCache.ts` | M
-- [ ] **autoDream 服务** — 自动运行后台任务 | `src/services/autoDream/` | CC: `services/autoDream/` | L
-- [ ] **BriefTool 改进** — Brief 工具增强（attachment 上传） | `src/tools/BriefTool.ts` | CC: `tools/BriefTool/` | M
-- [ ] **ripgrep 集成优化** — 使用 Bun 内建 ripgrep | `src/tools/GrepTool.ts` | CC: `utils/ripgrep.ts` | M
+- ✅ **`statsCache.ts`** — Stats 带磁盘缓存，避免每次重算 | `src/utils/statsCache.ts` | CC: `utils/statsCache.ts` | M
+- ⏭ **autoDream 服务** (依赖 CC 特有 runForkedAgent/DreamTask，跳过) — 自动运行后台任务 | `src/services/autoDream/` | CC: `services/autoDream/` | L
+- ✅ **BriefTool 改进** (已集成 sessionStorage) — Brief 工具增强（attachment 上传） | `src/tools/BriefTool.ts` | CC: `tools/BriefTool/` | M
+- ✅ **ripgrep 集成优化** (GrepTool 已使用 ripgrep，无需额外适配) — 使用 Bun 内建 ripgrep | `src/tools/GrepTool.ts` | CC: `utils/ripgrep.ts` | M
 - ✅ **`/branch` 命令** — git branch 管理 | `src/commands/index.ts` | CC: `commands/branch/` | S
 
 ### ⚫ 已知风险/依赖 & 跳过项

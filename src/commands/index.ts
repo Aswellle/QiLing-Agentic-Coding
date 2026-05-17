@@ -486,6 +486,40 @@ export const BUILTIN_COMMANDS: Command[] = [
     },
   },
 
+  // ─── CC-aligned: /usage ──────────────────────────────────────────────────────
+  {
+    name: '/usage',
+    description: '显示会话 token 用量和费用统计（与 /cost 相同）',
+    execute(_args, ctx) {
+      const { formatCostSummary, getCacheHitRate, getCacheSavingsUSD, formatCostUSD } = require('../cost-tracker')
+      const cacheRate = Math.round(getCacheHitRate() * 100)
+      const savings = getCacheSavingsUSD()
+      const cacheSection = cacheRate > 0
+        ? `\n缓存命中率: ${cacheRate}%\n缓存节省: ${formatCostUSD(savings)}`
+        : ''
+      ctx.onMessage({ role: 'assistant', content: formatCostSummary() + cacheSection })
+    },
+  },
+
+  // ─── CC-aligned: /skills ─────────────────────────────────────────────────────
+  {
+    name: '/skills',
+    description: '列出已加载的 Skills（等同于 /plugins）',
+    async execute(_args, ctx) {
+      const { loadAllSkills, formatSkillList } = await import('../skills/loader')
+      const skills = loadAllSkills(ctx.workingDir)
+      if (skills.length === 0) {
+        ctx.onMessage({ role: 'assistant', content: '当前没有加载任何 Skill。\n在 .qiling/skills/ 或 ~/.qiling/skills/ 创建 .md 文件来添加 Skill。' })
+        return
+      }
+      const lines = ['**已加载的 Skills**', '']
+      for (const s of skills) {
+        lines.push(`  **/${s.name}** — ${s.description || '（无描述）'}`)
+      }
+      ctx.onMessage({ role: 'assistant', content: lines.join('\n') })
+    },
+  },
+
   {
     name: '/version',
     description: '显示版本信息',
