@@ -98,7 +98,7 @@ function getModelDeprecationWarning(model: string): string | null {
   return null
 }
 
-const VERSION = '0.4.2'
+const VERSION = '0.4.3'
 
 const program = new Command()
 
