@@ -1,0 +1,136 @@
+/**
+ * LSP Passive Feedback — direct port of CC's services/lsp/passiveFeedback.ts
+ *
+ * Routes textDocument/publishDiagnostics notifications from all LSP servers
+ * to the diagnostic registry for async delivery.
+ *
+ * Adaptations:
+ *   - logForDebugging / logError / toError / jsonStringify → inline helpers
+ *   - DiagnosticFile → from ./types (not from diagnosticTracking)
+ *   - fileURLToPath from 'url' → 'node:url'
+ */
+
+import { fileURLToPath } from 'node:url'
+import type { PublishDiagnosticsParams } from 'vscode-languageserver-protocol'
+import { registerPendingLSPDiagnostic } from './LSPDiagnosticRegistry'
+import type { LSPServerManager } from './LSPServerManager'
+import type { DiagnosticFile } from './types'
+
+function logForDebugging(msg: string) { if (process.env.QILING_DEBUG === '1') console.error('[LSP]', msg) }
+function logError(err: Error) { console.error('[LSP error]', err.message) }
+
+function mapLSPSeverity(lspSeverity: number | undefined): 'Error' | 'Warning' | 'Info' | 'Hint' {
+  switch (lspSeverity) {
+    case 1: return 'Error'
+    case 2: return 'Warning'
+    case 3: return 'Info'
+    case 4: return 'Hint'
+    default: return 'Error'
+  }
+}
+
+export function formatDiagnosticsForAttachment(params: PublishDiagnosticsParams): DiagnosticFile[] {
+  let uri: string
+  try {
+    uri = params.uri.startsWith('file://') ? fileURLToPath(params.uri) : params.uri
+  } catch {
+    uri = params.uri
+  }
+
+  const diagnostics = params.diagnostics.map(diag => ({
+    message: diag.message,
+    severity: mapLSPSeverity(diag.severity),
+    range: {
+      start: { line: diag.range.start.line, character: diag.range.start.character },
+      end: { line: diag.range.end.line, character: diag.range.end.character },
+    },
+    source: diag.source,
+    code: diag.code !== undefined && diag.code !== null ? String(diag.code) : undefined,
+  }))
+
+  return [{ uri, diagnostics }]
+}
+
+export type HandlerRegistrationResult = {
+  totalServers: number
+  successCount: number
+  registrationErrors: Array<{ serverName: string; error: string }>
+  diagnosticFailures: Map<string, { count: number; lastError: string }>
+}
+
+export function registerLSPNotificationHandlers(manager: LSPServerManager): HandlerRegistrationResult {
+  const servers = manager.getAllServers()
+  const registrationErrors: Array<{ serverName: string; error: string }> = []
+  let successCount = 0
+  const diagnosticFailures: Map<string, { count: number; lastError: string }> = new Map()
+
+  for (const [serverName, serverInstance] of servers.entries()) {
+    try {
+      if (!serverInstance || typeof serverInstance.onNotification !== 'function') {
+        const errorMsg = !serverInstance ? 'Server instance is null/undefined' : 'Server instance has no onNotification method'
+        registrationErrors.push({ serverName, error: errorMsg })
+        logError(new Error(`${errorMsg} for ${serverName}`))
+        continue
+      }
+
+      serverInstance.onNotification('textDocument/publishDiagnostics', (params: unknown) => {
+        logForDebugging(`[PASSIVE DIAGNOSTICS] Handler invoked for ${serverName}!`)
+        try {
+          if (!params || typeof params !== 'object' || !('uri' in params) || !('diagnostics' in params)) {
+            logError(new Error(`LSP server ${serverName} sent invalid diagnostic params (missing uri or diagnostics)`))
+            return
+          }
+
+          const diagnosticParams = params as PublishDiagnosticsParams
+          logForDebugging(`Received diagnostics from ${serverName}: ${diagnosticParams.diagnostics.length} diagnostic(s) for ${diagnosticParams.uri}`)
+
+          const diagnosticFiles = formatDiagnosticsForAttachment(diagnosticParams)
+          const firstFile = diagnosticFiles[0]
+          if (!firstFile || diagnosticFiles.length === 0 || firstFile.diagnostics.length === 0) {
+            logForDebugging(`Skipping empty diagnostics from ${serverName} for ${diagnosticParams.uri}`)
+            return
+          }
+
+          try {
+            registerPendingLSPDiagnostic({ serverName, files: diagnosticFiles })
+            logForDebugging(`LSP Diagnostics: Registered ${diagnosticFiles.length} diagnostic file(s) from ${serverName}`)
+            diagnosticFailures.delete(serverName)
+          } catch (error) {
+            const err = error instanceof Error ? error : new Error(String(error))
+            logError(err)
+            const failures = diagnosticFailures.get(serverName) ?? { count: 0, lastError: '' }
+            failures.count++; failures.lastError = err.message
+            diagnosticFailures.set(serverName, failures)
+            if (failures.count >= 3) {
+              logForDebugging(`WARNING: LSP diagnostic handler for ${serverName} has failed ${failures.count} times consecutively.`)
+            }
+          }
+        } catch (error) {
+          const err = error instanceof Error ? error : new Error(String(error))
+          logError(err)
+          const failures = diagnosticFailures.get(serverName) ?? { count: 0, lastError: '' }
+          failures.count++; failures.lastError = err.message
+          diagnosticFailures.set(serverName, failures)
+        }
+      })
+
+      logForDebugging(`Registered diagnostics handler for ${serverName}`)
+      successCount++
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error))
+      registrationErrors.push({ serverName, error: err.message })
+      logError(err)
+      logForDebugging(`Failed to register diagnostics handler for ${serverName}: ${err.message}`)
+    }
+  }
+
+  const totalServers = servers.size
+  if (registrationErrors.length > 0) {
+    const failedServers = registrationErrors.map(e => `${e.serverName} (${e.error})`).join(', ')
+    logError(new Error(`Failed to register diagnostics for ${registrationErrors.length} LSP server(s): ${failedServers}`))
+  } else {
+    logForDebugging(`LSP notification handlers registered successfully for all ${totalServers} server(s)`)
+  }
+
+  return { totalServers, successCount, registrationErrors, diagnosticFailures }
+}
