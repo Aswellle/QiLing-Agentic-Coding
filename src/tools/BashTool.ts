@@ -280,8 +280,16 @@ IMPORTANT: Avoid using this tool to run \`find\`, \`grep\`, \`cat\`, \`head\`, \
         }
       }
 
+      // ── Tool result persistence for large outputs (CC's toolResultStorage) ──
+      const fullText = output + bgNote
+      let finalText = fullText
+      if (fullText.length > 50_000) {
+        const { processLargeToolResult } = await import('../utils/toolResultStorage')
+        finalText = await processLargeToolResult('Bash', `${Date.now()}`, fullText)
+      }
+
       return {
-        content: [{ type: 'text', text: output + bgNote }],
+        content: [{ type: 'text', text: finalText }],
         isError: (exitCode ?? 0) !== 0,
       }
     } catch (error) {

@@ -767,6 +767,45 @@ export const BUILTIN_COMMANDS: Command[] = [
     },
   },
 
+  // ─── CC-aligned: /files ──────────────────────────────────────────────────────
+  {
+    name: '/files',
+    description: '显示当前会话中读取或编辑过的文件列表',
+    execute(_args, ctx) {
+      const { resolve: resolveFull } = require('path') as typeof import('path')
+      const workingDir = ctx.workingDir
+
+      // Collect files mentioned in messages (FileRead/FileEdit/FileWrite calls)
+      const files = new Set<string>()
+      for (const msg of ctx.messages) {
+        if (msg.role !== 'assistant') continue
+        if (!Array.isArray(msg.content)) continue
+        for (const block of msg.content as Array<{ type: string; name?: string; input?: { file_path?: string } }>) {
+          if (block.type === 'tool_use' && block.input?.file_path) {
+            const p = block.input.file_path
+            const abs = p.startsWith('/') || /^[A-Za-z]:/.test(p) ? p : resolveFull(workingDir, p)
+            files.add(abs)
+          }
+        }
+      }
+
+      if (files.size === 0) {
+        ctx.onMessage({ role: 'assistant', content: '当前会话中没有读取或编辑过任何文件。' })
+        return
+      }
+
+      const { relative } = require('path') as typeof import('path')
+      const { existsSync } = require('fs') as typeof import('fs')
+      const lines = ['**当前会话涉及的文件**', '']
+      for (const f of [...files].sort()) {
+        const rel = relative(workingDir, f)
+        const exists = existsSync(f)
+        lines.push(`  ${exists ? '✓' : '✗'} ${rel}`)
+      }
+      ctx.onMessage({ role: 'assistant', content: lines.join('\n') })
+    },
+  },
+
   // ─── CC-aligned: /rename ─────────────────────────────────────────────────────
   {
     name: '/rename',

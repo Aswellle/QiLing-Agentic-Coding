@@ -122,3 +122,86 @@ export function AUTO_REJECT_MESSAGE(toolName: string): string {
 export function DONT_ASK_REJECT_MESSAGE(toolName: string): string {
   return `${toolName} was not executed because the user chose to never ask for this permission.`
 }
+
+// ─── Compact boundary utilities (CC's getMessagesAfterCompactBoundary) ────────
+
+/**
+ * Find the index of the last SystemCompactBoundary message.
+ * Returns -1 if no compact boundary found.
+ */
+function findLastCompactBoundaryIndex(messages: Message[]): number {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const msg = messages[i]
+    // Check for CC-style compact boundary marker
+    if (
+      (msg as { type?: string }).type === 'system' &&
+      typeof (msg as { content?: unknown }).content === 'string' &&
+      ((msg as { content: string }).content.includes('COMPACT_BOUNDARY') ||
+       (msg as { content: string }).content.includes('compact-boundary'))
+    ) {
+      return i
+    }
+    // Also check for isMeta messages with compact indicator
+    if ((msg as { isMeta?: boolean; isCompactSummary?: boolean }).isCompactSummary) {
+      return i
+    }
+  }
+  return -1
+}
+
+/**
+ * Get messages after the last compact boundary (or all messages if no boundary).
+ * Used by SessionMemory, MagicDocs, extractMemories to focus on recent context.
+ *
+ * Mirrors CC's getMessagesAfterCompactBoundary() from utils/messages.ts.
+ */
+export function getMessagesAfterCompactBoundary(messages: Message[]): Message[] {
+  const boundaryIndex = findLastCompactBoundaryIndex(messages)
+  return boundaryIndex === -1 ? messages : messages.slice(boundaryIndex)
+}
+
+// ─── Additional message utilities ────────────────────────────────────────────
+
+/** Marker for synthetic model (non-real API calls, e.g. tool-use summaries) */
+export const SYNTHETIC_MODEL = '<synthetic>'
+
+/**
+ * Check if a message contains tool calls (tool_use blocks).
+ * Mirrors CC's hasToolCallsInLastAssistantTurn().
+ */
+export function hasToolCallsInLastAssistantTurn(messages: Message[]): boolean {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const msg = messages[i]
+    if (msg.role !== 'assistant') continue
+    if (Array.isArray(msg.content)) {
+      return msg.content.some((b: { type: string }) => b.type === 'tool_use')
+    }
+    return false
+  }
+  return false
+}
+
+/**
+ * Get the text content from the last assistant message.
+ * Returns null if the last message is not from assistant or has no text.
+ */
+export function getAssistantMessageText(messages: Message[]): string | null {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const msg = messages[i]
+    if (msg.role !== 'assistant') continue
+    const text = extractTextContent(msg.content)
+    return text || null
+  }
+  return null
+}
+
+/**
+ * Create a simple user message (mirrors CC's createUserMessage).
+ */
+export function createUserMessage(content: string, opts?: { isMeta?: boolean }): Message {
+  return {
+    role: 'user' as const,
+    content,
+    ...(opts?.isMeta ? { isMeta: true } : {}),
+  }
+}
