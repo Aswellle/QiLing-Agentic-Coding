@@ -174,7 +174,7 @@ export const BUILTIN_COMMANDS: Command[] = [
         case 'list':
         case 'status': {
           ctx.onMessage({ role: 'assistant', content: '正在检查 MCP 服务器连接状态...' })
-          const statuses = await getMcpStatus(mcpServers)
+          const statuses = await getMcpStatus()
           ctx.onMessage({ role: 'assistant', content: formatMcpStatus(statuses) })
           break
         }

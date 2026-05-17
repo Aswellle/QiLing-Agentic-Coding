@@ -1,399 +1,180 @@
 /**
- * MCP (Model Context Protocol) Tool Bridge
+ * MCP Tool Bridge — Phase 5 upgrade to persistent SDK-based connections
  *
- * Connects to external MCP servers and exposes their tools as QiLing tools.
- * Supports stdio and SSE transport types.
+ * Phase 5 changes:
+ *   - Uses @modelcontextprotocol/sdk via services/mcp/manager
+ *   - Persistent connections: one Client per server, reused across calls
+ *   - Proper tool name normalization: mcp__server__tool (CC naming)
+ *   - Supports stdio, SSE, HTTP transports
+ *   - Backwards-compatible loadMcpTools() still available for startup init
  */
+
 import { z } from 'zod'
 import type { Tool, ToolResult, ToolContext, ToolDefinition } from '../types/tool'
 import { partiallySanitizeUnicode } from '../utils/sanitization'
+import { subprocessEnv } from '../utils/subprocessEnv'
+import {
+  getMcpConnection,
+  addMcpConnection,
+  getMcpTools,
+  getAllMcpTools,
+  getMcpResources,
+  getAllMcpResources,
+  initializeMcpConnections,
+  waitForMcpInit,
+} from '../services/mcp/manager'
+import { callMcpTool } from '../services/mcp/client'
+import { buildMcpToolName, isMcpTool, mcpInfoFromString } from '../services/mcp/mcpStringUtils'
+import type { McpServerConfig } from '../services/mcp/types'
 
-interface McpServerConfig {
-  name: string
-  transport: 'stdio' | 'sse'
-  command?: string    // for stdio: command to run
-  args?: string[]     // for stdio: command args
-  url?: string        // for sse: server URL
-  env?: Record<string, string>
-}
 
-interface McpToolInfo {
-  name: string
-  description: string
-  inputSchema: {
-    type: 'object'
-    properties: Record<string, unknown>
-    required?: string[]
-  }
-}
 
-export interface McpResource {
-  uri: string
-  name: string
-  description?: string
-  mimeType?: string
-}
+// Re-export for backwards compatibility
+export type { McpServerConfig }
 
-export interface McpResourceContent {
-  uri: string
-  mimeType?: string
-  text?: string
-  blob?: string
-}
+// ─── Registry shims (backwards compat) ───────────────────────────────────────
 
-interface McpClient {
-  serverName: string
-  listTools(): Promise<McpToolInfo[]>
-  callTool(name: string, args: Record<string, unknown>): Promise<{ content: Array<{ type: string; text?: string }> }>
-  listResources(): Promise<McpResource[]>
-  readResource(uri: string): Promise<McpResourceContent[]>
-  close(): Promise<void>
-}
-
-// ─── Client registry (populated by loadMcpTools) ─────────────────────────────
-const _clientRegistry = new Map<string, McpClient>()
-
-export function getRegisteredMcpClient(serverName: string): McpClient | undefined {
-  return _clientRegistry.get(serverName)
+/** Get a registered MCP client — now delegates to manager */
+export function getRegisteredMcpClient(serverName: string) {
+  return getMcpConnection(serverName)
 }
 
 export function listRegisteredMcpServers(): string[] {
-  return Array.from(_clientRegistry.keys())
+  const { getAllMcpConnections } = require('../services/mcp/manager')
+  return Array.from((getAllMcpConnections() as Map<string, unknown>).keys()) as string[]
 }
 
-/** Simple stdio MCP client using line-delimited JSON-RPC */
-class StdioMcpClient implements McpClient {
-  private proc: ReturnType<typeof Bun.spawn> | null = null
-  private nextId = 1
-  private pending = new Map<number, { resolve: (v: unknown) => void; reject: (e: Error) => void }>()
-  private buffer = ''
-  private ready = false
-  readonly serverName: string
+// ─── Tool builder (from manager connections) ──────────────────────────────────
 
-  constructor(private config: McpServerConfig) {
-    this.serverName = config.name
-  }
-
-  async connect(): Promise<void> {
-    const { command, args = [], env } = this.config
-    if (!command) throw new Error('stdio MCP requires command')
-
-    this.proc = Bun.spawn([command, ...args], {
-      env: { ...process.env, ...env },
-      stdout: 'pipe',
-      stdin: 'pipe',
-      stderr: 'pipe',
-    })
-
-    // Read stdout in background
-    this.readLoop()
-
-    // Send initialize
-    await this.request('initialize', {
-      protocolVersion: '2024-11-05',
-      capabilities: {},
-      clientInfo: { name: 'qiling', version: '0.1.0' },
-    })
-
-    // Send initialized notification
-    this.notify('notifications/initialized', {})
-    this.ready = true
-  }
-
-  private async readLoop(): Promise<void> {
-    const stdout = this.proc!.stdout as ReadableStream<Uint8Array>
-    const reader = stdout.getReader()
-    const decoder = new TextDecoder()
-
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-      this.buffer += decoder.decode(value)
-      const lines = this.buffer.split('\n')
-      this.buffer = lines.pop() ?? ''
-
-      for (const line of lines) {
-        if (!line.trim()) continue
-        try {
-          const msg = JSON.parse(line) as {
-            id?: number;
-            result?: unknown;
-            error?: { message: string };
-          }
-          if (msg.id !== undefined) {
-            const handler = this.pending.get(msg.id)
-            if (handler) {
-              this.pending.delete(msg.id)
-              if (msg.error) {
-                handler.reject(new Error(msg.error.message))
-              } else {
-                handler.resolve(msg.result)
-              }
-            }
-          }
-        } catch { /* ignore parse errors */ }
-      }
-    }
-  }
-
-  private request(method: string, params: unknown): Promise<unknown> {
-    const id = this.nextId++
-    return new Promise((resolve, reject) => {
-      this.pending.set(id, { resolve, reject })
-      const msg = JSON.stringify({ jsonrpc: '2.0', id, method, params }) + '\n'
-      const stdin = this.proc!.stdin as import('bun').FileSink
-      stdin.write(msg)
-    })
-  }
-
-  private notify(method: string, params: unknown): void {
-    const msg = JSON.stringify({ jsonrpc: '2.0', method, params }) + '\n'
-    const stdin = this.proc!.stdin as import('bun').FileSink
-    stdin.write(msg)
-  }
-
-  async listTools(): Promise<McpToolInfo[]> {
-    const result = await this.request('tools/list', {}) as { tools: McpToolInfo[] }
-    return result.tools ?? []
-  }
-
-  async callTool(name: string, args: Record<string, unknown>): Promise<{ content: Array<{ type: string; text?: string }> }> {
-    const result = await this.request('tools/call', { name, arguments: args }) as {
-      content: Array<{ type: string; text?: string }>
-    }
-    return result
-  }
-
-  async listResources(): Promise<McpResource[]> {
-    try {
-      const result = await this.request('resources/list', {}) as { resources?: McpResource[] }
-      return result.resources ?? []
-    } catch {
-      return []  // server may not support resources
-    }
-  }
-
-  async readResource(uri: string): Promise<McpResourceContent[]> {
-    const result = await this.request('resources/read', { uri }) as { contents?: McpResourceContent[] }
-    return result.contents ?? []
-  }
-
-  async close(): Promise<void> {
-    this.proc?.kill()
-  }
+/**
+ * Build QiLing Tool objects from all connected MCP servers via manager.
+ * Call after initializeMcpConnections() has resolved.
+ */
+export async function buildMcpToolsFromManager(): Promise<Tool[]> {
+  await waitForMcpInit()
+  const allToolInfos = getAllMcpTools()
+  return allToolInfos.map(info => buildSingleMcpTool(info.name, info.originalName, info.description))
 }
 
-// Module-level auth token store (per server name, set by McpAuthTool)
-const _authTokens = new Map<string, string>()
-export function setMcpAuthToken(serverName: string, token: string): void {
-  _authTokens.set(serverName, token)
-}
-export function getMcpAuthToken(serverName: string): string | undefined {
-  return _authTokens.get(serverName)
-}
+function buildSingleMcpTool(
+  toolName: string,       // normalized: mcp__server__tool
+  originalToolName: string, // server's original tool name
+  description?: string,
+): Tool<Record<string, unknown>> {
+  const info = mcpInfoFromString(toolName)
+  const serverName = info?.serverName ?? ''
 
-/** SSE-based MCP client (for HTTP server-sent events transport) */
-class SseMcpClient implements McpClient {
-  private sessionUrl: string | null = null
-  private nextId = 1
-  private config: McpServerConfig
-  readonly serverName: string
+  return {
+    name: toolName,
+    description: description ? `[MCP: ${serverName}] ${description}` : `[MCP: ${serverName}] ${toolName}`,
+    inputSchema: z.record(z.unknown()),
+    isConcurrencySafe(_input) { return true },
 
-  constructor(config: McpServerConfig) {
-    this.config = config
-    this.serverName = config.name
-  }
-
-  private authHeaders(): Record<string, string> {
-    const token = getMcpAuthToken(this.config.name)
-    return token ? { Authorization: `Bearer ${token}` } : {}
-  }
-
-  async connect(): Promise<void> {
-    // POST to /mcp endpoint to initialize session
-    const initResponse = await fetch(this.config.url!, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream', ...this.authHeaders() },
-      body: JSON.stringify({
-        jsonrpc: '2.0', id: this.nextId++, method: 'initialize',
-        params: {
-          protocolVersion: '2024-11-05',
-          capabilities: {},
-          clientInfo: { name: 'qiling', version: '0.1.0' },
-        },
-      }),
-      signal: AbortSignal.timeout(10_000),
-    })
-
-    if (!initResponse.ok) {
-      throw new Error(`MCP SSE init failed: ${initResponse.status} ${await initResponse.text()}`)
-    }
-
-    const location = initResponse.headers.get('location')
-    this.sessionUrl = location ?? this.config.url!
-
-    // Send initialized notification
-    await fetch(this.sessionUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized', params: {} }),
-    }).catch(() => {})
-  }
-
-  private async rpc(method: string, params: unknown): Promise<unknown> {
-    const id = this.nextId++
-    const response = await fetch(this.sessionUrl ?? this.config.url!, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...this.authHeaders() },
-      body: JSON.stringify({ jsonrpc: '2.0', id, method, params }),
-      signal: AbortSignal.timeout(30_000),
-    })
-
-    if (!response.ok) {
-      throw new Error(`MCP RPC failed: ${response.status}`)
-    }
-
-    const text = await response.text()
-
-    // Handle SSE-wrapped response
-    if (text.startsWith('data:')) {
-      const line = text.split('\n').find(l => l.startsWith('data:'))
-      if (line) {
-        const data = JSON.parse(line.slice(5)) as { result?: unknown; error?: { message: string } }
-        if (data.error) throw new Error(data.error.message)
-        return data.result
-      }
-    }
-
-    const data = JSON.parse(text) as { result?: unknown; error?: { message: string } }
-    if (data.error) throw new Error(data.error.message)
-    return data.result
-  }
-
-  async listTools(): Promise<McpToolInfo[]> {
-    const result = await this.rpc('tools/list', {}) as { tools: McpToolInfo[] }
-    return result.tools ?? []
-  }
-
-  async callTool(name: string, args: Record<string, unknown>): Promise<{ content: Array<{ type: string; text?: string }> }> {
-    return this.rpc('tools/call', { name, arguments: args }) as Promise<{ content: Array<{ type: string; text?: string }> }>
-  }
-
-  async listResources(): Promise<McpResource[]> {
-    try {
-      const result = await this.rpc('resources/list', {}) as { resources?: McpResource[] }
-      return result.resources ?? []
-    } catch {
-      return []
-    }
-  }
-
-  async readResource(uri: string): Promise<McpResourceContent[]> {
-    const result = await this.rpc('resources/read', { uri }) as { contents?: McpResourceContent[] }
-    return result.contents ?? []
-  }
-
-  async close(): Promise<void> {
-    // SSE sessions are closed server-side via timeout
-  }
-}
-
-/** Create QiLing Tool wrappers for all tools from an MCP server */
-export async function loadMcpTools(config: McpServerConfig): Promise<Tool[]> {
-  let client: McpClient
-
-  if (config.transport === 'stdio') {
-    const stdioClient = new StdioMcpClient(config)
-    await stdioClient.connect()
-    client = stdioClient
-  } else if (config.transport === 'sse') {
-    if (!config.url) throw new Error('SSE MCP transport requires url')
-    const sseClient = new SseMcpClient(config)
-    await sseClient.connect()
-    client = sseClient
-  } else {
-    throw new Error(`Unknown MCP transport: ${(config as { transport: string }).transport}`)
-  }
-
-  // Register client so resource tools can use it later
-  _clientRegistry.set(config.name, client)
-
-  const mcpTools = await client.listTools()
-  const qilingTools: Tool[] = []
-
-  for (const mcpTool of mcpTools) {
-    const toolName = `mcp__${config.name}__${mcpTool.name}`
-
-    const tool: Tool<Record<string, unknown>> = {
-      name: toolName,
-      description: `[MCP: ${config.name}] ${mcpTool.description}`,
-      inputSchema: z.record(z.unknown()),
-
-      async call(input: Record<string, unknown>, _ctx: ToolContext): Promise<ToolResult> {
-        try {
-          const result = await client.callTool(mcpTool.name, input)
-          const raw = result.content
-            .filter(c => c.type === 'text')
-            .map(c => c.text ?? '')
-            .join('\n')
-          // CC's sanitization: strip hidden Unicode chars from MCP output
-          // (ASCII Smuggling / Hidden Prompt Injection protection)
-          const text = partiallySanitizeUnicode(raw)
-          return { content: [{ type: 'text', text }] }
-        } catch (error) {
-          return {
-            content: [{ type: 'text', text: `MCP tool error: ${error instanceof Error ? error.message : String(error)}` }],
-            isError: true,
-          }
-        }
-      },
-
-      toDefinition(): ToolDefinition {
+    async call(input: Record<string, unknown>, _ctx: ToolContext): Promise<ToolResult> {
+      const conn = getMcpConnection(serverName)
+      if (!conn) {
         return {
-          name: toolName,
-          description: tool.description,
-          input_schema: mcpTool.inputSchema,
+          content: [{ type: 'text', text: `MCP server '${serverName}' is not connected. Run /mcp status to check.` }],
+          isError: true,
         }
-      },
-    }
+      }
 
-    qilingTools.push(tool)
+      const result = await callMcpTool(conn, toolName, originalToolName, input)
+
+      // Format result content
+      const text = result.content
+        .filter((c): c is { type: 'text'; text: string } => c.type === 'text')
+        .map(c => partiallySanitizeUnicode(c.text))
+        .join('\n')
+
+      return {
+        content: [{ type: 'text', text: text || '(no output)' }],
+        isError: result.isError,
+      }
+    },
+
+    toDefinition(): ToolDefinition {
+      return {
+        name: toolName,
+        description: description ?? toolName,
+        input_schema: {
+          type: 'object',
+          properties: {},
+          required: [],
+        },
+      }
+    },
   }
-
-  return qilingTools
 }
 
-/** Load MCP server configs from settings */
+// ─── Legacy loadMcpTools (still used by startup init) ────────────────────────
+
+interface LegacyMcpServerConfig {
+  name: string
+  transport: 'stdio' | 'sse' | 'http'
+  command?: string
+  args?: string[]
+  url?: string
+  env?: Record<string, string>
+  headers?: Record<string, string>
+}
+
+/**
+ * Connect to an MCP server and return QiLing Tool objects.
+ * Now delegates to the manager for persistent connections.
+ */
+export async function loadMcpTools(config: LegacyMcpServerConfig): Promise<Tool[]> {
+  const mcpConfig: McpServerConfig = config.command
+    ? { type: 'stdio', command: config.command, args: config.args ?? [], env: config.env }
+    : config.transport === 'http'
+      ? { type: 'http', url: config.url!, headers: config.headers }
+      : { type: 'sse', url: config.url!, headers: config.headers }
+
+  const conn = await addMcpConnection(config.name, mcpConfig)
+
+  if (conn.type !== 'connected') {
+    throw new Error(`Failed to connect to MCP server '${config.name}': ${conn.type === 'failed' ? conn.error : 'not connected'}`)
+  }
+
+  const toolInfos = getMcpTools(config.name)
+  return toolInfos.map(info => buildSingleMcpTool(info.name, info.originalName, info.description))
+}
+
+/**
+ * Load all MCP tools from settings config (called at REPL startup).
+ * Initializes the manager and returns all tools.
+ */
 export interface McpConfig {
   mcpServers?: Record<string, {
     command?: string
     args?: string[]
     url?: string
     env?: Record<string, string>
+    headers?: Record<string, string>
+    type?: 'stdio' | 'sse' | 'http'
   }>
 }
 
-export async function loadAllMcpTools(mcpConfig: McpConfig): Promise<Tool[]> {
+export async function loadAllMcpTools(mcpConfig: McpConfig, cwd?: string): Promise<Tool[]> {
   if (!mcpConfig.mcpServers) return []
 
-  const allTools: Tool[] = []
-
-  for (const [name, serverConfig] of Object.entries(mcpConfig.mcpServers)) {
-    try {
-      const transport = serverConfig.command ? 'stdio' : 'sse'
-      const tools = await loadMcpTools({
-        name,
-        transport: transport as 'stdio' | 'sse',
-        command: serverConfig.command,
-        args: serverConfig.args,
-        url: serverConfig.url,
-        env: serverConfig.env,
-      })
-      allTools.push(...tools)
-    } catch (error) {
-      console.error(`Failed to load MCP server "${name}": ${error instanceof Error ? error.message : error}`)
+  const servers: Record<string, McpServerConfig> = {}
+  for (const [name, rawConfig] of Object.entries(mcpConfig.mcpServers)) {
+    if (rawConfig.command) {
+      servers[name] = { type: 'stdio', command: rawConfig.command, args: rawConfig.args ?? [], env: rawConfig.env }
+    } else if (rawConfig.url) {
+      const type = rawConfig.type ?? 'sse'
+      servers[name] = type === 'http'
+        ? { type: 'http', url: rawConfig.url, headers: rawConfig.headers }
+        : { type: 'sse', url: rawConfig.url, headers: rawConfig.headers }
     }
   }
 
-  return allTools
+  initializeMcpConnections(servers, cwd ?? process.cwd())
+  await waitForMcpInit()
+
+  return buildMcpToolsFromManager()
 }
+
+// Re-export utilities
+export { isMcpTool, mcpInfoFromString, buildMcpToolName, getMcpResources, getAllMcpResources }

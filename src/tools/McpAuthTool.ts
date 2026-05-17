@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import type { Tool, ToolResult, ToolContext, PermissionDecision } from '../types/tool'
-import { setMcpAuthToken } from './McpTool'
+
 
 // OAuth config per server is stored in settings.mcpServers[name].oauth
 // Schema: { authorizationUrl, tokenUrl, clientId, clientSecret?, scopes?, callbackPort? }
@@ -133,7 +133,9 @@ export const McpAuthTool: Tool<Input> = {
   async call(input: Input, _ctx: ToolContext): Promise<ToolResult> {
     // ── Mode 1: Static token ────────────────────────────────────────────────
     if (input.token) {
-      setMcpAuthToken(input.server, input.token)
+      // Store token for MCP server auth
+const envKey = `QILING_MCP_TOKEN_${input.server.toUpperCase().replace(/-/g, "_")}`
+process.env[envKey] = input.token
       return {
         content: [{ type: 'text', text: `Token stored for server '${input.server}'. Reconnect to pick up the new credentials.` }],
       }
@@ -241,7 +243,9 @@ export const McpAuthTool: Tool<Input> = {
       }
     }
 
-    setMcpAuthToken(input.server, accessToken)
+    // Store OAuth token for MCP server auth
+const oauthEnvKey = `QILING_MCP_TOKEN_${input.server.toUpperCase().replace(/-/g, "_")}`
+process.env[oauthEnvKey] = accessToken
 
     return {
       content: [{

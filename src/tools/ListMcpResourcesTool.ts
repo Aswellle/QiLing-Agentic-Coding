@@ -1,6 +1,17 @@
+/**
+ * List MCP Resources — upgraded to use services/mcp/manager
+ */
+
 import { z } from 'zod'
 import type { Tool, ToolResult, ToolContext, PermissionDecision } from '../types/tool'
-import { getRegisteredMcpClient, listRegisteredMcpServers } from './McpTool'
+import {
+  getAllMcpConnections,
+  getMcpResources,
+  getAllMcpResources,
+  waitForMcpInit,
+} from '../services/mcp/manager'
+import { fetchResourcesForClient } from '../services/mcp/client'
+import type { ConnectedMCPServer } from '../services/mcp/types'
 
 const inputSchema = z.object({
   server: z.string().optional().describe(
@@ -24,29 +35,34 @@ export const ListMcpResourcesTool: Tool<Input> = {
   checkPermissions(): PermissionDecision { return { type: 'allow' } },
 
   async call(input: Input, _ctx: ToolContext): Promise<ToolResult> {
-    const servers = input.server
-      ? [input.server]
-      : listRegisteredMcpServers()
+    await waitForMcpInit()
+    const connections = getAllMcpConnections()
 
-    if (servers.length === 0) {
+    const targetServers = input.server
+      ? [input.server]
+      : Array.from(connections.keys())
+
+    if (targetServers.length === 0) {
       return {
         content: [{ type: 'text', text: 'No MCP servers connected. Configure mcpServers in .qiling/settings.json.' }],
       }
     }
 
-    const allResources: Array<{
-      server: string; uri: string; name: string; description?: string; mimeType?: string
-    }> = []
+    const allResources: Array<{ server: string; uri: string; name: string; description?: string; mimeType?: string }> = []
     const errors: string[] = []
 
-    for (const serverName of servers) {
-      const client = getRegisteredMcpClient(serverName)
-      if (!client) {
+    for (const serverName of targetServers) {
+      const conn = connections.get(serverName)
+      if (!conn || conn.type !== 'connected') {
         errors.push(`Server '${serverName}' not found or not connected`)
         continue
       }
       try {
-        const resources = await client.listResources()
+        // Use cached resources first, then fetch live
+        let resources = getMcpResources(serverName)
+        if (resources.length === 0) {
+          resources = await fetchResourcesForClient(conn as ConnectedMCPServer)
+        }
         for (const r of resources) {
           allResources.push({ server: serverName, uri: r.uri, name: r.name, description: r.description, mimeType: r.mimeType })
         }
@@ -70,13 +86,10 @@ export const ListMcpResourcesTool: Tool<Input> = {
       }
     }
     if (errors.length > 0) {
-      lines.push('', 'Errors:')
-      errors.forEach(e => lines.push(`  ✗ ${e}`))
+      lines.push('', 'Errors:', ...errors.map(e => `  ${e}`))
     }
 
-    return {
-      content: [{ type: 'text', text: lines.join('\n') + '\n\n' + JSON.stringify({ resources: allResources }) }],
-    }
+    return { content: [{ type: 'text', text: lines.join('\n') }] }
   },
 
   toDefinition() {
@@ -86,7 +99,7 @@ export const ListMcpResourcesTool: Tool<Input> = {
       input_schema: {
         type: 'object' as const,
         properties: {
-          server: { type: 'string', description: 'Filter to a specific server name (optional)' },
+          server: { type: 'string', description: 'Filter by server name (optional)' },
         },
         required: [],
       },

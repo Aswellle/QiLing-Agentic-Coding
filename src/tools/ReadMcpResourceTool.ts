@@ -1,9 +1,14 @@
+/**
+ * Read MCP Resource — upgraded to use services/mcp/manager and SDK client
+ */
+
 import { z } from 'zod'
 import path from 'path'
 import type { Tool, ToolResult, ToolContext, PermissionDecision } from '../types/tool'
-import { getRegisteredMcpClient } from './McpTool'
+import { getMcpConnection, waitForMcpInit } from '../services/mcp/manager'
+import { ReadResourceResultSchema } from '@modelcontextprotocol/sdk/types.js'
 
-const MAX_TEXT_BYTES = 100_000  // 100 KB text inline limit
+const MAX_TEXT_BYTES = 100_000
 
 const inputSchema = z.object({
   server: z.string().describe('Name of the MCP server that owns this resource'),
@@ -36,17 +41,21 @@ export const ReadMcpResourceTool: Tool<Input> = {
   checkPermissions(): PermissionDecision { return { type: 'allow' } },
 
   async call(input: Input, ctx: ToolContext): Promise<ToolResult> {
-    const client = getRegisteredMcpClient(input.server)
-    if (!client) {
+    await waitForMcpInit()
+    const conn = getMcpConnection(input.server)
+    if (!conn) {
       return {
         content: [{ type: 'text', text: `Error: MCP server '${input.server}' not found or not connected.` }],
         isError: true,
       }
     }
 
-    let contents
+    let result: Awaited<ReturnType<typeof conn.client.request>>
     try {
-      contents = await client.readResource(input.uri)
+      result = await conn.client.request(
+        { method: 'resources/read', params: { uri: input.uri } },
+        ReadResourceResultSchema,
+      )
     } catch (err) {
       return {
         content: [{ type: 'text', text: `Error reading resource: ${err instanceof Error ? err.message : String(err)}` }],
@@ -54,6 +63,7 @@ export const ReadMcpResourceTool: Tool<Input> = {
       }
     }
 
+    const contents = result.contents ?? []
     if (contents.length === 0) {
       return { content: [{ type: 'text', text: `Resource '${input.uri}' returned no content.` }] }
     }
@@ -61,32 +71,28 @@ export const ReadMcpResourceTool: Tool<Input> = {
     const parts: string[] = []
 
     for (const item of contents) {
-      if (item.text !== undefined) {
-        // Text content — inline, truncated if huge
-        const text = item.text
+      if ('text' in item && item.text !== undefined) {
+        const text = String(item.text)
         if (text.length > MAX_TEXT_BYTES) {
           parts.push(
-            `[${item.mimeType ?? 'text'} — truncated to ${MAX_TEXT_BYTES} chars]\n` +
+            `[${(item as { mimeType?: string }).mimeType ?? 'text'} — truncated to ${MAX_TEXT_BYTES} chars]\n` +
             text.slice(0, MAX_TEXT_BYTES) + '\n…'
           )
         } else {
-          parts.push(item.text)
+          parts.push(text)
         }
-      } else if (item.blob !== undefined) {
-        // Binary — save to temp file
-        const ext = inferExtension(item.mimeType)
+      } else if ('blob' in item && item.blob !== undefined) {
+        const mimeType = (item as { mimeType?: string }).mimeType
+        const ext = inferExtension(mimeType)
         const tmpPath = path.join(ctx.workingDir, `.qiling-resource-${Date.now()}${ext}`)
-        const bytes = Buffer.from(item.blob, 'base64')
+        const bytes = Buffer.from(String(item.blob), 'base64')
         await Bun.write(tmpPath, bytes)
-        parts.push(
-          `[Binary resource saved to: ${tmpPath}]\n` +
-          `Size: ${bytes.length} bytes, MIME: ${item.mimeType ?? 'unknown'}`
-        )
+        parts.push(`[Binary ${mimeType ?? 'data'} saved to: ${tmpPath}]`)
       }
     }
 
     return {
-      content: [{ type: 'text', text: parts.join('\n\n---\n\n') }],
+      content: [{ type: 'text', text: parts.join('\n\n') || `Resource '${input.uri}' returned no readable content.` }],
     }
   },
 
@@ -98,7 +104,7 @@ export const ReadMcpResourceTool: Tool<Input> = {
         type: 'object' as const,
         properties: {
           server: { type: 'string', description: 'MCP server name' },
-          uri: { type: 'string', description: 'Resource URI from ListMcpResources' },
+          uri: { type: 'string', description: 'Resource URI' },
         },
         required: ['server', 'uri'],
       },
