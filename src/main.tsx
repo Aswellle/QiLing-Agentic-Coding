@@ -218,6 +218,10 @@ program
     // --yolo and --dangerously-skip-permissions are aliases (CC pattern)
     if (options.yolo || (options as { dangerouslySkipPermissions?: boolean }).dangerouslySkipPermissions) {
       process.env.QILING_YOLO = '1'
+      // Activate auto-mode state for yoloClassifier integration
+      const { setAutoModeActive, setAutoModeFlagCli } = await import('./permissions/autoModeState')
+      setAutoModeActive(true)
+      setAutoModeFlagCli(true)
     }
     if (options.readonly) process.env.QILING_READONLY = '1'
     if (options.thinking) settings.thinkingBudget = options.thinking

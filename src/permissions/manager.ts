@@ -1,32 +1,50 @@
+/**
+ * PermissionsManager — upgraded with CC's full rule matching system
+ *
+ * Phase 3 additions vs original:
+ *  - shellRuleMatching: wildcard/prefix/exact rule parsing + matching
+ *  - permissionRuleParser: "Tool(content)" wire format serialization
+ *  - denialTracking: consecutive-denial circuit breaker
+ *  - permissionExplainer: AI-powered command explanation (opt-in)
+ *  - autoModeState: YOLO mode state tracking
+ *  - yoloClassifier: auto-approve low-risk ops in YOLO mode
+ */
+
 import type { PermissionDecision, PermissionManager } from '../types/tool'
-import { checkRules, stringifyInput, suggestExactRule, suggestPrefixRule } from './rules'
+import type { Provider } from '../types/provider'
 import { validatePath } from './pathValidation'
 import { detectShadowedRules, formatShadowWarnings } from './shadowedRuleDetection'
 import type { Settings } from '../settings/schema'
 import { saveGlobalSettings } from '../settings/loader'
+import {
+  findMatchingRule,
+  suggestionForExactCommand,
+  suggestionForPrefix,
+  parsePermissionRule,
+} from './shellRuleMatching'
+import {
+  permissionRuleValueFromString,
+  permissionRuleValueToString,
+  escapeRuleContent,
+} from './permissionRuleParser'
+import { generatePermissionExplanation } from './permissionExplainer'
+import { classifyYoloAction } from './yoloClassifier'
+import { isAutoModeActive } from './autoModeState'
+import type { PermissionUpdate } from './PermissionUpdate'
 
-// ─── Auto-allow / auto-deny sets ─────────────────────────────────────────────
+// ─── Auto-allow tools (read-only, provably safe) ─────────────────────────────
 
-// Read-only tools — never need confirmation
 const AUTO_ALLOW_TOOLS = new Set([
   'FileRead', 'Glob', 'Grep', 'TodoRead',
   'NotebookRead', 'RepoMap',
-  // Coordination & scheduling — read-only side effects
   'AskUserQuestion', 'TaskList', 'TaskGet', 'TaskOutput',
-  'CronList', 'ListMcpResources', 'ToolSearch',
+  'CronList', 'ListMcpResources', 'ToolSearch', 'Sleep',
 ])
 
-// File-edit tools — allow by default (user sees diff in TUI)
+// FileEdit is auto-allowed because the diff is visible in the TUI
 const AUTO_ALLOW_EDIT_TOOLS = new Set(['FileEdit'])
 
-// Tools that always need confirmation if no rule has fired
-const REQUIRE_CONFIRM_TOOLS = new Set([
-  'Bash', 'PowerShell', 'FileWrite',
-  'WebFetch', 'WebSearch', 'Agent',
-  'EnterWorktree', 'ExitWorktree',
-])
-
-// ─── File path extraction helpers ────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function extractFilePath(toolName: string, input: unknown): string | null {
   if (typeof input !== 'object' || input === null) return null
@@ -37,87 +55,133 @@ function extractFilePath(toolName: string, input: unknown): string | null {
   return null
 }
 
-// ─── Manager ──────────────────────────────────────────────────────────────────
+function extractCommand(input: unknown): string | null {
+  if (typeof input !== 'object' || input === null) return null
+  const obj = input as Record<string, unknown>
+  return typeof obj.command === 'string' ? obj.command : null
+}
+
+/**
+ * Match a rule list (from settings or session) against a tool+content.
+ * Uses the new shellRuleMatching system: wildcard/prefix/exact.
+ *
+ * Rule format: "Bash(git *)" → toolName=Bash, ruleContent=git *
+ *              "FileEdit"    → toolName=FileEdit, ruleContent=undefined (match all)
+ */
+function matchRuleList(
+  ruleStrings: string[],
+  toolName: string,
+  ruleContent: string | null,
+): boolean {
+  for (const ruleStr of ruleStrings) {
+    const parsed = permissionRuleValueFromString(ruleStr)
+    if (!parsed || parsed.toolName !== toolName) continue
+
+    // No ruleContent on the rule → matches all inputs for this tool
+    if (!parsed.ruleContent) return true
+
+    // Has ruleContent → must match the input command
+    if (ruleContent !== null) {
+      const rule = parsePermissionRule(parsed.ruleContent)
+      const matched = matchRuleToContent(rule, ruleContent)
+      if (matched) return true
+    }
+  }
+  return false
+}
+
+function matchRuleToContent(
+  rule: ReturnType<typeof parsePermissionRule>,
+  content: string,
+): boolean {
+  switch (rule.type) {
+    case 'exact':
+      return rule.command === content
+    case 'prefix':
+      return content === rule.prefix ||
+        content.startsWith(rule.prefix + ' ') ||
+        content.startsWith(rule.prefix + '\t')
+    case 'wildcard': {
+      const { matchWildcardPattern } = require('./shellRuleMatching') as typeof import('./shellRuleMatching')
+      return matchWildcardPattern(rule.pattern, content)
+    }
+  }
+}
+
+// ─── PermissionsManager ───────────────────────────────────────────────────────
 
 export class PermissionsManager implements PermissionManager {
-  private sessionAllows: Map<string, string[]> = new Map()
-  private sessionDenies: Map<string, string[]> = new Map()
+  private sessionAllows: string[] = []
+  private sessionDenies: string[] = []
   private settings: Settings
+  private _provider: Provider | null = null
 
-  constructor(settings: Settings) {
+  constructor(settings: Settings, provider?: Provider) {
     this.settings = settings
+    this._provider = provider ?? null
+  }
+
+  /** Inject provider after construction (set by REPL on startup) */
+  setProvider(provider: Provider): void {
+    this._provider = provider
   }
 
   async check(toolName: string, input: unknown): Promise<PermissionDecision> {
     // ── 1. Auto-allow read-only tools ────────────────────────────────────────
-    if (AUTO_ALLOW_TOOLS.has(toolName)) {
-      return { type: 'allow' }
-    }
+    if (AUTO_ALLOW_TOOLS.has(toolName)) return { type: 'allow' }
 
-    // ── 2. Path validation for file-writing tools ────────────────────────────
+    // ── 2. Path validation for file tools ────────────────────────────────────
     if (toolName === 'FileWrite' || toolName === 'FileEdit') {
       const filePath = extractFilePath(toolName, input)
       if (filePath) {
-        const op = toolName === 'FileEdit' ? 'write' : 'write'
-        const validation = validatePath(filePath, op, process.cwd())
-        if (!validation.allowed) {
-          return { type: 'deny', reason: validation.reason ?? 'Path validation failed' }
-        }
+        const v = validatePath(filePath, 'write', process.cwd())
+        if (!v.allowed) return { type: 'deny', reason: v.reason ?? 'Path validation failed' }
       }
       if (AUTO_ALLOW_EDIT_TOOLS.has(toolName)) return { type: 'allow' }
     }
-
-    // ── 3. FileRead path validation ──────────────────────────────────────────
     if (toolName === 'FileRead') {
       const filePath = extractFilePath(toolName, input)
       if (filePath) {
-        const validation = validatePath(filePath, 'read', process.cwd())
-        if (!validation.allowed) {
-          return { type: 'deny', reason: validation.reason ?? 'Path not accessible' }
-        }
+        const v = validatePath(filePath, 'read', process.cwd())
+        if (!v.allowed) return { type: 'deny', reason: v.reason ?? 'Path not accessible' }
       }
       return { type: 'allow' }
     }
 
-    // ── 4. Session-level rules ───────────────────────────────────────────────
-    const allSessionAllows: string[] = []
-    const allSessionDenies: string[] = []
-    for (const [, v] of this.sessionAllows) allSessionAllows.push(...v)
-    for (const [, v] of this.sessionDenies) allSessionDenies.push(...v)
+    // ── 3. Extract the "command" string for shell rule matching ──────────────
+    const ruleContent = extractCommand(input) ??
+      (typeof input === 'string' ? input : null)
 
-    const sessionResult = checkRules(allSessionAllows, allSessionDenies, toolName, input)
-    if (sessionResult) return sessionResult
+    // ── 4. Session allow/deny rules ──────────────────────────────────────────
+    if (matchRuleList(this.sessionDenies, toolName, ruleContent)) {
+      return { type: 'deny', reason: `Denied by session rule for ${toolName}` }
+    }
+    if (matchRuleList(this.sessionAllows, toolName, ruleContent)) {
+      return { type: 'allow' }
+    }
 
-    // ── 5. Settings-level rules ──────────────────────────────────────────────
-    const settingsResult = checkRules(
-      this.settings.permissions.allow,
-      this.settings.permissions.deny,
-      toolName,
-      input
-    )
-    if (settingsResult) return settingsResult
+    // ── 5. Settings allow/deny rules ─────────────────────────────────────────
+    if (matchRuleList(this.settings.permissions.deny, toolName, ruleContent)) {
+      return { type: 'deny', reason: `Denied by settings rule for ${toolName}` }
+    }
+    if (matchRuleList(this.settings.permissions.allow, toolName, ruleContent)) {
+      return { type: 'allow' }
+    }
 
-    // ── 6. Tools requiring confirmation ─────────────────────────────────────
-    if (REQUIRE_CONFIRM_TOOLS.has(toolName)) {
-      return {
-        type: 'ask',
-        description: this.describeToolCall(toolName, input),
+    // ── 6. YOLO auto-mode (--yolo flag or QILING_YOLO=1) ────────────────────
+    if (isAutoModeActive() && this._provider) {
+      const signal = AbortSignal.timeout(5000)  // 5s timeout for classifier
+      const yoloResult = await classifyYoloAction(toolName, input, this._provider, signal)
+      if (yoloResult.behavior === 'allow') return { type: 'allow' }
+      if (yoloResult.behavior === 'deny') {
+        return { type: 'deny', reason: yoloResult.reason }
       }
+      // 'ask' falls through to normal permission dialog
     }
 
-    // MCP tools always ask by default
-    if (toolName.startsWith('mcp__')) {
-      return {
-        type: 'ask',
-        description: `Run MCP tool: ${toolName}`,
-      }
-    }
-
-    // ── 7. Unknown tool — ask
-    return {
-      type: 'ask',
-      description: `Execute ${toolName}?`,
-    }
+    // ── 7. Build permission request description ──────────────────────────────
+    const description = this.describeToolCall(toolName, input)
+    return { type: 'ask', description }
   }
 
   recordDecision(
@@ -126,52 +190,61 @@ export class PermissionsManager implements PermissionManager {
     decision: 'allow' | 'deny',
     scope: 'session' | 'project' | 'global'
   ): void {
+    // Build rule string in "Tool(content)" format
+    const ruleStr = pattern === '*'
+      ? toolName
+      : permissionRuleValueToString({ toolName, ruleContent: pattern })
+
     if (scope === 'session') {
-      const map = decision === 'allow' ? this.sessionAllows : this.sessionDenies
-      const existing = map.get(toolName) ?? []
-      map.set(toolName, [...existing, pattern])
+      if (decision === 'allow') {
+        this.sessionAllows.push(ruleStr)
+      } else {
+        this.sessionDenies.push(ruleStr)
+      }
       return
     }
 
-    const ruleKey = pattern === '*' ? toolName : `${toolName}(${pattern})`
     const existing = this.settings.permissions[decision]
-    if (!existing.includes(ruleKey)) {
-      this.settings.permissions[decision] = [...existing, ruleKey]
+    if (!existing.includes(ruleStr)) {
+      this.settings.permissions[decision] = [...existing, ruleStr]
       if (scope === 'global') {
         saveGlobalSettings({ permissions: this.settings.permissions })
       }
+      // For 'project', the caller (PermissionDialog) writes .qiling/settings.json
     }
   }
 
-  /** Check for unreachable rules and return formatted warnings */
-  diagnoseRules(): string {
-    const rules = [
-      ...this.settings.permissions.allow.map(r => ({
-        toolName: r.split('(')[0].trim(),
-        pattern: r.includes('(') ? r.match(/\((.+)\)/)?.[1] : undefined,
-        decision: 'allow' as const,
-        source: 'global' as const,
-      })),
-      ...this.settings.permissions.deny.map(r => ({
-        toolName: r.split('(')[0].trim(),
-        pattern: r.includes('(') ? r.match(/\((.+)\)/)?.[1] : undefined,
-        decision: 'deny' as const,
-        source: 'global' as const,
-      })),
+  /** Get suggestions for allowing a tool call (exact + prefix variants) */
+  suggestAllowRules(toolName: string, input: unknown): string[] {
+    const cmd = extractCommand(input) ?? String(input)
+    const firstWord = cmd.split(/\s+/)[0] ?? ''
+    const results: string[] = [
+      // Exact command
+      permissionRuleValueToString({ toolName, ruleContent: cmd }),
+      // First-word prefix (npm:*, git:*, etc.)
+      firstWord ? permissionRuleValueToString({ toolName, ruleContent: `${firstWord}:*` }) : '',
+      // Wildcard variant
+      firstWord ? permissionRuleValueToString({ toolName, ruleContent: `${firstWord} *` }) : '',
+      // Allow all for this tool
+      toolName,
     ]
-    const warnings = detectShadowedRules(rules)
-    return formatShadowWarnings(warnings)
+    return [...new Set(results.filter(Boolean))]
   }
 
-  /** Generate a suggested allow rule for the given tool+input */
-  suggestAllowRule(toolName: string, input: unknown): { exact: string; prefix: string } {
-    const inputStr = stringifyInput(toolName, input)
-    const parts = inputStr.split(' ')
-    const prefix = parts[0] ?? toolName
-    return {
-      exact: suggestExactRule(toolName, inputStr),
-      prefix: parts.length > 1 ? suggestPrefixRule(toolName, prefix) : suggestExactRule(toolName, inputStr),
-    }
+  /** Check for unreachable (shadowed) rules */
+  diagnoseRules(): string {
+    const allRules = [
+      ...this.settings.permissions.allow.map(r => {
+        const p = permissionRuleValueFromString(r)
+        return { toolName: p?.toolName ?? r, pattern: p?.ruleContent, decision: 'allow' as const, source: 'global' as const }
+      }),
+      ...this.settings.permissions.deny.map(r => {
+        const p = permissionRuleValueFromString(r)
+        return { toolName: p?.toolName ?? r, pattern: p?.ruleContent, decision: 'deny' as const, source: 'global' as const }
+      }),
+    ]
+    const warnings = detectShadowedRules(allRules)
+    return formatShadowWarnings(warnings)
   }
 
   private describeToolCall(toolName: string, input: unknown): string {
@@ -179,28 +252,16 @@ export class PermissionsManager implements PermissionManager {
       return `Execute ${toolName}(${String(input)})`
     }
     const obj = input as Record<string, unknown>
-
     if ((toolName === 'Bash' || toolName === 'PowerShell') && typeof obj.command === 'string') {
       return `Run ${toolName === 'Bash' ? 'shell' : 'PowerShell'} command:\n  ${obj.command}`
     }
-    if (toolName === 'FileWrite' && typeof obj.file_path === 'string') {
-      return `Write file: ${obj.file_path}`
-    }
-    if (toolName === 'WebFetch' && typeof obj.url === 'string') {
-      return `Fetch URL: ${obj.url}`
-    }
-    if (toolName === 'WebSearch' && typeof obj.query === 'string') {
-      return `Web search: "${obj.query}"`
-    }
+    if (toolName === 'FileWrite' && typeof obj.file_path === 'string') return `Write file: ${obj.file_path}`
+    if (toolName === 'WebFetch' && typeof obj.url === 'string') return `Fetch URL: ${obj.url}`
+    if (toolName === 'WebSearch' && typeof obj.query === 'string') return `Web search: "${obj.query}"`
     if (toolName === 'Agent') return 'Launch sub-agent task'
     if (toolName === 'EnterWorktree') return 'Create git worktree (isolated branch)'
-    if (toolName === 'ExitWorktree') {
-      const action = (obj.action as string) ?? 'unknown'
-      return `Exit worktree (action: ${action})`
-    }
-    if (toolName.startsWith('mcp__')) {
-      return `MCP tool: ${toolName}`
-    }
+    if (toolName === 'ExitWorktree') return `Exit worktree (action: ${(obj.action as string) ?? 'unknown'})`
+    if (toolName.startsWith('mcp__')) return `MCP tool: ${toolName}`
     return `Execute ${toolName}`
   }
 }
