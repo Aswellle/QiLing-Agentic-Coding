@@ -50,14 +50,14 @@
 ### 🟡 P1 — 中高价值、应实现
 
 - ✅ **`sideQuery.ts`** — 轻量级 AI 查询（不经过完整 runQuery 循环），权限解释器等依赖 | `src/utils/sideQuery.ts` | CC: `utils/sideQuery.ts` | M
-- [ ] **`collapseReadSearch.ts`** — 读取/搜索工具调用折叠逻辑（减少噪音） | `src/utils/collapseReadSearch.ts` | CC: `utils/collapseReadSearch.ts` | M
+- ✅ **`collapseReadSearch.ts`** — 读取/搜索工具调用折叠逻辑（减少噪音） | `src/utils/collapseReadSearch.ts` | CC: `utils/collapseReadSearch.ts` | M
 - ✅ **`tokenEstimation.ts`** — 精确 token 数估算（roughTokenCountEstimation） | `src/services/tokenEstimation.ts` | CC: `services/tokenEstimation.ts` | S
-- [ ] **`sessionStorage.ts`** — 会话元数据持久化（会话名、transcript 路径、agent color 等） | `src/utils/sessionStorage.ts` | CC: `utils/sessionStorage.ts` | M
-- [ ] **`sessionActivity.ts`** — 会话活动追踪（并发会话检测） | `src/utils/sessionActivity.ts` | CC: `utils/sessionActivity.ts` | S
-- [ ] **Tool formatters** — LSPTool formatters.ts (诊断格式化) + symbolContext | `src/tools/LSPTool/` | CC: `tools/LSPTool/` | M
-- [ ] **`/summary` 命令升级** — 使用 SessionMemory 的最新状态作为摘要来源 | `src/commands/index.ts` | CC: `commands/summary/` | S
-- [ ] **`/share` 命令** — 会话内容分享功能 | `src/commands/index.ts` | CC: `commands/share/` | S
-- [ ] **PromptSuggestion 简化版** — 每轮结束后预测用户下一条指令 | `src/services/PromptSuggestion/` | CC: `services/PromptSuggestion/` | M
+- ✅ **`sessionStorage.ts`** — 会话元数据持久化（会话名、transcript 路径、agent color 等） | `src/utils/sessionStorage.ts` | CC: `utils/sessionStorage.ts` | M
+- ✅ **`sessionActivity.ts`** (由 sessionStorage.ts 覆盖) — 会话活动追踪（并发会话检测） | `src/utils/sessionActivity.ts` | CC: `utils/sessionActivity.ts` | S
+- ✅ **Tool formatters** (LSPTool/formatters.ts) — LSPTool formatters.ts (诊断格式化) + symbolContext | `src/tools/LSPTool/` | CC: `tools/LSPTool/` | M
+- ✅ **`/summary` 命令升级** (已集成 SessionMemory) — 使用 SessionMemory 的最新状态作为摘要来源 | `src/commands/index.ts` | CC: `commands/summary/` | S
+- ✅ **`/share` 命令** — 会话内容分享功能 | `src/commands/index.ts` | CC: `commands/share/` | S
+- ✅ **PromptSuggestion 简化版** — 每轮结束后预测用户下一条指令 | `src/services/PromptSuggestion/` | CC: `services/PromptSuggestion/` | M
 - ✅ **GrepTool gitignore 集成** (ripgrep 原生支持，无需额外集成) — 搜索时跳过 .gitignore 的文件 | `src/tools/GrepTool.ts` | CC: `utils/git/gitignore.ts` 集成 | S
 
 ### 🟢 P2 — 中等价值、有时间则实现
@@ -67,7 +67,7 @@
 - [ ] **autoDream 服务** — 自动运行后台任务 | `src/services/autoDream/` | CC: `services/autoDream/` | L
 - [ ] **BriefTool 改进** — Brief 工具增强（attachment 上传） | `src/tools/BriefTool.ts` | CC: `tools/BriefTool/` | M
 - [ ] **ripgrep 集成优化** — 使用 Bun 内建 ripgrep | `src/tools/GrepTool.ts` | CC: `utils/ripgrep.ts` | M
-- [ ] **`/branch` 命令** — git branch 管理 | `src/commands/index.ts` | CC: `commands/branch/` | S
+- ✅ **`/branch` 命令** — git branch 管理 | `src/commands/index.ts` | CC: `commands/branch/` | S
 
 ### ⚫ 已知风险/依赖 & 跳过项
 

@@ -1305,6 +1305,119 @@ export const BUILTIN_COMMANDS: Command[] = [
     },
   },
 
+  // ─── CC-aligned: /branch ─────────────────────────────────────────────────────
+  {
+    name: '/branch',
+    description: '创建 git 分支并切换（/branch <名称>）',
+    async execute(args, ctx) {
+      const { getBranch } = require('../utils/git') as typeof import('../utils/git')
+      const trimmed = args.trim()
+
+      if (!trimmed) {
+        const current = await getBranch(ctx.workingDir).catch(() => 'unknown')
+        ctx.onMessage({
+          role: 'assistant',
+          content: `当前分支: **${current}**\n\n用法: /branch <分支名>  — 创建并切换到新分支`,
+        })
+        return
+      }
+
+      try {
+        const { Bun } = globalThis as { Bun?: { spawn: (args: string[], opts: Record<string, unknown>) => { exited: Promise<number>; exitCode: number | null } } }
+        if (!Bun) { ctx.onMessage({ role: 'assistant', content: '需要 Bun 运行时' }); return }
+
+        const proc = Bun.spawn(['git', 'checkout', '-b', trimmed], {
+          cwd: ctx.workingDir, stdout: 'pipe', stderr: 'pipe',
+        })
+        await proc.exited
+        if (proc.exitCode === 0) {
+          ctx.onMessage({ role: 'assistant', content: `✓ 已创建并切换到分支 **${trimmed}**` })
+        } else {
+          // Try switching to existing branch
+          const proc2 = Bun.spawn(['git', 'checkout', trimmed], {
+            cwd: ctx.workingDir, stdout: 'pipe', stderr: 'pipe',
+          })
+          await proc2.exited
+          if (proc2.exitCode === 0) {
+            ctx.onMessage({ role: 'assistant', content: `✓ 已切换到分支 **${trimmed}**` })
+          } else {
+            ctx.onMessage({ role: 'assistant', content: `✗ 分支操作失败。请检查分支名是否合法。` })
+          }
+        }
+      } catch (e) {
+        ctx.onMessage({ role: 'assistant', content: `✗ 错误: ${e instanceof Error ? e.message : String(e)}` })
+      }
+    },
+  },
+
+  // ─── CC-aligned: /share ──────────────────────────────────────────────────────
+  {
+    name: '/share',
+    description: '以 Markdown 格式分享当前对话（复制到剪贴板或导出到文件）',
+    async execute(args, ctx) {
+      const trimmed = args.trim()
+      const visibleMsgs = ctx.messages.filter(m => !(m as Message & { isMeta?: boolean }).isMeta)
+
+      // Build markdown
+      const lines = [
+        '# QiLing 对话分享',
+        `> 导出时间: ${new Date().toLocaleString()}`,
+        '',
+      ]
+
+      for (const msg of visibleMsgs) {
+        const role = msg.role === 'user' ? '**用户**' : '**助手**'
+        const content = typeof msg.content === 'string'
+          ? msg.content
+          : Array.isArray(msg.content)
+            ? (msg.content as Array<{ type: string; text?: string }>)
+                .filter(b => b.type === 'text').map(b => b.text ?? '').join('\n')
+            : ''
+        if (content.trim()) {
+          lines.push(`## ${role}`, '', content.trim(), '')
+        }
+      }
+
+      const markdown = lines.join('\n')
+
+      if (trimmed) {
+        // Export to file
+        const filepath = trimmed.endsWith('.md') ? trimmed : trimmed + '.md'
+        const abs = filepath.startsWith('/') || /^[A-Za-z]:/.test(filepath)
+          ? filepath
+          : joinPath(ctx.workingDir, filepath)
+        try {
+          writeFileSync(abs, markdown, 'utf-8')
+          ctx.onMessage({ role: 'assistant', content: `✓ 对话已导出到: ${abs}` })
+        } catch (e) {
+          ctx.onMessage({ role: 'assistant', content: `✗ 导出失败: ${e instanceof Error ? e.message : String(e)}` })
+        }
+        return
+      }
+
+      // Copy to clipboard
+      try {
+        const clipCmd = process.platform === 'darwin' ? 'pbcopy'
+          : process.platform === 'win32' ? 'clip'
+          : 'xclip -selection clipboard'
+
+        const proc = Bun.spawn(clipCmd.split(' '), {
+          stdin: 'pipe', stdout: 'pipe', stderr: 'pipe',
+        })
+        proc.stdin.write(markdown)
+        await proc.stdin.end()
+        await proc.exited
+        ctx.onMessage({ role: 'assistant', content: `✓ 对话 Markdown 已复制到剪贴板（${visibleMsgs.length} 条消息）` })
+      } catch {
+        // Fallback: show a snippet
+        ctx.onMessage({
+          role: 'assistant',
+          content: `对话 Markdown 预览（${visibleMsgs.length} 条消息）：\n\n\`\`\`markdown\n${markdown.slice(0, 500)}${markdown.length > 500 ? '\n...' : ''}\n\`\`\`\n\n使用 /share <文件名.md> 导出完整内容。`,
+        })
+      }
+    },
+  },
+
   // ─── 宠物伙伴系统: /buddy ────────────────────────────────────────────────────
   {
     name: '/buddy',
