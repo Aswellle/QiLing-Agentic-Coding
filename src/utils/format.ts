@@ -166,3 +166,37 @@ export function formatResetText(
   const dt = new Date(resetsAt)
   return formatResetTime(Math.floor(dt.getTime() / 1000), showTimezone, showTime) ?? resetsAt
 }
+
+/**
+ * Format session log metadata for /history command display.
+ * Ported from CC's utils/format.ts formatLogMetadata().
+ */
+export function formatLogMetadata(log: {
+  modified: Date
+  messageCount: number
+  fileSize?: number
+  gitBranch?: string
+  tag?: string
+  agentSetting?: string
+  prNumber?: number
+  prRepository?: string
+}): string {
+  const sizeOrCount = log.fileSize !== undefined
+    ? formatFileSize(log.fileSize)
+    : `${log.messageCount} messages`
+
+  const parts = [
+    formatRelativeTimeAgo(log.modified, { style: 'short' }),
+    ...(log.gitBranch ? [log.gitBranch] : []),
+    sizeOrCount,
+  ]
+
+  if (log.tag) parts.push(`#${log.tag}`)
+  if (log.agentSetting) parts.push(`@${log.agentSetting}`)
+  if (log.prNumber) {
+    const repo = log.prRepository ? `${log.prRepository}#${log.prNumber}` : `#${log.prNumber}`
+    parts.push(repo)
+  }
+
+  return parts.filter(Boolean).join(' · ')
+}
