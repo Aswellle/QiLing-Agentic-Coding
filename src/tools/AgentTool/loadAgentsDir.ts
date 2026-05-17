@@ -19,12 +19,18 @@ import type { BuiltInAgent } from './builtInAgents'
 
 const AGENTS_SUBDIR = 'agents'
 
-export type AgentSource = 'project' | 'user' | 'built-in'
+export type AgentSource = 'project' | 'user' | 'built-in' | 'plugin'
 
 export interface CustomAgent extends BuiltInAgent {
   source: AgentSource
   filePath: string
 }
+
+/**
+ * Unified agent definition type — covers both custom (disk) and built-in agents.
+ * For built-in agents, source is 'built-in' and filePath is undefined.
+ */
+export type AgentDefinition = CustomAgent | (BuiltInAgent & { source: 'built-in'; filePath?: undefined })
 
 function parseMarkdownAgent(filePath: string, content: string, source: AgentSource): CustomAgent | null {
   try {

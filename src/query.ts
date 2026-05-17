@@ -828,6 +828,20 @@ export async function runQuery(
     lastTransition = { reason: 'next_turn' }
   }
 
+  // ── Auto-memory extraction (fire-and-forget, CC's extractMemories pattern) ──
+  // Runs after Stop hooks; non-blocking so it doesn't delay the response.
+  if (!signal?.aborted && options.workingDir && finalStopReason !== 'aborted') {
+    void import('./services/extractMemories').then(({ maybeExtractMemories }) => {
+      return maybeExtractMemories(
+        workingMessages,
+        provider,
+        options.workingDir!,
+        options.memorySettings as { autoMemoryEnabled?: boolean } | undefined,
+        signal,
+      )
+    }).catch(() => { /* non-fatal */ })
+  }
+
   return { messages: workingMessages, usage: totalUsage, stopReason: finalStopReason, rounds }
 }
 

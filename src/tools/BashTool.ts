@@ -19,6 +19,9 @@ import { classifyBashCommand } from '../permissions/classifier'
 import { EndTruncatingAccumulator } from '../utils/stringUtils'
 import { subprocessEnv } from '../utils/subprocessEnv'
 import { getDestructiveCommandWarning } from './BashTool/destructiveCommandWarning'
+import { bashCommandIsSafe } from './BashTool/bashSecurity'
+import { checkSedSecurity } from './BashTool/sedValidation'
+import { interpretCommandResult } from './BashTool/commandSemantics'
 
 // ─── Timeout constants (mirrors CC's utils/timeouts.ts) ───────────────────────
 const DEFAULT_TIMEOUT_MS = parseInt(process.env.BASH_DEFAULT_TIMEOUT_MS ?? '', 10) || 120_000
@@ -120,6 +123,22 @@ IMPORTANT: Avoid using this tool to run \`find\`, \`grep\`, \`cat\`, \`head\`, \
   inputSchema,
 
   checkPermissions(input: Input): PermissionDecision {
+    // Step 1: CC-aligned bash security check (injection, Zsh attacks, dangerous patterns)
+    const secResult = bashCommandIsSafe(input.command)
+    if (secResult.behavior === 'deny') {
+      return { type: 'deny', reason: `🚫 安全拒绝: ${secResult.message ?? '危险命令模式'}` }
+    }
+    if (secResult.behavior === 'ask' && secResult.message) {
+      return { type: 'ask', description: `⚠️  ${secResult.message}\n\n  ${input.command}` }
+    }
+
+    // Step 2: sed-specific security check
+    const sedResult = checkSedSecurity(input.command)
+    if (!sedResult.allowed) {
+      return { type: 'ask', description: `⚠️  ${sedResult.reason}\n\n  ${input.command}` }
+    }
+
+    // Step 3: existing risk classifier + destructive warning
     const { level, reason } = classifyBashCommand(input.command)
     if (level === 'safe') return { type: 'allow' }
     const prefix = level === 'high' ? '🔴 高风险' : level === 'medium' ? '🟡 中等风险' : '🟢 低风险'

@@ -2,7 +2,7 @@ import type { Message, ContentBlock } from '../types/message'
 import type { Provider } from '../types/provider'
 import type { PermissionManager } from '../types/tool'
 import { runQuery } from '../query'
-import { resetContextCaches } from '../context'
+import { runPostCompactCleanup, registerMicrocompactReset } from './postCompactCleanup'
 
 export interface CompactResult {
   messages: Message[]
@@ -81,6 +81,21 @@ let _lastAssistantResponseTime = Date.now()
 export function recordAssistantResponseTime(): void {
   _lastAssistantResponseTime = Date.now()
 }
+
+/**
+ * Reset microcompact tracking state after compaction.
+ * Registered with postCompactCleanup so it can be called centrally
+ * without creating a circular import (postCompactCleanup ← engine).
+ */
+function resetMicrocompactState(): void {
+  // QiLing's microcompact is purely time-based: _lastAssistantResponseTime
+  // determines whether cache has expired. After a full compact, reset it
+  // to "now" so the next turn starts fresh (not treated as cache-expired).
+  _lastAssistantResponseTime = Date.now()
+}
+
+// Register the reset function on module load so postCompactCleanup can call it.
+registerMicrocompactReset(resetMicrocompactState)
 
 function isCacheExpired(): boolean {
   const gapMs = Date.now() - _lastAssistantResponseTime
@@ -271,9 +286,9 @@ export async function compactConversation(
 
   onProgress?.(`✓ 压缩完成：${originalCount} 条消息 → ${compactedMessages.length} 条`)
 
-  // CC's postCompactCleanup: reset getUserContext/getSystemContext caches
+  // CC's runPostCompactCleanup: reset microcompact state + context caches
   // so next turn picks up fresh CLAUDE.md and git status after compaction.
-  resetContextCaches()
+  runPostCompactCleanup('repl_main_thread')
 
   return {
     messages: compactedMessages,

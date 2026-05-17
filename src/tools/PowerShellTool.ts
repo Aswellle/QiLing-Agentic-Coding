@@ -1,8 +1,10 @@
 import { z } from 'zod'
 import type { Tool, ToolResult, ToolContext, ToolDefinition, PermissionDecision } from '../types/tool'
 import { EndTruncatingAccumulator } from '../utils/stringUtils'
+import { parsePowerShellCommand } from '../utils/powershell/parser'
 import { getDestructiveCommandWarningPS } from './PowerShellTool/destructiveCommandWarning'
 import { commandWritesToGitInternalPath } from './PowerShellTool/gitSafety'
+import { powershellCommandIsSafe } from './PowerShellTool/powershellSecurity'
 
 const DEFAULT_PS_TIMEOUT_MS = parseInt(process.env.BASH_DEFAULT_TIMEOUT_MS ?? '', 10) || 120_000
 const MAX_PS_TIMEOUT_MS = parseInt(process.env.BASH_MAX_TIMEOUT_MS ?? '', 10) || 600_000
@@ -43,17 +45,16 @@ export const PowerShellTool: Tool<Input> = {
     '  - Never skip hooks (--no-verify) unless the user has explicitly asked for it.\n',
   inputSchema,
 
-  checkPermissions(input: Input, context?: { workingDir?: string }): PermissionDecision {
-    const cwd = context?.workingDir ?? process.cwd()
-
-    // Security: block attempts to write to git-internal paths (bare-repo hook attack)
-    if (commandWritesToGitInternalPath(input.command, cwd)) {
+  async checkPermissions(input: Input): Promise<PermissionDecision> {
+    // Step 1: Git-internal-path write guard (fast heuristic, no parse needed)
+    if (commandWritesToGitInternalPath(input.command)) {
       return {
         type: 'deny',
         reason: 'Security: command attempts to write to git-internal paths (.git/hooks, HEAD, refs, objects). This pattern is used in bare-repo sandbox escape attacks.',
       }
     }
 
+    // Step 2: Destructive command warning (fast regex, no parse needed)
     const destructiveWarning = getDestructiveCommandWarningPS(input.command)
     if (destructiveWarning) {
       return {
@@ -61,6 +62,25 @@ export const PowerShellTool: Tool<Input> = {
         description: `⚠️  ${destructiveWarning}\n\nRun PowerShell command:\n  ${input.command}`,
       }
     }
+
+    // Step 3: Full AST-based security analysis via powershellCommandIsSafe().
+    // Parse the command once and run all AST-based security validators.
+    // This catches: Invoke-Expression, encoded commands, download cradles,
+    // script block injection, subexpressions, splatting, member invocations,
+    // CLM type violations, WMI process spawn, scheduled tasks, etc.
+    try {
+      const parsed = await parsePowerShellCommand(input.command)
+      const safetyResult = powershellCommandIsSafe(input.command, parsed)
+      if (safetyResult.behavior === 'ask' && safetyResult.message) {
+        return {
+          type: 'ask',
+          description: `⚠️  ${safetyResult.message}\n\nRun PowerShell command:\n  ${input.command}`,
+        }
+      }
+    } catch {
+      // Parser unavailable (pwsh not installed) — fall through to generic ask
+    }
+
     return { type: 'ask', description: `Run PowerShell command:\n  ${input.command}` }
   },
 
