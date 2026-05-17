@@ -1,6 +1,6 @@
 {
   "name": "qiling",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "启灵 (QiLing) — AI Programming Agent for the terminal",
   "bin": {
     "qiling": "./src/main.tsx"
