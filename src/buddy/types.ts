@@ -11,13 +11,13 @@ export const RARITIES = [
 ] as const
 export type Rarity = (typeof RARITIES)[number]
 
-// CC 原有 18 种 + QiLing 新增 2 种植物宠物 (sprout, fern)
+// CC 原有 18 种 + QiLing 新增 5 种植物宠物 (sprout, fern, sunflower, chrysanthemum, peony)
 export const SPECIES = [
   'duck', 'goose', 'blob', 'cat', 'dragon', 'octopus', 'owl',
   'penguin', 'turtle', 'snail', 'ghost', 'axolotl', 'capybara',
   'cactus', 'robot', 'rabbit', 'mushroom', 'chonk',
   // QiLing 原创植物系
-  'sprout', 'fern',
+  'sprout', 'fern', 'sunflower', 'chrysanthemum', 'peony',
 ] as const
 export type Species = (typeof SPECIES)[number]
 
@@ -82,8 +82,11 @@ export const RARITY_COLORS: Record<Rarity, string> = {
   legendary: 'warning',
 }
 
-// 植物系宠物特殊颜色提示
-export const PLANT_SPECIES: Set<Species> = new Set(['sprout', 'fern', 'cactus', 'mushroom'])
+// 植物系宠物特殊颜色提示（渲染时使用绿色/花色）
+export const PLANT_SPECIES: Set<Species> = new Set([
+  'sprout', 'fern', 'cactus', 'mushroom',
+  'sunflower', 'chrysanthemum', 'peony',
+])
 
 export function isPlantSpecies(s: Species): boolean {
   return PLANT_SPECIES.has(s)

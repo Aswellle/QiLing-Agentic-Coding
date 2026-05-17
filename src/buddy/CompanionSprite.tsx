@@ -14,8 +14,33 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Box, Text } from 'ink'
 import { useTheme } from '../utils/themeContext'
 import { renderSprite, spriteFrameCount, renderFace } from './sprites'
-import { RARITY_COLORS, RARITY_STARS, isPlantSpecies } from './types'
-import type { Companion } from './types'
+import { RARITY_COLORS, RARITY_STARS } from './types'
+import type { Companion, Species } from './types'
+import type { Theme } from '../utils/theme'
+
+/** 每种植物宠物的专属体色，让花卉更形象 */
+function getSpeciesColor(species: Species, theme: Theme): string {
+  switch (species) {
+    // 绿色系（茎叶）
+    case 'sprout':
+    case 'fern':
+    case 'cactus':
+    case 'mushroom':
+      return theme.success
+    // 向日葵 — 明黄
+    case 'sunflower':
+      return theme.warning
+    // 菊花 — 淡紫/建议色（菊花有白、黄、紫多色，这里取清雅紫调）
+    case 'chrysanthemum':
+      return theme.suggestion
+    // 牡丹 — 富贵红
+    case 'peony':
+      return theme.error
+    // 非植物系：用稀有度颜色
+    default:
+      return ''  // 空 = 调用方使用 rarityColor
+  }
+}
 
 const TICK_MS = 500
 const BUBBLE_SHOW = 20   // ticks ≈ 10s
@@ -129,9 +154,9 @@ export function CompanionSprite({ companion, reaction, petAt, muted }: Props) {
   const rarityColorKey = RARITY_COLORS[companion.rarity]
   const rarityColor: string = (theme as Record<string, string>)[rarityColorKey] ?? theme.inactive
 
-  // 植物宠物用绿色调
-  const isPlant = isPlantSpecies(companion.species)
-  const spriteColor = isPlant ? theme.success : rarityColor
+  // 按物种选色：花卉各有专属色，其他物种用稀有度色
+  const speciesColor = getSpeciesColor(companion.species, theme)
+  const spriteColor = speciesColor || rarityColor
 
   return (
     <Box flexDirection="column" alignItems="flex-start">

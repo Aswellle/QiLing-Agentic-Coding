@@ -1250,7 +1250,7 @@ export const BUILTIN_COMMANDS: Command[] = [
               '运行 `/buddy hatch` 孵化你的专属宠物。',
               '每个用户的宠物由账号唯一确定，不同稀有度（common → legendary）随机抽取。',
               '',
-              '植物系宠物（sprout/fern/cactus/mushroom）有特殊外观和性格！',
+              '植物系宠物（向日葵/菊花/牡丹/幼苗/蕨草/仙人掌/蘑菇）有专属颜色和性格！',
             ].join('\n'),
           })
           return
@@ -1317,10 +1317,13 @@ export const BUILTIN_COMMANDS: Command[] = [
 
         // AI 响应解析失败时的降级
         const fallbackSouls: Record<string, { name: string; personality: string }> = {
-          sprout: { name: '豆芽', personality: '刚刚破土而出，对世界充满好奇，遇到代码问题会努力"生长"寻找答案。' },
-          fern:   { name: '绿茵', personality: '古老的智慧储存在每一片蕨叶里，沉默地观察着一切，偶尔低语。' },
-          cactus: { name: '刺刺', personality: '外表刚硬内心柔软，在沙漠般的 debug 中顽强存活，靠代码为生。' },
-          mushroom: { name: '蘑蘑', personality: '靠着腐烂的 bug 茁壮成长，对错误的嗅觉极其灵敏。' },
+          sprout:        { name: '豆芽',   personality: '刚刚破土而出，对世界充满好奇，遇到代码问题会努力"生长"寻找答案。' },
+          fern:          { name: '绿茵',   personality: '古老的智慧储存在每一片蕨叶里，沉默地观察着一切，偶尔低语。' },
+          cactus:        { name: '刺刺',   personality: '外表刚硬内心柔软，在沙漠般的 debug 中顽强存活，靠代码为生。' },
+          mushroom:      { name: '蘑蘑',   personality: '靠着腐烂的 bug 茁壮成长，对错误的嗅觉极其灵敏。' },
+          sunflower:     { name: '向阳',   personality: '永远追着光源转动，CHAOS 值爆表，热情得让旁边的代码都加速运行。' },
+          chrysanthemum: { name: '霜菊',   personality: '霜中独开，在别人 bug 满天飞时依然淡定，PATIENCE 的具象化。' },
+          peony:         { name: '国色',   personality: '花中之王，天生自带王者气场，对烂代码略带不屑，但依然优雅地帮你修好。' },
         }
         const fallback = fallbackSouls[bones.species] ?? { name: '小伙伴', personality: '默默陪伴着你的编程之旅。' }
         saveCompanion(fallback)
@@ -1424,7 +1427,9 @@ export const BUILTIN_COMMANDS: Command[] = [
           '  `/buddy release` — 放走当前宠物',
           '',
           '**物种稀有度:** common ★ → uncommon ★★ → rare ★★★ → epic ★★★★ → legendary ★★★★★',
-          '**植物系宠物（QiLing 原创）:** sprout 幼苗 🌱  fern 蕨草 🌿',
+          '**QiLing 原创植物系:**',
+          '  🌱 sprout 幼苗（绿）  🌿 fern 蕨草（绿）  🌵 cactus 仙人掌（绿）  🍄 mushroom 蘑菇（绿）',
+          '  🌻 sunflower 向日葵（黄）  🌸 chrysanthemum 菊花（紫）  🌹 peony 牡丹（红）',
         ].join('\n'),
       })
     },
