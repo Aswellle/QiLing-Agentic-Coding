@@ -101,6 +101,12 @@ export const settingsSchema = z.object({
   // Fast mode — use a faster/cheaper model for quick queries
   fastMode: z.boolean().optional().default(false),
 
+  // TLS CA certificate path — sets NODE_EXTRA_CA_CERTS for corporate TLS proxies
+  // Equivalent to CC's settings.json "httpProxy.extraCACerts" field
+  // Enterprise users behind TLS-intercepting firewalls (Zscaler, etc.) set this
+  // to their CA bundle path to avoid SSL certificate errors
+  extraCACerts: z.string().optional(),
+
   // Internal — used by /fast to restore the original model when toggling off
   _originalModel: z.string().optional(),
 
