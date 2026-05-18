@@ -26,6 +26,7 @@ function findSimilarFile(filePath: string): string | undefined {
 }
 import { resolve } from 'path'
 import type { Tool, ToolResult, ToolContext, ToolDefinition } from '../types/tool'
+import { hasBinaryExtension, isBinaryContent } from '../constants/files'
 
 const inputSchema = z.object({
   file_path: z.string().describe('The absolute path to the file to read'),
@@ -271,6 +272,14 @@ Usage:
       const data = headerBuf.toString('base64')
       return {
         content: [{ type: 'text', text: `[Image: ${input.file_path}]\nbase64:${detected.mime}:${data}` }],
+      }
+    }
+
+    // Reject binary files that aren't images or PDFs
+    if (hasBinaryExtension(filePath) || isBinaryContent(headerBuf)) {
+      return {
+        content: [{ type: 'text', text: `Cannot read binary file: ${input.file_path}\nThis file appears to be binary and cannot be displayed as text.` }],
+        isError: true,
       }
     }
 
