@@ -3,6 +3,7 @@ import { Box, Text } from 'ink'
 import figlet from 'figlet'
 import gradient from 'gradient-string'
 import type { ProviderConfig } from '../types/provider'
+import { refreshExampleCommands, getExampleCommandFromCache } from '../utils/exampleCommands'
 
 // ── Spring Green Palette ────────────────────────────────────────────────────
 // 从嫩芽浅绿 → 春日翠绿 → 深林墨绿，象征春意盎然、灵感迸发
@@ -88,11 +89,23 @@ interface Props {
 export function StartupBanner({ version, provider, workingDir }: Props) {
   const [frameIdx, setFrameIdx] = useState(0)
   const [logoLines, setLogoLines] = useState<string[]>([])
+  const [exampleHint, setExampleHint] = useState<string>('')
 
   // 应用渐变色（在第一次渲染后异步处理，避免阻塞）
   useEffect(() => {
     setLogoLines(applyLogoGradient(RAW_LOGO))
   }, [])
+
+  // 预热 example commands 缓存（后台异步，不阻塞启动）
+  useEffect(() => {
+    refreshExampleCommands(workingDir)
+    // 短暂延迟后尝试获取个性化提示
+    const t = setTimeout(() => {
+      const hint = getExampleCommandFromCache(workingDir)
+      if (hint) setExampleHint(hint)
+    }, 300)
+    return () => clearTimeout(t)
+  }, [workingDir])
 
   // 逐帧展开动画
   useEffect(() => {
@@ -209,6 +222,11 @@ export function StartupBanner({ version, provider, workingDir }: Props) {
                 {'Tab 补全  ·  Esc Vim  ·  ! Shell  ·  /help 查看全部  ·  ✦ 万物皆可启灵'}
               </Text>
             </Box>
+            {exampleHint && (
+              <Box marginTop={0} paddingLeft={1}>
+                <Text color={SPRING_COLORS.forest} dimColor>{exampleHint}</Text>
+              </Box>
+            )}
           </>
         )}
 
