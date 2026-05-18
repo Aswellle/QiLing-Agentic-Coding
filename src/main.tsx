@@ -223,6 +223,20 @@ program
       ...settingsOverrides,
     })
 
+    // ─── Enterprise TLS: apply NODE_EXTRA_CA_CERTS before any TLS connections ──
+    // Must happen after loadSettings() and before createProvider() / preconnect.
+    if (settings.extraCACerts) {
+      const { applyExtraCACertsFromConfig } = await import('./utils/caCertsConfig')
+      applyExtraCACertsFromConfig(settings.extraCACerts)
+    }
+
+    // ─── API preconnect: overlap TCP+TLS handshake with init work ────────────
+    // Fire-and-forget — failure is silently ignored; real request handles it.
+    if (settings.provider === 'anthropic') {
+      const { preconnectAnthropicApi } = await import('./utils/apiPreconnect')
+      preconnectAnthropicApi()
+    }
+
     if (options.debug)    process.env.QILING_DEBUG = '1'
     // --yolo and --dangerously-skip-permissions are aliases (CC pattern)
     if (options.yolo || (options as { dangerouslySkipPermissions?: boolean }).dangerouslySkipPermissions) {
