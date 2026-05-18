@@ -1,16 +1,20 @@
 /**
- * Generated/vendored file detection — ported from CC's utils/generatedFiles.ts (verbatim)
+ * Generated/vendored file detection — direct port of CC's utils/generatedFiles.ts
  *
- * Based on GitHub Linguist vendored patterns. Use to filter files from
- * search results (Glob, Grep) to avoid noise from lock files, minified JS, etc.
+ * Identifies files that should be excluded from code attribution, code review,
+ * and other analysis — based on GitHub Linguist vendored patterns.
+ *
+ * isGeneratedFile(filePath): true for lock files, minified JS, proto-generated,
+ * dist/build directories, etc.
+ * filterGeneratedFiles(files): filter array to exclude generated files.
  */
 
-import { basename, extname, posix, sep } from 'path'
+import { basename, extname, posix, sep } from 'node:path'
 
 const EXCLUDED_FILENAMES = new Set([
   'package-lock.json', 'yarn.lock', 'pnpm-lock.yaml', 'bun.lockb', 'bun.lock',
-  'composer.lock', 'gemfile.lock', 'cargo.lock', 'poetry.lock',
-  'pipfile.lock', 'shrinkwrap.json', 'npm-shrinkwrap.json',
+  'composer.lock', 'gemfile.lock', 'cargo.lock', 'poetry.lock', 'pipfile.lock',
+  'shrinkwrap.json', 'npm-shrinkwrap.json',
 ])
 
 const EXCLUDED_EXTENSIONS = new Set([
@@ -21,17 +25,17 @@ const EXCLUDED_EXTENSIONS = new Set([
 ])
 
 const EXCLUDED_DIRECTORIES = [
-  '/dist/', '/build/', '/node_modules/', '/.next/', '/__pycache__/',
-  '/vendor/', '/vendors/', '/external/', '/third_party/', '/thirdparty/',
-  '/bower_components/', '/jspm_packages/',
-  '/.cache/', '/coverage/', '/.nyc_output/',
+  '/dist/', '/build/', '/out/', '/output/',
+  '/node_modules/',
+  '/vendor/', '/third_party/', '/third-party/',
+  '/.cache/', '/cache/',
+  '/__generated__/', '/generated/',
+  '/coverage/',
+  '/target/',
+  '/.next/', '/__pycache__/', '/.nuxt/',
 ]
 
 const EXCLUDED_FILENAME_PATTERNS = [
-  /^.*\.min\.[a-z]+$/i,
-  /^.*-min\.[a-z]+$/i,
-  /^.*\.bundle\.[a-z]+$/i,
-  /^.*\.generated\.[a-z]+$/i,
   /^.*\.gen\.[a-z]+$/i,
   /^.*\.auto\.[a-z]+$/i,
   /^.*_generated\.[a-z]+$/i,
@@ -44,7 +48,6 @@ const EXCLUDED_FILENAME_PATTERNS = [
   /^.*\.openapi\.[a-z]+$/i,
 ]
 
-/** Check if a file should be excluded (generated/vendored). */
 export function isGeneratedFile(filePath: string): boolean {
   const normalizedPath = posix.sep + filePath.split(sep).join(posix.sep).replace(/^\/+/, '')
   const fileName = basename(filePath).toLowerCase()
@@ -70,7 +73,6 @@ export function isGeneratedFile(filePath: string): boolean {
   return false
 }
 
-/** Filter a list of files to exclude generated/vendored ones. */
 export function filterGeneratedFiles(files: string[]): string[] {
-  return files.filter(f => !isGeneratedFile(f))
+  return files.filter(file => !isGeneratedFile(file))
 }
