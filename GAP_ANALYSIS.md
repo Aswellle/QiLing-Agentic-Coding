@@ -1,6 +1,6 @@
 # 功能差距分析 — CC vs QiLing
 
-*最后更新: 2026-05-18 (会话二) | CC 源码: D:\Git-Clone\CC-SRC\claude-code-sourcemap*
+*最后更新: 2026-05-19 (会话三) | CC 源码: D:\Git-Clone\CC-SRC\claude-code-sourcemap*
 
 ---
 
@@ -104,9 +104,41 @@
 
 ---
 
-## 进度统计 (更新至 2026-05-18 会话二)
+### 会话三新增 (2026-05-19)
+- ✅ **constants/tools.ts** — 工具名称常量聚合中心, SHELL_TOOL_NAMES, ALL_AGENT_DISALLOWED_TOOLS 等
+- ✅ **工具常量子模块批量补全** — 22个工具的 constants.ts/prompt.ts(CC 循环依赖解耦模式)
+- ✅ **sessionUrl.ts** — 会话标识符解析(JSONL/UUID/URL)
+- ✅ **toolPool.ts** — 工具池合并与协调器过滤
+- ✅ **MCP InProcessTransport** — 同进程 MCP 传输对, createLinkedTransportPair()
+- ✅ **MCP officialRegistry** — Anthropic 官方 MCP 注册中心缓存
+- ✅ **autoModeDenials.ts** — Auto 模式拒绝记录
+- ✅ **classifierApprovals.ts** — 分类器审批状态追踪
+- ✅ **classifierApprovalsHook.ts** — 分类器审批 React hook(React/非React 分离)
+- ✅ **diagLogs.ts** — 诊断日志(无PII, QILING_DIAGNOSTICS_FILE)
+- ✅ **systemTheme.ts** — 终端暗色/亮色精确检测(OSC 11, COLORFGBG)
+- ✅ **streamJsonStdoutGuard.ts** — SDK 流式 JSON stdout 保护
+- ✅ **ndjsonSafeStringify.ts** — NDJSON 安全序列化(U+2028/U+2029转义)
+- ✅ **codeIndexing.ts** — 代码索引工具检测(24种工具, CLI+MCP两种方式)
+- ✅ **peerAddress.ts** — URI地址解析(uds/bridge/other)
+- ✅ **keyboardShortcuts.ts** — macOS Option+key 特殊字符映射
+- ✅ **profilerBase.ts** — 性能剖析基础设施(时间线格式化)
+- ✅ **debugFilter.ts** — 调试日志分类过滤(包含/排除模式)
+- ✅ **directMemberMessage.ts** — @agent-name 直接消息语法
+- ✅ **mailbox.ts** — Agent 消息队列(send/poll/receive/subscribe)
+- ✅ **generatedFiles.ts** — 生成/vendored 文件检测(Linguist规则)
+- ✅ **teammateContext.ts** — In-process teammate AsyncLocalStorage 上下文
+- ✅ **controlMessageCompat.ts** — requestId→request_id 键名兼容补丁
+- ✅ **pasteStore.ts** — 粘贴内容磁盘缓存(hash存储/检索/清理)
+- ✅ **useDoublePress** — 双击检测 React hook
+- ✅ **useMinDisplayTime** — 最短显示时间节流 hook
 
-- 已完成模块: ~120+ (会话一 ~90 + 会话二 ~30)
-- 跳过/CC特有: ~200 (使用上述设计替代)
+---
+
+## 进度统计 (更新至 2026-05-19 会话三)
+
+- 已完成模块: ~170+ (会话一 ~90 + 会话二 ~50 + 会话三 ~30)
+- 总提交数: 270+
+- utils 文件: 190+  |  hooks: 5  |  services: 29  |  tools dirs: 77
+- 跳过/CC特有: ~200 (auth/analytics/billing/bridge/ink框架改写等)
 - 测试: 137 pass, 0 fail
 - 类型检查: tsc --noEmit 通过
