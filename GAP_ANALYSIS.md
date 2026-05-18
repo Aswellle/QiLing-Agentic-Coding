@@ -1,17 +1,18 @@
 # 功能差距分析 — CC vs QiLing
 
-*生成时间: 2026-05-18 | CC 源码: D:\Git-Clone\CC-SRC\claude-code-sourcemap*
+*最后更新: 2026-05-18 (会话二) | CC 源码: D:\Git-Clone\CC-SRC\claude-code-sourcemap*
 
 ---
 
 ## 已完成 ✅
 
+### 基础设施与工具链 (会话一)
 - ✅ **Bash 工具链** — shellQuote, commands, heredoc, ast, bashSecurity, sedValidation, commandSemantics | `src/utils/bash/`, `src/tools/BashTool/`
 - ✅ **PowerShell 工具链** — dangerousCmdlets, parser, powershellSecurity, gitSafety | `src/utils/powershell/`, `src/tools/PowerShellTool/`
 - ✅ **Git 工具链** — gitDiff, gitFilesystem, gitignore, gitConfigParser, git.ts (综合) | `src/utils/git/`, `src/utils/git.ts`
 - ✅ **权限系统** — shellRuleMatching, denialTracking, permissionExplainer, YOLO分类器, autoModeState | `src/permissions/`
 - ✅ **LSP 完整客户端** — LSPClient, LSPServerInstance, LSPServerManager, LSPDiagnosticRegistry, passiveFeedback | `src/services/lsp/`
-- ✅ **MCP 完整重写** — @modelcontextprotocol/sdk, 三种传输, 持久连接 | `src/services/mcp/`
+- ✅ **MCP 完整重写** — @modelcontextprotocol/sdk, stdio/SSE/HTTP传输, 持久连接 | `src/services/mcp/`
 - ✅ **Agent 子系统** — agentMemory, agentMemorySnapshot, agentColorManager, agentDisplay, loadAgentsDir | `src/tools/AgentTool/`
 - ✅ **内置 Agent** — Explore, Plan, general-purpose, claude-code-guide, statusline-setup, worker | `src/tools/AgentTool/builtInAgents.ts`
 - ✅ **SyntheticOutputTool** — 结构化 JSON 输出 | `src/tools/SyntheticOutputTool.ts`
@@ -32,70 +33,80 @@
 - ✅ **agentMemory 系统** — 三级作用域持久记忆 | `src/tools/AgentTool/agentMemory.ts`
 - ✅ **git.ts 综合工具** — getBranch/getRemoteUrl/getGitState 等 | `src/utils/git.ts`
 - ✅ **messages.ts 扩展** — getMessagesAfterCompactBoundary 等 | `src/utils/messages.ts`
+- ✅ **which.ts** — 命令路径检测 | `src/utils/which.ts`
+- ✅ **zodToJsonSchema.ts** — Zod→JSON Schema 带 WeakMap 缓存 | `src/utils/zodToJsonSchema.ts`
+- ✅ **thinking.ts** — ThinkingConfig 类型, ultrathink 集成 | `src/utils/thinking.ts`
+- ✅ **truncate.ts** — 宽度感知字符串截断 | `src/utils/truncate.ts`
+- ✅ **treeify.ts** — 树形数据文本渲染 | `src/utils/treeify.ts`
+- ✅ **awaySummary** — 离开期间会话回顾 | `src/services/awaySummary.ts`
+- ✅ **worktree.ts** — Git worktree 管理 | `src/utils/worktree.ts`
+- ✅ **sideQuery.ts** — 轻量级 AI 查询 | `src/utils/sideQuery.ts`
+- ✅ **collapseReadSearch.ts** — 工具调用折叠 | `src/utils/collapseReadSearch.ts`
+- ✅ **tokenEstimation.ts** — token 数估算 | `src/services/tokenEstimation.ts`
+- ✅ **sessionStorage.ts** — 会话元数据持久化 | `src/utils/sessionStorage.ts`
+- ✅ **statsCache.ts** — Stats 磁盘缓存 | `src/utils/statsCache.ts`
+
+### 基础设施六批至十一批 (会话二)
+- ✅ **jsonRead.ts** — UTF-8 BOM 剥离 | `src/utils/jsonRead.ts`
+- ✅ **lockfile.ts** — 进程锁文件(惰性加载 proper-lockfile) | `src/utils/lockfile.ts`
+- ✅ **imageValidation.ts** — API 图像大小验证(5MB 限制) | `src/utils/imageValidation.ts`
+- ✅ **types/notebook.ts** — Jupyter notebook 数据类型定义 | `src/types/notebook.ts`
+- ✅ **notebook.ts** — Jupyter .ipynb 解析与渲染 | `src/utils/notebook.ts`
+- ✅ **cachePaths.ts** — 按项目稳定 cache 路径(djb2Hash) | `src/utils/cachePaths.ts`
+- ✅ **fileRead.ts** — 叶节点文件读取(无 SCC 依赖) | `src/utils/fileRead.ts`
+- ✅ **fileReadCache.ts** — mtime 失效内存缓存 | `src/utils/fileReadCache.ts`
+- ✅ **execSyncWrapper.ts** — 带慢操作日志的 execSync | `src/utils/execSyncWrapper.ts`
+- ✅ **promptShellExecution.ts** — skill prompt 内嵌 shell 命令执行 | `src/utils/promptShellExecution.ts`
+- ✅ **completionCache.ts** — bash/zsh/fish shell 补全安装 | `src/utils/completionCache.ts`
+- ✅ **pdf.ts** — PDF 文件读取+pdftoppm 页面渲染 | `src/utils/pdf.ts`
+- ✅ **imageResizer.ts** — 图像自动缩放压缩(sharp 惰性加载) | `src/utils/imageResizer.ts`
+- ✅ **exampleCommands.ts** — 启动个性化示例命令(git 历史采样) | `src/utils/exampleCommands.ts`
+- ✅ **releaseNotes.ts** — CHANGELOG 缓存与 Release Notes 展示 | `src/utils/releaseNotes.ts`
+- ✅ **BashTool/toolName.ts** — BASH_TOOL_NAME 常量 | `src/tools/BashTool/toolName.ts`
+- ✅ **BashTool/utils.ts** — stripEmptyLines/formatOutput/imageResizer集成 | `src/tools/BashTool/utils.ts`
+- ✅ **services/api/errorUtils.ts** — SSL/HTML错误格式化 | `src/services/api/errorUtils.ts`
+- ✅ **services/api/emptyUsage.ts** — 零初始化 TokenUsage | `src/services/api/emptyUsage.ts`
+- ✅ **agentId.ts** — 确定性 Agent ID (agentName@teamName) | `src/utils/agentId.ts`
+- ✅ **caCerts.ts** — TLS CA 证书加载(企业代理支持) | `src/utils/caCerts.ts`
+- ✅ **getWorktreePathsPortable.ts** — 轻量 worktree 路径检测 | `src/utils/getWorktreePathsPortable.ts`
+- ✅ **cwd.ts** — 异步上下文 CWD (AsyncLocalStorage) | `src/utils/cwd.ts`
+- ✅ **configConstants.ts** — 无依赖配置常量 | `src/utils/configConstants.ts`
+- ✅ **constants/files.ts** — 二进制扩展名+字节检测 | `src/constants/files.ts`
+- ✅ **mcpWebSocketTransport.ts** — MCP WebSocket 传输层 | `src/utils/mcpWebSocketTransport.ts`
+- ✅ **bundledMode.ts** — Bun 运行时检测 | `src/utils/bundledMode.ts`
+- ✅ **taggedId.ts** — Base58 Tagged ID 编码 | `src/utils/taggedId.ts`
+
+### 系统集成 (会话二)
+- ✅ **formatAPIError 集成** — Anthropic provider 使用 errorUtils 格式化错误 | `src/providers/anthropic.ts`
+- ✅ **二进制文件检测集成** — FileReadTool 使用 hasBinaryExtension/isBinaryContent | `src/tools/FileReadTool.ts`
+- ✅ **exampleCommands 集成** — StartupBanner 显示个性化提示词 | `src/components/StartupBanner.tsx`
+- ✅ **MCP WebSocket 传输集成** — MCP client 支持 type:'ws' 配置 | `src/services/mcp/client.ts`, `src/services/mcp/types.ts`
 
 ---
 
-## 待复刻（按优先级排序）
+## 跳过项 (CC 特有基础设施)
 
-### 🔴 P0 — 高价值、立即实现
-
-- ✅ **`which.ts`** — 命令路径检测(which/whichSync)，Bun.which 封装 | `src/utils/which.ts` | CC: `utils/which.ts` | S
-- ✅ **`zodToJsonSchema.ts`** — Zod→JSON Schema 带 WeakMap 缓存，提升工具调用性能 | `src/utils/zodToJsonSchema.ts` | CC: `utils/zodToJsonSchema.ts` | S
-- ✅ **`thinking.ts`** — ThinkingConfig 类型, hasUltrathinkKeyword(), modelSupportsThinking() | `src/utils/thinking.ts` | CC: `utils/thinking.ts` | S
-- ✅ **`truncate.ts`** — 宽度感知字符串截断(CJK/emoji安全), truncatePathMiddle(), wrapText() | `src/utils/truncate.ts` | CC: `utils/truncate.ts` | S
-- ✅ **`treeify.ts`** — 树形数据文本渲染，用于 /agents、/mcp 等命令展示 | `src/utils/treeify.ts` | CC: `utils/treeify.ts` | S
-- ✅ **awaySummary** — "您离开期间"会话回顾摘要，REPL 恢复时显示 | `src/services/awaySummary.ts` | CC: `services/awaySummary.ts` | M
-- ✅ **`worktree.ts`** — Git worktree 创建/切换/删除，AgentTool 隔离基础 | `src/utils/worktree.ts` | CC: `utils/worktree.ts` | L
-
-### 🟡 P1 — 中高价值、应实现
-
-- ✅ **`sideQuery.ts`** — 轻量级 AI 查询（不经过完整 runQuery 循环），权限解释器等依赖 | `src/utils/sideQuery.ts` | CC: `utils/sideQuery.ts` | M
-- ✅ **`collapseReadSearch.ts`** — 读取/搜索工具调用折叠逻辑（减少噪音） | `src/utils/collapseReadSearch.ts` | CC: `utils/collapseReadSearch.ts` | M
-- ✅ **`tokenEstimation.ts`** — 精确 token 数估算（roughTokenCountEstimation） | `src/services/tokenEstimation.ts` | CC: `services/tokenEstimation.ts` | S
-- ✅ **`sessionStorage.ts`** — 会话元数据持久化（会话名、transcript 路径、agent color 等） | `src/utils/sessionStorage.ts` | CC: `utils/sessionStorage.ts` | M
-- ✅ **`sessionActivity.ts`** (由 sessionStorage.ts 覆盖) — 会话活动追踪（并发会话检测） | `src/utils/sessionActivity.ts` | CC: `utils/sessionActivity.ts` | S
-- ✅ **Tool formatters** (LSPTool/formatters.ts) — LSPTool formatters.ts (诊断格式化) + symbolContext | `src/tools/LSPTool/` | CC: `tools/LSPTool/` | M
-- ✅ **`/summary` 命令升级** (已集成 SessionMemory) — 使用 SessionMemory 的最新状态作为摘要来源 | `src/commands/index.ts` | CC: `commands/summary/` | S
-- ✅ **`/share` 命令** — 会话内容分享功能 | `src/commands/index.ts` | CC: `commands/share/` | S
-- ✅ **PromptSuggestion 简化版** — 每轮结束后预测用户下一条指令 | `src/services/PromptSuggestion/` | CC: `services/PromptSuggestion/` | M
-- ✅ **GrepTool gitignore 集成** (ripgrep 原生支持，无需额外集成) — 搜索时跳过 .gitignore 的文件 | `src/tools/GrepTool.ts` | CC: `utils/git/gitignore.ts` 集成 | S
-
-### 🟢 P2 — 中等价值、有时间则实现
-
-- [ ] **`thinking.ts` 集成** — 在 PromptInput 检测 ultrathink 关键词并调整 thinkingBudget | `src/components/PromptInput.tsx` | CC: REPL 集成 | S
-- ✅ **`statsCache.ts`** — Stats 带磁盘缓存，避免每次重算 | `src/utils/statsCache.ts` | CC: `utils/statsCache.ts` | M
-- ⏭ **autoDream 服务** (依赖 CC 特有 runForkedAgent/DreamTask，跳过) — 自动运行后台任务 | `src/services/autoDream/` | CC: `services/autoDream/` | L
-- ✅ **BriefTool 改进** (已集成 sessionStorage) — Brief 工具增强（attachment 上传） | `src/tools/BriefTool.ts` | CC: `tools/BriefTool/` | M
-- ✅ **ripgrep 集成优化** (GrepTool 已使用 ripgrep，无需额外适配) — 使用 Bun 内建 ripgrep | `src/tools/GrepTool.ts` | CC: `utils/ripgrep.ts` | M
-- ✅ **`/branch` 命令** — git branch 管理 | `src/commands/index.ts` | CC: `commands/branch/` | S
-
-### ⚫ 已知风险/依赖 & 跳过项
-
-**跳过 (CC 特有基础设施)**:
 - `auth.ts` — OAuth/Anthropic 账号系统（CC 特有，QiLing 用 API Key）
 - `bridge/` — VS Code 扩展通信（CC 特有）
 - `analytics/` — Statsig/DataDog 遥测（CC 特有）
 - `remote/` — 远程会话功能（CC 特有）
 - `sandbox/` — macOS App Sandbox（CC 特有）
 - `voice/` — 语音输入（需要原生二进制）
-- `computerUse/` — 计算机控制（需要原生二进制）
+- `computerUse/` — 计算机控制（已简化实现）
 - `mobile/` — 移动端支持（CC 特有）
-- `chrome/` — Chrome 扩展集成（CC 特有）
 - `billing.ts` / `passes.ts` — 订阅计费（CC 特有）
-- OAuth 流程 (`services/oauth/`) — CC 账号授权
-
-**简化实现**:
-- `claudemd.ts` — QiLing 用自己的 memdir 系统替代
-- `sessionRestore.ts` — QiLing 用 `session/resume.ts` 替代
-- `sideQuery.ts` — 使用 QiLing provider 接口简化实现
+- `migration/*.ts` — 模型名迁移（CC 一方用户专用）
+- `ink/` — Ink 框架改写（使用 npm 包 ink）
+- `bootstrap/` — CC 启动状态机（QiLing 用 main.tsx 替代）
+- `autoDream` — 依赖 runForkedAgent（CC 专有架构）
+- `transcriptSearch.ts` — 依赖 CC 复杂消息类型
+- `textHighlighting.ts` — 依赖 @alcalzone/ansi-tokenize
 
 ---
 
-## 进度统计
+## 进度统计 (更新至 2026-05-18 会话二)
 
-- 总模块数 (按 CC 目录估算): ~320
-- 已完成: ~90 (28%)
-- 待复刻 P0: 7
-- 待复刻 P1: 9
-- 待复刻 P2: 6
-- 跳过/CC特有: ~208 (65%)
+- 已完成模块: ~120+ (会话一 ~90 + 会话二 ~30)
+- 跳过/CC特有: ~200 (使用上述设计替代)
+- 测试: 137 pass, 0 fail
+- 类型检查: tsc --noEmit 通过
