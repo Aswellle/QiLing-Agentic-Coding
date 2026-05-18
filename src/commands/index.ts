@@ -520,6 +520,124 @@ export const BUILTIN_COMMANDS: Command[] = [
     },
   },
 
+  // ─── CC-aligned: /login ──────────────────────────────────────────────────────
+  {
+    name: '/login',
+    description: '通过 OAuth PKCE 登录（支持自定义 OAuth 提供商）',
+    async execute(args, ctx) {
+      const trimmed = args.trim()
+
+      // Show help if no args
+      if (!trimmed || trimmed === 'help') {
+        ctx.onMessage({
+          role: 'assistant',
+          content: [
+            '**OAuth 登录**',
+            '',
+            '用法:',
+            '  /login                        — 显示当前认证状态',
+            '  /login github                  — GitHub OAuth (需要配置)',
+            '  /login <provider>             — 自定义 OAuth 提供商',
+            '',
+            '快速 API Key 设置（推荐）:',
+            '  export ANTHROPIC_API_KEY=sk-ant-...',
+            '',
+            '或在 ~/.qiling/settings.json 中配置:',
+            '  { "apiKey": "sk-ant-..." }',
+          ].join('\n'),
+        })
+        return
+      }
+
+      // Check current auth status
+      if (trimmed === 'status') {
+        const apiKey = process.env.ANTHROPIC_API_KEY
+        if (apiKey) {
+          ctx.onMessage({ role: 'assistant', content: `✅ 已通过 API Key 认证 (${apiKey.slice(0, 12)}...)` })
+        } else {
+          ctx.onMessage({ role: 'assistant', content: '❌ 未配置认证信息。设置 ANTHROPIC_API_KEY 或运行 /setup 配置。' })
+        }
+        return
+      }
+
+      // Generic OAuth PKCE flow
+      ctx.onMessage({ role: 'assistant', content: `正在启动 OAuth 流程... (provider: ${trimmed})` })
+
+      try {
+        const { OAuthService } = await import('../services/oauth/index')
+        const { loadSettings } = await import('../settings/loader')
+        const settings = loadSettings(ctx.workingDir)
+
+        // Get OAuth config from settings or env
+        const oauthConfig = (settings as Record<string, unknown>)[`${trimmed}OAuth`] as Record<string, unknown> | undefined
+        if (!oauthConfig) {
+          ctx.onMessage({
+            role: 'assistant',
+            content: `未找到 ${trimmed} 的 OAuth 配置。\n在 settings.json 中配置:\n{\n  "${trimmed}OAuth": {\n    "authorizationUrl": "...",\n    "tokenUrl": "...",\n    "clientId": "...",\n    "scopes": ["..."]\n  }\n}`,
+          })
+          return
+        }
+
+        const service = new OAuthService({
+          authorizationUrl: String(oauthConfig.authorizationUrl ?? ''),
+          tokenUrl: String(oauthConfig.tokenUrl ?? ''),
+          clientId: String(oauthConfig.clientId ?? ''),
+          scopes: Array.isArray(oauthConfig.scopes) ? oauthConfig.scopes.map(String) : [],
+        })
+
+        const tokens = await service.startFlow(async (authUrl) => {
+          ctx.onMessage({
+            role: 'assistant',
+            content: `请在浏览器中打开以下链接完成授权:\n\n${authUrl}\n\n授权完成后将自动继续...`,
+          })
+          // Try to open browser automatically
+          try {
+            const openCmd = process.platform === 'darwin' ? 'open'
+              : process.platform === 'win32' ? 'start' : 'xdg-open'
+            Bun.spawn([openCmd, authUrl], { stdout: 'pipe', stderr: 'pipe' })
+          } catch { /* ignore if browser open fails */ }
+        })
+
+        ctx.onMessage({
+          role: 'assistant',
+          content: `✅ OAuth 认证成功！\nAccess Token: ${tokens.accessToken.slice(0, 20)}...\n${tokens.expiresIn ? `有效期: ${tokens.expiresIn}s` : ''}`,
+        })
+      } catch (e) {
+        ctx.onMessage({
+          role: 'assistant',
+          content: `✗ OAuth 认证失败: ${e instanceof Error ? e.message : String(e)}`,
+        })
+      }
+    },
+  },
+
+  // ─── CC-aligned: /logout ─────────────────────────────────────────────────────
+  {
+    name: '/logout',
+    description: '清除认证令牌',
+    execute(_args, ctx) {
+      // In QiLing, credentials are stored in env vars or settings.json
+      // We guide the user to clear them manually
+      ctx.onMessage({
+        role: 'assistant',
+        content: [
+          '**退出登录**',
+          '',
+          '请手动清除您的认证信息:',
+          '',
+          '1. **环境变量** (临时清除):',
+          '   unset ANTHROPIC_API_KEY',
+          '',
+          '2. **持久化设置** (编辑 ~/.qiling/settings.json):',
+          '   删除 "apiKey" 字段',
+          '',
+          '3. **OAuth Tokens**:',
+          '   手动从 ~/.qiling/tokens/ 删除对应文件',
+        ].join('\n'),
+      })
+    },
+  },
+
   {
     name: '/version',
     description: '显示版本信息',
