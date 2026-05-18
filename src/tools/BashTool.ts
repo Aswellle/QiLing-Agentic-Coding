@@ -18,6 +18,7 @@ import type { Tool, ToolResult, ToolContext, ToolDefinition, PermissionDecision 
 import { classifyBashCommand } from '../permissions/classifier'
 import { EndTruncatingAccumulator } from '../utils/stringUtils'
 import { subprocessEnv } from '../utils/subprocessEnv'
+import { applySessionEnvVars } from '../utils/sessionEnvVars'
 import { getDestructiveCommandWarning } from './BashTool/destructiveCommandWarning'
 import { bashCommandIsSafe } from './BashTool/bashSecurity'
 import { checkSedSecurity } from './BashTool/sedValidation'
@@ -177,7 +178,7 @@ IMPORTANT: Avoid using this tool to run \`find\`, \`grep\`, \`cat\`, \`head\`, \
       try {
         const proc = Bun.spawn(['bash', '-c', input.command], {
           cwd: context.workingDir,
-          env: subprocessEnv(),
+          env: applySessionEnvVars(subprocessEnv()),
           stdout: 'pipe',
           stderr: 'pipe',
         })

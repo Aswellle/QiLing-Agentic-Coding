@@ -209,6 +209,11 @@ program
     const { runMigrations } = await import('./utils/migrations')
     runMigrations(workingDir)
 
+    // Start background housekeeping (deferred 10min, non-blocking)
+    void import('./utils/backgroundHousekeeping').then(({ startBackgroundHousekeeping }) => {
+      startBackgroundHousekeeping(workingDir)
+    }).catch(() => { /* non-fatal */ })
+
     const settings = loadSettings(workingDir, {
       ...(options.model    && { model: options.model }),
       ...(options.provider && { provider: options.provider }),

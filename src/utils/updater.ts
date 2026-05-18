@@ -225,3 +225,52 @@ export async function checkForUpdates(
     releaseUrl: cache.releaseUrl,
   }
 }
+
+// ─── CC-aligned additions (from utils/autoUpdater.ts) ────────────────────────
+
+export type ReleaseChannel = 'stable' | 'latest'
+
+/**
+ * Check if a specific version should be skipped.
+ * Reads QILING_SKIP_VERSION env var.
+ */
+export function shouldSkipVersion(targetVersion: string): boolean {
+  const skipVersion = process.env.QILING_SKIP_VERSION
+  return skipVersion === targetVersion
+}
+
+/**
+ * Get version history from GitHub releases API.
+ * Returns up to `limit` recent version strings.
+ */
+export async function getVersionHistory(limit = 10): Promise<string[]> {
+  try {
+    const resp = await fetch(
+      `https://api.github.com/repos/${GITHUB_REPO}/releases?per_page=${limit}`,
+      {
+        headers: { Accept: 'application/vnd.github.v3+json' },
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      }
+    )
+    if (!resp.ok) return []
+    const releases = (await resp.json()) as Array<{ tag_name: string }>
+    return releases.map(r => r.tag_name.replace(/^v/, ''))
+  } catch {
+    return []
+  }
+}
+
+/**
+ * Assert that the current version meets a minimum requirement.
+ * Throws if the running version is older than minVersion.
+ */
+export async function assertMinVersion(minVersion: string): Promise<void> {
+  const pkg = await import('../../package.json') as { version: string }
+  const current = pkg.version
+  if (compareVersions(current, minVersion) < 0) {
+    throw new Error(
+      `QiLing v${current} is too old. Minimum required: v${minVersion}.\n` +
+      `Update with: bun run release:patch (or download from GitHub)`
+    )
+  }
+}
