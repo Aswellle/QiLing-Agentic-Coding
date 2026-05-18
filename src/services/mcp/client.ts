@@ -17,6 +17,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js'
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
+import { WebSocketTransport } from '../../utils/mcpWebSocketTransport.js'
 import {
   CallToolResultSchema,
   ErrorCode,
@@ -38,6 +39,7 @@ import type {
   McpStdioServerConfig,
   McpSSEServerConfig,
   McpHTTPServerConfig,
+  McpWebSocketServerConfig,
   McpToolCallResult,
   McpToolInfo,
   ScopedMcpServerConfig,
@@ -68,6 +70,10 @@ function isSSEConfig(c: McpServerConfig): c is McpSSEServerConfig {
 
 function isHTTPConfig(c: McpServerConfig): c is McpHTTPServerConfig {
   return c.type === 'http'
+}
+
+function isWSConfig(c: McpServerConfig): c is McpWebSocketServerConfig {
+  return c.type === 'ws'
 }
 
 async function createTransport(
@@ -117,6 +123,11 @@ async function createTransport(
           fetch(input, { ...init, headers: { ...((init?.headers as Record<string, string>) ?? {}), ...headers } }),
       },
     })
+  }
+
+  if (isWSConfig(expanded)) {
+    const ws = new WebSocket(expanded.url)
+    return new WebSocketTransport(ws)
   }
 
   throw new Error(`MCP server '${serverName}' has unsupported transport type: ${(config as { type?: string }).type}`)

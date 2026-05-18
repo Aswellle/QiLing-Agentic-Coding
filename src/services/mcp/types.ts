@@ -38,10 +38,18 @@ export const McpHTTPServerConfigSchema = z.object({
 })
 export type McpHTTPServerConfig = z.infer<typeof McpHTTPServerConfigSchema>
 
+export const McpWebSocketServerConfigSchema = z.object({
+  type: z.literal('ws'),
+  url: z.string(),
+  headers: z.record(z.string(), z.string()).optional(),
+})
+export type McpWebSocketServerConfig = z.infer<typeof McpWebSocketServerConfigSchema>
+
 export const McpServerConfigSchema = z.union([
   McpStdioServerConfigSchema,
   McpSSEServerConfigSchema,
   McpHTTPServerConfigSchema,
+  McpWebSocketServerConfigSchema,
 ])
 export type McpServerConfig = z.infer<typeof McpServerConfigSchema>
 
