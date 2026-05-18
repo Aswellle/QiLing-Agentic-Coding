@@ -1,9 +1,10 @@
-import Anthropic from '@anthropic-ai/sdk'
+import Anthropic, { APIError } from '@anthropic-ai/sdk'
 import type { Provider, ProviderConfig, StreamOptions, StreamChunkType } from '../types/provider'
 import type { Message, TokenUsage } from '../types/message'
 import type { ToolDefinition } from '../types/tool'
 import { modelSupportsEffort, getEffortThinkingBudget, resolveEffortLevel } from '../utils/effort'
 import { FallbackTriggeredError } from '../utils/errors'
+import { formatAPIError } from '../services/api/errorUtils'
 
 // ─── Fallback model resolution (CC's model fallback pattern) ──────────────────
 // Opus overloaded → try Sonnet; Sonnet/Haiku overloaded → no fallback
@@ -209,9 +210,13 @@ export class AnthropicProvider implements Provider {
           throw new FallbackTriggeredError(this.config.model, fallback)
         }
       }
+      // Use formatAPIError for rich SSL/connection/HTML error messages
+      const msg = error instanceof APIError
+        ? formatAPIError(error)
+        : error instanceof Error ? error.message : String(error)
       yield {
         type: 'error',
-        error: error instanceof Error ? error.message : String(error),
+        error: msg,
       }
     }
   }
