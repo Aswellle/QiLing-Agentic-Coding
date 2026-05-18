@@ -1,0 +1,5 @@
+export const CRON_CREATE_TOOL_NAME = 'CronCreate'
+export const CRON_DELETE_TOOL_NAME = 'CronDelete'
+export const CRON_LIST_TOOL_NAME = 'CronList'
+export const CRON_DELETE_DESCRIPTION = 'Cancel a scheduled cron job by ID'
+export const CRON_LIST_DESCRIPTION = 'List scheduled cron jobs'
