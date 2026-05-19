@@ -110,6 +110,10 @@ export const settingsSchema = z.object({
   // Internal — used by /fast to restore the original model when toggling off
   _originalModel: z.string().optional(),
 
+  // Default shell for ! commands and skill shell frontmatter
+  // 'bash' (default) or 'powershell'. Does NOT auto-flip on Windows.
+  defaultShell: z.enum(['bash', 'powershell']).optional().default('bash'),
+
   // Internal — not user-editable
   _version: z.number().default(1),
 })
