@@ -66,25 +66,38 @@ export interface HookEntry {
  * SessionEnd, PreCompact, PostCompact, StopFailure, PermissionRequest, Setup
  * CC-specific events (no-op in QiLing): SubagentStart/Stop, TeammateIdle, TaskCreated, etc.
  */
-export type HookEvent =
-  | 'PreToolUse'
-  | 'PostToolUse'
-  | 'PostToolUseFailure'
-  | 'Stop'
-  | 'StopFailure'
-  | 'UserPromptSubmit'
-  | 'SessionStart'
-  | 'SessionEnd'
-  | 'PreCompact'
-  | 'PostCompact'
-  | 'PermissionRequest'
-  | 'PermissionDenied'
-  | 'Setup'
-  | 'SubagentStart'
-  | 'SubagentStop'
-  | 'FileChanged'
-  | 'CwdChanged'
-  | 'InstructionsLoaded'
+/** All hook event types — CC-aligned (CC: entrypoints/sdk/coreTypes.ts HOOK_EVENTS) */
+export const HOOK_EVENTS = [
+  'PreToolUse',
+  'PostToolUse',
+  'PostToolUseFailure',
+  'Notification',
+  'UserPromptSubmit',
+  'SessionStart',
+  'SessionEnd',
+  'Stop',
+  'StopFailure',
+  'SubagentStart',
+  'SubagentStop',
+  'PreCompact',
+  'PostCompact',
+  'PermissionRequest',
+  'PermissionDenied',
+  'Setup',
+  'TeammateIdle',
+  'TaskCreated',
+  'TaskCompleted',
+  'Elicitation',
+  'ElicitationResult',
+  'ConfigChange',
+  'WorktreeCreate',
+  'WorktreeRemove',
+  'InstructionsLoaded',
+  'CwdChanged',
+  'FileChanged',
+] as const
+
+export type HookEvent = (typeof HOOK_EVENTS)[number]
 
 export interface HooksConfig {
   PreToolUse?: HookEntry[]
@@ -105,6 +118,16 @@ export interface HooksConfig {
   FileChanged?: HookEntry[]
   CwdChanged?: HookEntry[]
   InstructionsLoaded?: HookEntry[]
+  // CC-aligned new events
+  Notification?: HookEntry[]
+  TeammateIdle?: HookEntry[]
+  TaskCreated?: HookEntry[]
+  TaskCompleted?: HookEntry[]
+  Elicitation?: HookEntry[]
+  ElicitationResult?: HookEntry[]
+  ConfigChange?: HookEntry[]
+  WorktreeCreate?: HookEntry[]
+  WorktreeRemove?: HookEntry[]
 }
 
 export interface HookContext {
