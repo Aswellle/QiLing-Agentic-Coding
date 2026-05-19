@@ -205,3 +205,40 @@ export function createUserMessage(content: string, opts?: { isMeta?: boolean }):
     ...(opts?.isMeta ? { isMeta: true } : {}),
   }
 }
+
+/**
+ * Extract content between XML-style tags. Supports nested same-type tags.
+ * Returns null if the tag is not found or content is empty.
+ *
+ * Ported from CC's utils/messages.ts extractTag()
+ *
+ * @example
+ * extractTag('<bash-input>ls -la</bash-input>', 'bash-input') // 'ls -la'
+ * extractTag('<status>completed</status>', 'status')          // 'completed'
+ */
+export function extractTag(html: string, tagName: string): string | null {
+  if (!html.trim() || !tagName.trim()) return null
+
+  const esc = tagName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const pattern = new RegExp(
+    `<${esc}(?:\\s+[^>]*)?>` + '([\\s\\S]*?)' + `<\\/${esc}>`,
+    'gi',
+  )
+  const openingTag = new RegExp(`<${esc}(?:\\s+[^>]*?)?>`, 'gi')
+  const closingTag = new RegExp(`<\\/${esc}>`, 'gi')
+
+  let match: RegExpExecArray | null
+  let lastIndex = 0
+  while ((match = pattern.exec(html)) !== null) {
+    const content = match[1]
+    const beforeMatch = html.slice(lastIndex, match.index)
+    let depth = 0
+    openingTag.lastIndex = 0
+    while (openingTag.exec(beforeMatch) !== null) depth++
+    closingTag.lastIndex = 0
+    while (closingTag.exec(beforeMatch) !== null) depth--
+    if (depth === 0 && content) return content
+    lastIndex = match.index + match[0].length
+  }
+  return null
+}
