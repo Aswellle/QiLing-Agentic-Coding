@@ -140,3 +140,128 @@ export function formatUsageLine(usage: TokenUsage, model: string): string {
   }
   return parts.join(' · ')
 }
+
+// ─── CC-aligned canonical token counting (from CC's utils/tokens.ts) ─────────
+
+const SYNTHETIC_MODEL = '__synthetic__'
+const SYNTHETIC_MESSAGES_SET = new Set(['__synthetic_message__'])
+
+type UsageLike = {
+  input_tokens: number
+  output_tokens: number
+  cache_creation_input_tokens?: number
+  cache_read_input_tokens?: number
+}
+
+type AssistantMsgInner = Message & {
+  message?: {
+    id?: string
+    model?: string
+    usage?: UsageLike
+    content?: Array<{ type: string; text?: string; thinking?: string; data?: string; input?: unknown }>
+  }
+}
+
+function getAPITokenUsage(message: Message): UsageLike | undefined {
+  const m = message as AssistantMsgInner
+  if (m.role === 'assistant' && m.message?.usage && m.message.model !== SYNTHETIC_MODEL) {
+    const firstBlock = m.message.content?.[0]
+    if (firstBlock?.type === 'text' && firstBlock.text && SYNTHETIC_MESSAGES_SET.has(firstBlock.text)) {
+      return undefined
+    }
+    return m.message.usage
+  }
+  return undefined
+}
+
+function getAPIResponseId(message: Message): string | undefined {
+  const m = message as AssistantMsgInner
+  if (m.role === 'assistant' && m.message?.id && m.message.model !== SYNTHETIC_MODEL) {
+    return m.message.id
+  }
+  return undefined
+}
+
+/**
+ * Total context tokens from a usage object: input + cache_creation + cache_read + output.
+ */
+export function getTokenCountFromUsage(usage: UsageLike): number {
+  return (
+    usage.input_tokens +
+    (usage.cache_creation_input_tokens ?? 0) +
+    (usage.cache_read_input_tokens ?? 0) +
+    usage.output_tokens
+  )
+}
+
+/**
+ * Current token usage from the last API response.
+ */
+export function getCurrentUsage(messages: Message[]): {
+  input_tokens: number
+  output_tokens: number
+  cache_creation_input_tokens: number
+  cache_read_input_tokens: number
+} | null {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const usage = getAPITokenUsage(messages[i]!)
+    if (usage) {
+      return {
+        input_tokens: usage.input_tokens,
+        output_tokens: usage.output_tokens,
+        cache_creation_input_tokens: usage.cache_creation_input_tokens ?? 0,
+        cache_read_input_tokens: usage.cache_read_input_tokens ?? 0,
+      }
+    }
+  }
+  return null
+}
+
+/**
+ * True if the most recent assistant message exceeds 200k context tokens.
+ */
+export function doesMostRecentAssistantMessageExceed200k(messages: Message[]): boolean {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (messages[i]!.role === 'assistant') {
+      const usage = getAPITokenUsage(messages[i]!)
+      return usage ? getTokenCountFromUsage(usage) > 200_000 : false
+    }
+  }
+  return false
+}
+
+/**
+ * CANONICAL context window size for threshold comparisons (autocompact, session memory).
+ *
+ * Uses the last API response's usage + estimation for new messages.
+ * Handles parallel tool calls: walks back to the first sibling of the same API response.
+ *
+ * Always use this instead of tokenCountFromLastAPIResponse (doesn't estimate new msgs).
+ */
+export function tokenCountWithEstimation(messages: readonly Message[]): number {
+  let i = messages.length - 1
+  while (i >= 0) {
+    const message = messages[i]
+    if (!message) { i--; continue }
+    const usage = getAPITokenUsage(message)
+    if (usage) {
+      const responseId = getAPIResponseId(message)
+      if (responseId) {
+        let j = i - 1
+        while (j >= 0) {
+          const prior = messages[j]!
+          const priorId = getAPIResponseId(prior)
+          if (priorId === responseId) i = j
+          else if (priorId !== undefined) break
+          j--
+        }
+      }
+      return (
+        getTokenCountFromUsage(usage) +
+        roughTokenCountEstimationForMessages([...messages.slice(i + 1)])
+      )
+    }
+    i--
+  }
+  return roughTokenCountEstimationForMessages([...messages])
+}
