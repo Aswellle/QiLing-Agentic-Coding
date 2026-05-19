@@ -7,3 +7,12 @@ dist/
 Thumbs.db
 .qiling/
 !.qiling/settings.json.example
+
+# 内部开发/分析文件 — 不在公开仓库展示
+.claude/
+CLAUDE.md
+GAP_ANALYSIS.md
+docs/
+CHANGELOG.md
+DESIGN.md
+ARCHITECTURE.md
