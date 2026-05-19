@@ -5,6 +5,7 @@
  * The parser produces structured actions (not raw strings) from ANSI input.
  */
 
+export { Parser } from './termio/parser.js'
 export type {
   Action,
   Color,
