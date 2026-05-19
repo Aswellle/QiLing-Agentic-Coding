@@ -37,6 +37,17 @@ export const STATUS_TAG = 'status'
 export const SUMMARY_TAG = 'summary'
 export const REASON_TAG = 'reason'
 
+// Multi-agent / swarm tags
+export const TEAMMATE_MESSAGE_TAG = 'teammate-message'
+export const CHANNEL_MESSAGE_TAG = 'channel-message'
+export const CHANNEL_TAG = 'channel'
+export const CROSS_SESSION_MESSAGE_TAG = 'cross-session-message'
+
+// Remote review / ultraplan tags
+export const ULTRAPLAN_TAG = 'ultraplan'
+export const REMOTE_REVIEW_TAG = 'remote-review'
+export const REMOTE_REVIEW_PROGRESS_TAG = 'remote-review-progress'
+
 // Worktree tags
 export const WORKTREE_TAG = 'worktree'
 export const WORKTREE_PATH_TAG = 'worktreePath'
