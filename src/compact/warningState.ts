@@ -1,24 +1,25 @@
 /**
- * Compact warning suppression state — ported from CC's services/compact/compactWarningState.ts
+ * Compact warning suppression state — adapted from CC's services/compact/compactWarningState.ts
  *
- * Tracks whether the "context nearly full → auto-compact" warning should be suppressed.
- * We suppress immediately after successful compaction since token counts are stale
- * until the next API response comes back.
+ * Uses createStore so both React (useSyncExternalStore) and non-React callers
+ * can subscribe to the state. Keep this file React-free — see compactWarningHook.ts.
  */
 
-let _suppressed = false
+import { createStore } from '../state/store.js'
+
+export const compactWarningStore = createStore<boolean>(false)
 
 /** Suppress the compact warning. Call after successful compaction. */
 export function suppressCompactWarning(): void {
-  _suppressed = true
+  compactWarningStore.setState(() => true)
 }
 
 /** Clear the compact warning suppression. Called at start of new compact attempt. */
 export function clearCompactWarningSuppression(): void {
-  _suppressed = false
+  compactWarningStore.setState(() => false)
 }
 
 /** True if the compact warning should be suppressed. */
 export function isCompactWarningSuppressed(): boolean {
-  return _suppressed
+  return compactWarningStore.getState()
 }
