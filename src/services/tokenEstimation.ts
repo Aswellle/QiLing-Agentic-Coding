@@ -117,3 +117,38 @@ export function isNearContextLimit(
 ): boolean {
   return contextUsagePercent(messages, systemPrompt, model) / 100 >= threshold
 }
+
+/**
+ * Calculate context window usage from raw token counts.
+ * Adapted from CC's utils/context.ts calculateContextPercentages().
+ *
+ * @param currentUsage  Token usage from the API response
+ * @param contextWindowSize  Total context window size for the model
+ * @returns { used: number | null, remaining: number | null }
+ */
+export function calculateContextPercentages(
+  currentUsage: {
+    input_tokens: number
+    cache_creation_input_tokens?: number
+    cache_read_input_tokens?: number
+  } | null,
+  contextWindowSize: number,
+): { used: number | null; remaining: number | null } {
+  if (!currentUsage) return { used: null, remaining: null }
+
+  const totalInputTokens =
+    currentUsage.input_tokens +
+    (currentUsage.cache_creation_input_tokens ?? 0) +
+    (currentUsage.cache_read_input_tokens ?? 0)
+
+  const usedPercentage = Math.round((totalInputTokens / contextWindowSize) * 100)
+  const clampedUsed = Math.min(100, Math.max(0, usedPercentage))
+
+  return { used: clampedUsed, remaining: 100 - clampedUsed }
+}
+
+/** Constants from CC's utils/context.ts */
+export const MODEL_CONTEXT_WINDOW_DEFAULT = 200_000
+export const COMPACT_MAX_OUTPUT_TOKENS = 20_000
+export const CAPPED_DEFAULT_MAX_TOKENS = 8_000
+export const ESCALATED_MAX_TOKENS = 64_000
