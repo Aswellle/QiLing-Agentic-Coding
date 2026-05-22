@@ -1,10 +1,10 @@
 # ALIGNMENT_TRACKER.md
 
-> **Current Phase:** A.5  
-> **Last Updated:** 2026-05-22T11:47  
+> **Current Phase:** A.5 → B (decisions locked)
+> **Last Updated:** 2026-05-22T12:27
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
 > **Verdict Distribution:** FULLY_ALIGNED 265 | PARTIAL 299 | DIVERGED 72 | RESTRUCTURED 109 | NEW 52 | MISSING 1248  
-> **Active Batch / Audit Task:** Phase A.5 完成 · 等待 Phase B 规划  
+> **Active Batch / Audit Task:** Phase B · Batch B-001 (T0 核心运行时)
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL ≈ 20% weighted
 
 ---
@@ -24,7 +24,7 @@
 
 ## 按 T 层覆盖率
 
-| T 层 | 总计 | FULL | PARTIAL | DIVERGED | RESTR. | NEW | MISSING |
+| T 层 | 总计 | FULL | PARTIAL | DIVERGED | RESTR. | KEPT | skip |
 |------|------|------|---------|----------|--------|-----|---------|
 | **T0** 核心运行时 | 28 | 2 | 1 | 2 | 3 | 2 | 18 |
 | **T1** 工具层 | 236 | 19 | 52 | 3 | 44 | 8 | 110 |
@@ -48,7 +48,7 @@
 | 4 | `bridge/flushGate.ts` | `bridge/flushGate.ts` | EXT | PARTIAL | medium | MAPPED | adapt-complete | overlap=41% |
 | 5 | `buddy/CompanionSprite.tsx` | `buddy/CompanionSprite.tsx` | T2 | PARTIAL | high | MAPPED | adapt-complete | CC has 3 extra exports |
 | 6 | `buddy/companion.ts` | `buddy/companion.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
-| 7 | `buddy/prompt.ts` | `buddy/prompt.ts` | T2 | DIVERGED | high | BLOCKED | DECIDE | overlap=16% |
+| 7 | `buddy/prompt.ts` | `buddy/prompt.ts` | T2 | DIVERGED | high | KEPT | skip | overlap=16% |
 | 8 | `buddy/sprites.ts` | `buddy/sprites.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 9 | `buddy/types.ts` | `buddy/types.ts` | T2 | PARTIAL | high | MAPPED | adapt-complete | CC has 18 extra exports |
 | 10 | `cli/exit.ts` | `cli/exit.ts` | EXT | PARTIAL | medium | MAPPED | adapt-complete | stub |
@@ -80,7 +80,7 @@
 | 36 | `components/MessageModel.tsx` | `components/MessageModel.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 37 | `components/MessageResponse.tsx` | `components/MessageResponse.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 38 | `components/MessageTimestamp.tsx` | `components/MessageTimestamp.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 39 | `components/OffscreenFreeze.tsx` | `components/OffscreenFreeze.tsx` | T2 | DIVERGED | high | BLOCKED | DECIDE | overlap=34% |
+| 39 | `components/OffscreenFreeze.tsx` | `components/OffscreenFreeze.tsx` | T2 | DIVERGED | high | KEPT | skip | overlap=34% |
 | 40 | `components/PrBadge.tsx` | `components/PrBadge.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 41 | `components/PressEnterToContinue.tsx` | `components/PressEnterToContinue.tsx` | T2 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 42 | `components/PromptInput/IssueFlagBanner.tsx` | `components/PromptInput/IssueFlagBanner.tsx` | T2 | PARTIAL | medium | MAPPED | adapt-complete | stub |
@@ -100,7 +100,7 @@
 | 56 | `components/Spinner/useShimmerAnimation.ts` | `components/Spinner/useShimmerAnimation.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 57 | `components/Spinner/useStalledAnimation.ts` | `components/Spinner/useStalledAnimation.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 58 | `components/Spinner/utils.ts` | `components/Spinner/utils.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 59 | `components/Stats.tsx` | `components/Stats.tsx` | T2 | DIVERGED | high | BLOCKED | DECIDE | overlap=7% |
+| 59 | `components/Stats.tsx` | `components/Stats.tsx` | T2 | DIVERGED | high | KEPT | skip | overlap=7% |
 | 60 | `components/StructuredDiff/colorDiff.ts` | `components/StructuredDiff/colorDiff.ts` | T2 | PARTIAL | medium | MAPPED | adapt-complete | overlap=38% |
 | 61 | `components/StructuredDiffList.tsx` | `components/StructuredDiffList.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 62 | `components/ToolUseLoader.tsx` | `components/ToolUseLoader.tsx` | T2 | PARTIAL | medium | MAPPED | adapt-complete | overlap=51% |
@@ -112,13 +112,13 @@
 | 68 | `components/design-system/Divider.tsx` | `components/design-system/Divider.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 69 | `components/design-system/FuzzyPicker.tsx` | `components/design-system/FuzzyPicker.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 70 | `components/design-system/KeyboardShortcutHint.tsx` | `components/design-system/KeyboardShortcutHint.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 71 | `components/design-system/ListItem.tsx` | `components/design-system/ListItem.tsx` | T2 | DIVERGED | high | BLOCKED | DECIDE | overlap=30% |
+| 71 | `components/design-system/ListItem.tsx` | `components/design-system/ListItem.tsx` | T2 | DIVERGED | high | KEPT | skip | overlap=30% |
 | 72 | `components/design-system/LoadingState.tsx` | `components/design-system/LoadingState.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 73 | `components/design-system/Pane.tsx` | `components/design-system/Pane.tsx` | T2 | PARTIAL | medium | MAPPED | adapt-complete | overlap=51% |
 | 74 | `components/design-system/ProgressBar.tsx` | `components/design-system/ProgressBar.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 75 | `components/design-system/Ratchet.tsx` | `components/design-system/Ratchet.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 76 | `components/design-system/StatusIcon.tsx` | `components/design-system/StatusIcon.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 77 | `components/design-system/ThemeProvider.tsx` | `components/design-system/ThemeProvider.tsx` | T2 | DIVERGED | high | BLOCKED | DECIDE | overlap=12% |
+| 77 | `components/design-system/ThemeProvider.tsx` | `components/design-system/ThemeProvider.tsx` | T2 | DIVERGED | high | KEPT | skip | overlap=12% |
 | 78 | `components/design-system/ThemedBox.tsx` | `components/design-system/ThemedBox.tsx` | T2 | PARTIAL | medium | MAPPED | adapt-complete | overlap=44% |
 | 79 | `components/design-system/ThemedText.tsx` | `components/design-system/ThemedText.tsx` | T2 | PARTIAL | medium | MAPPED | adapt-complete | overlap=45% |
 | 80 | `components/design-system/color.ts` | `components/design-system/color.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -149,17 +149,17 @@
 | 105 | `components/wizard/WizardProvider.tsx` | `components/wizard/WizardProvider.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 106 | `components/wizard/index.ts` | `components/wizard/index.ts` | T2 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 107 | `components/wizard/useWizard.ts` | `components/wizard/useWizard.ts` | T2 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 108 | `constants/apiLimits.ts` | `constants/apiLimits.ts` | T7 | DIVERGED | high | BLOCKED | DECIDE | overlap=18% |
+| 108 | `constants/apiLimits.ts` | `constants/apiLimits.ts` | T7 | DIVERGED | high | KEPT | skip | overlap=18% |
 | 109 | `constants/betas.ts` | `constants/betas.ts` | T7 | PARTIAL | medium | MAPPED | adapt-complete | overlap=67% |
-| 110 | `constants/common.ts` | `constants/common.ts` | T7 | DIVERGED | high | BLOCKED | DECIDE | overlap=33% |
+| 110 | `constants/common.ts` | `constants/common.ts` | T7 | DIVERGED | high | KEPT | skip | overlap=33% |
 | 111 | `constants/cyberRiskInstruction.ts` | `constants/cyberRiskInstruction.ts` | T7 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 112 | `constants/errorIds.ts` | `constants/errorIds.ts` | T7 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 113 | `constants/figures.ts` | `constants/figures.ts` | T7 | PARTIAL | medium | MAPPED | adapt-complete | overlap=36% |
 | 114 | `constants/files.ts` | `constants/files.ts` | T7 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 115 | `constants/github-app.ts` | `constants/github-app.ts` | T7 | DIVERGED | high | BLOCKED | DECIDE | overlap=32% |
+| 115 | `constants/github-app.ts` | `constants/github-app.ts` | T7 | DIVERGED | high | KEPT | skip | overlap=32% |
 | 116 | `constants/messages.ts` | `constants/messages.ts` | T7 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 117 | `constants/product.ts` | `constants/product.ts` | T7 | PARTIAL | high | MAPPED | adapt-complete | CC has 3 extra exports |
-| 118 | `constants/spinnerVerbs.ts` | `constants/spinnerVerbs.ts` | T7 | DIVERGED | high | BLOCKED | DECIDE | overlap=25% |
+| 118 | `constants/spinnerVerbs.ts` | `constants/spinnerVerbs.ts` | T7 | DIVERGED | high | KEPT | skip | overlap=25% |
 | 119 | `constants/toolLimits.ts` | `constants/toolLimits.ts` | T7 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 120 | `constants/tools.ts` | `constants/tools.ts` | T7 | PARTIAL | medium | MAPPED | adapt-complete | overlap=43% |
 | 121 | `constants/turnCompletionVerbs.ts` | `constants/turnCompletionVerbs.ts` | T7 | PARTIAL | medium | MAPPED | adapt-complete | stub |
@@ -169,12 +169,12 @@
 | 125 | `context/fpsMetrics.tsx` | `context/fpsMetrics.tsx` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 126 | `context/mailbox.tsx` | `context/mailbox.tsx` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 127 | `context/modalContext.tsx` | `context/modalContext.tsx` | T4 | PARTIAL | medium | MAPPED | adapt-complete | overlap=45% |
-| 128 | `context/notifications.tsx` | `context/notifications.tsx` | T4 | DIVERGED | high | BLOCKED | DECIDE | overlap=33% |
+| 128 | `context/notifications.tsx` | `context/notifications.tsx` | T4 | DIVERGED | high | KEPT | skip | overlap=33% |
 | 129 | `context/promptOverlayContext.tsx` | `context/promptOverlayContext.tsx` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 130 | `context/stats.tsx` | `context/stats.tsx` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 131 | `coordinator/coordinatorMode.ts` | `coordinator/coordinatorMode.ts` | T0 | DIVERGED | high | BLOCKED | DECIDE | overlap=11% |
+| 131 | `coordinator/coordinatorMode.ts` | `coordinator/coordinatorMode.ts` | T0 | DIVERGED | high | KEPT | skip | overlap=11% |
 | 132 | `cost-tracker.ts` | `cost-tracker.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 5 extra exports |
-| 133 | `entrypoints/sandboxTypes.ts` | `entrypoints/sandboxTypes.ts` | T7 | DIVERGED | high | BLOCKED | DECIDE | overlap=24% |
+| 133 | `entrypoints/sandboxTypes.ts` | `entrypoints/sandboxTypes.ts` | T7 | DIVERGED | high | KEPT | skip | overlap=24% |
 | 134 | `entrypoints/sdk/coreTypes.ts` | `entrypoints/sdk/coreTypes.ts` | T7 | PARTIAL | medium | MAPPED | adapt-complete | overlap=50% |
 | 135 | `hooks/notifs/useStartupNotification.ts` | `hooks/notifs/useStartupNotification.ts` | T3 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 136 | `hooks/renderPlaceholder.ts` | `hooks/renderPlaceholder.ts` | T3 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -197,7 +197,7 @@
 | 153 | `hooks/useMergedCommands.ts` | `hooks/useMergedCommands.ts` | T3 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 154 | `hooks/useMinDisplayTime.ts` | `hooks/useMinDisplayTime.ts` | T3 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 155 | `hooks/useSearchInput.ts` | `hooks/useSearchInput.ts` | T3 | PARTIAL | medium | MAPPED | adapt-complete | overlap=43% |
-| 156 | `hooks/useSettingsChange.ts` | `hooks/useSettingsChange.ts` | T3 | DIVERGED | high | BLOCKED | DECIDE | overlap=29% |
+| 156 | `hooks/useSettingsChange.ts` | `hooks/useSettingsChange.ts` | T3 | DIVERGED | high | KEPT | skip | overlap=29% |
 | 157 | `hooks/useTerminalSize.ts` | `hooks/useTerminalSize.ts` | T3 | PARTIAL | medium | MAPPED | adapt-complete | overlap=44% |
 | 158 | `hooks/useTimeout.ts` | `hooks/useTimeout.ts` | T3 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 159 | `hooks/useTurnDiffs.ts` | `hooks/useTurnDiffs.ts` | T3 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -209,7 +209,7 @@
 | 165 | `ink/components/CursorDeclarationContext.ts` | `ink/components/CursorDeclarationContext.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | overlap=40% |
 | 166 | `ink/components/Link.tsx` | `ink/components/Link.tsx` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 167 | `ink/components/Newline.tsx` | `ink/components/Newline.tsx` | T4 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 168 | `ink/components/NoSelect.tsx` | `ink/components/NoSelect.tsx` | T4 | DIVERGED | high | BLOCKED | DECIDE | overlap=34% |
+| 168 | `ink/components/NoSelect.tsx` | `ink/components/NoSelect.tsx` | T4 | DIVERGED | high | KEPT | skip | overlap=34% |
 | 169 | `ink/components/RawAnsi.tsx` | `ink/components/RawAnsi.tsx` | T4 | PARTIAL | medium | MAPPED | adapt-complete | overlap=40% |
 | 170 | `ink/components/Spacer.tsx` | `ink/components/Spacer.tsx` | T4 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 171 | `ink/components/TerminalFocusContext.tsx` | `ink/components/TerminalFocusContext.tsx` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -235,7 +235,7 @@
 | 191 | `ink/hooks/use-tab-status.ts` | `ink/hooks/use-tab-status.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 192 | `ink/hooks/use-terminal-focus.ts` | `ink/hooks/use-terminal-focus.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 193 | `ink/hooks/use-terminal-title.ts` | `ink/hooks/use-terminal-title.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 194 | `ink/hooks/use-terminal-viewport.ts` | `ink/hooks/use-terminal-viewport.ts` | T4 | DIVERGED | high | BLOCKED | DECIDE | overlap=32% |
+| 194 | `ink/hooks/use-terminal-viewport.ts` | `ink/hooks/use-terminal-viewport.ts` | T4 | DIVERGED | high | KEPT | skip | overlap=32% |
 | 195 | `ink/instances.ts` | `ink/instances.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 196 | `ink/layout/engine.ts` | `ink/layout/engine.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 197 | `ink/layout/geometry.ts` | `ink/layout/geometry.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -265,31 +265,31 @@
 | 221 | `ink/widest-line.ts` | `ink/widest-line.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 222 | `ink/wrap-text.ts` | `ink/wrap-text.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 223 | `ink/wrapAnsi.ts` | `ink/wrapAnsi.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 224 | `keybindings/defaultBindings.ts` | `keybindings/defaultBindings.ts` | T4 | DIVERGED | high | BLOCKED | DECIDE | overlap=19% |
+| 224 | `keybindings/defaultBindings.ts` | `keybindings/defaultBindings.ts` | T4 | DIVERGED | high | KEPT | skip | overlap=19% |
 | 225 | `keybindings/match.ts` | `keybindings/match.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | overlap=39% |
-| 226 | `keybindings/parser.ts` | `keybindings/parser.ts` | T4 | DIVERGED | high | BLOCKED | DECIDE | overlap=30% |
+| 226 | `keybindings/parser.ts` | `keybindings/parser.ts` | T4 | DIVERGED | high | KEPT | skip | overlap=30% |
 | 227 | `keybindings/reservedShortcuts.ts` | `keybindings/reservedShortcuts.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | overlap=55% |
 | 228 | `keybindings/resolver.ts` | `keybindings/resolver.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | overlap=40% |
 | 229 | `keybindings/schema.ts` | `keybindings/schema.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 230 | `keybindings/shortcutFormat.ts` | `keybindings/shortcutFormat.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | overlap=48% |
 | 231 | `keybindings/template.ts` | `keybindings/template.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 232 | `keybindings/useKeybinding.ts` | `keybindings/useKeybinding.ts` | T4 | DIVERGED | high | BLOCKED | DECIDE | overlap=28% |
-| 233 | `keybindings/useShortcutDisplay.ts` | `keybindings/useShortcutDisplay.ts` | T4 | DIVERGED | high | BLOCKED | DECIDE | overlap=34% |
+| 232 | `keybindings/useKeybinding.ts` | `keybindings/useKeybinding.ts` | T4 | DIVERGED | high | KEPT | skip | overlap=28% |
+| 233 | `keybindings/useShortcutDisplay.ts` | `keybindings/useShortcutDisplay.ts` | T4 | DIVERGED | high | KEPT | skip | overlap=34% |
 | 234 | `keybindings/validate.ts` | `keybindings/validate.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 235 | `main.tsx` | `main.tsx` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=9% |
+| 235 | `main.tsx` | `main.tsx` | T6 | DIVERGED | high | KEPT | skip | overlap=9% |
 | 236 | `migrations/migrateReplBridgeEnabledToRemoteControlAtStartu…` | `migrations/migrateReplBridgeEnabledToRemoteControlAtStartu…` | T0 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 237 | `moreright/useMoreRight.tsx` | `moreright/useMoreRight.tsx` | EXT | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 238 | `native-ts/yoga-layout/enums.ts` | `native-ts/yoga-layout/enums.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 239 | `plugins/bundled/index.ts` | `plugins/bundled/index.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 240 | `query.ts` | `query.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=18% |
-| 241 | `query/config.ts` | `query/config.ts` | T0 | DIVERGED | high | BLOCKED | DECIDE | overlap=24% |
+| 240 | `query.ts` | `query.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=18% |
+| 241 | `query/config.ts` | `query/config.ts` | T0 | DIVERGED | high | KEPT | skip | overlap=24% |
 | 242 | `query/tokenBudget.ts` | `query/tokenBudget.ts` | T0 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 243 | `server/types.ts` | `server/types.ts` | EXT | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 244 | `services/AgentSummary/agentSummary.ts` | `services/AgentSummary/agentSummary.ts` | T5 | PARTIAL | medium | MAPPED | adapt-complete | overlap=38% |
-| 245 | `services/MagicDocs/magicDocs.ts` | `services/MagicDocs/magicDocs.ts` | T5 | DIVERGED | high | BLOCKED | DECIDE | overlap=31% |
-| 246 | `services/MagicDocs/prompts.ts` | `services/MagicDocs/prompts.ts` | T5 | DIVERGED | high | BLOCKED | DECIDE | overlap=22% |
+| 245 | `services/MagicDocs/magicDocs.ts` | `services/MagicDocs/magicDocs.ts` | T5 | DIVERGED | high | KEPT | skip | overlap=31% |
+| 246 | `services/MagicDocs/prompts.ts` | `services/MagicDocs/prompts.ts` | T5 | DIVERGED | high | KEPT | skip | overlap=22% |
 | 247 | `services/PromptSuggestion/promptSuggestion.ts` | `services/PromptSuggestion/promptSuggestion.ts` | T5 | PARTIAL | high | MAPPED | adapt-complete | CC has 7 extra exports |
-| 248 | `services/SessionMemory/prompts.ts` | `services/SessionMemory/prompts.ts` | T5 | DIVERGED | high | BLOCKED | DECIDE | overlap=25% |
+| 248 | `services/SessionMemory/prompts.ts` | `services/SessionMemory/prompts.ts` | T5 | DIVERGED | high | KEPT | skip | overlap=25% |
 | 249 | `services/SessionMemory/sessionMemory.ts` | `services/SessionMemory/sessionMemory.ts` | T5 | PARTIAL | high | MAPPED | adapt-complete | CC has 5 extra exports |
 | 250 | `services/analytics/config.ts` | `services/analytics/config.ts` | T5 | PARTIAL | medium | MAPPED | adapt-complete | overlap=39% |
 | 251 | `services/api/emptyUsage.ts` | `services/api/emptyUsage.ts` | T5 | PARTIAL | medium | MAPPED | adapt-complete | stub |
@@ -297,17 +297,17 @@
 | 253 | `services/awaySummary.ts` | `services/awaySummary.ts` | T5 | PARTIAL | medium | MAPPED | adapt-complete | overlap=51% |
 | 254 | `services/compact/compactWarningHook.ts` | `services/compact/compactWarningHook.ts` | T5 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 255 | `services/compact/compactWarningState.ts` | `services/compact/compactWarningState.ts` | T5 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 256 | `services/compact/grouping.ts` | `services/compact/grouping.ts` | T5 | DIVERGED | high | BLOCKED | DECIDE | overlap=27% |
+| 256 | `services/compact/grouping.ts` | `services/compact/grouping.ts` | T5 | DIVERGED | high | KEPT | skip | overlap=27% |
 | 257 | `services/extractMemories/prompts.ts` | `services/extractMemories/prompts.ts` | T5 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 258 | `services/lsp/LSPClient.ts` | `services/lsp/LSPClient.ts` | T5 | PARTIAL | medium | MAPPED | adapt-complete | overlap=47% |
 | 259 | `services/lsp/LSPDiagnosticRegistry.ts` | `services/lsp/LSPDiagnosticRegistry.ts` | T5 | PARTIAL | high | MAPPED | adapt-complete | CC has 4 extra exports |
 | 260 | `services/lsp/LSPServerInstance.ts` | `services/lsp/LSPServerInstance.ts` | T5 | PARTIAL | medium | MAPPED | adapt-complete | overlap=40% |
 | 261 | `services/lsp/LSPServerManager.ts` | `services/lsp/LSPServerManager.ts` | T5 | PARTIAL | medium | MAPPED | adapt-complete | overlap=49% |
-| 262 | `services/lsp/config.ts` | `services/lsp/config.ts` | T5 | DIVERGED | high | BLOCKED | DECIDE | overlap=32% |
-| 263 | `services/lsp/manager.ts` | `services/lsp/manager.ts` | T5 | DIVERGED | high | BLOCKED | DECIDE | overlap=30% |
+| 262 | `services/lsp/config.ts` | `services/lsp/config.ts` | T5 | DIVERGED | high | KEPT | skip | overlap=32% |
+| 263 | `services/lsp/manager.ts` | `services/lsp/manager.ts` | T5 | DIVERGED | high | KEPT | skip | overlap=30% |
 | 264 | `services/lsp/passiveFeedback.ts` | `services/lsp/passiveFeedback.ts` | T5 | PARTIAL | medium | MAPPED | adapt-complete | overlap=45% |
 | 265 | `services/mcp/InProcessTransport.ts` | `services/mcp/InProcessTransport.ts` | T5 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 266 | `services/mcp/SdkControlTransport.ts` | `services/mcp/SdkControlTransport.ts` | T5 | DIVERGED | high | BLOCKED | DECIDE | overlap=34% |
+| 266 | `services/mcp/SdkControlTransport.ts` | `services/mcp/SdkControlTransport.ts` | T5 | DIVERGED | high | KEPT | skip | overlap=34% |
 | 267 | `services/mcp/client.ts` | `services/mcp/client.ts` | T5 | PARTIAL | high | MAPPED | adapt-complete | CC has 18 extra exports |
 | 268 | `services/mcp/envExpansion.ts` | `services/mcp/envExpansion.ts` | T5 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 269 | `services/mcp/mcpStringUtils.ts` | `services/mcp/mcpStringUtils.ts` | T5 | PARTIAL | high | MAPPED | adapt-complete | CC has 2 extra exports |
@@ -316,14 +316,14 @@
 | 272 | `services/mcp/officialRegistry.ts` | `services/mcp/officialRegistry.ts` | T5 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 273 | `services/mcp/types.ts` | `services/mcp/types.ts` | T5 | PARTIAL | high | MAPPED | adapt-complete | CC has 18 extra exports |
 | 274 | `services/oauth/crypto.ts` | `services/oauth/crypto.ts` | T5 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 275 | `services/oauth/index.ts` | `services/oauth/index.ts` | T5 | DIVERGED | high | BLOCKED | DECIDE | overlap=31% |
+| 275 | `services/oauth/index.ts` | `services/oauth/index.ts` | T5 | DIVERGED | high | KEPT | skip | overlap=31% |
 | 276 | `services/policyLimits/types.ts` | `services/policyLimits/types.ts` | T5 | PARTIAL | medium | MAPPED | adapt-complete | overlap=53% |
 | 277 | `services/preventSleep.ts` | `services/preventSleep.ts` | T5 | PARTIAL | medium | MAPPED | adapt-complete | overlap=51% |
 | 278 | `services/remoteManagedSettings/types.ts` | `services/remoteManagedSettings/types.ts` | T5 | PARTIAL | medium | MAPPED | adapt-complete | overlap=49% |
 | 279 | `services/settingsSync/types.ts` | `services/settingsSync/types.ts` | T5 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 280 | `services/tips/tipHistory.ts` | `services/tips/tipHistory.ts` | T5 | PARTIAL | medium | MAPPED | adapt-complete | overlap=49% |
 | 281 | `services/tips/tipScheduler.ts` | `services/tips/tipScheduler.ts` | T5 | PARTIAL | medium | MAPPED | adapt-complete | overlap=44% |
-| 282 | `services/tokenEstimation.ts` | `services/tokenEstimation.ts` | T5 | DIVERGED | high | BLOCKED | DECIDE | overlap=13% |
+| 282 | `services/tokenEstimation.ts` | `services/tokenEstimation.ts` | T5 | DIVERGED | high | KEPT | skip | overlap=13% |
 | 283 | `skills/mcpSkillBuilders.ts` | `skills/mcpSkillBuilders.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=38% |
 | 284 | `state/store.ts` | `state/store.ts` | T0 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 285 | `tools/AgentTool/agentColorManager.ts` | `tools/AgentTool/agentColorManager.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -380,7 +380,7 @@
 | 336 | `tools/SkillTool/constants.ts` | `tools/SkillTool/constants.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 337 | `tools/SleepTool/prompt.ts` | `tools/SleepTool/prompt.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 338 | `tools/TaskCreateTool/constants.ts` | `tools/TaskCreateTool/constants.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 339 | `tools/TaskCreateTool/prompt.ts` | `tools/TaskCreateTool/prompt.ts` | T1 | DIVERGED | high | BLOCKED | DECIDE | overlap=19% |
+| 339 | `tools/TaskCreateTool/prompt.ts` | `tools/TaskCreateTool/prompt.ts` | T1 | DIVERGED | high | KEPT | skip | overlap=19% |
 | 340 | `tools/TaskGetTool/constants.ts` | `tools/TaskGetTool/constants.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 341 | `tools/TaskGetTool/prompt.ts` | `tools/TaskGetTool/prompt.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 342 | `tools/TaskListTool/constants.ts` | `tools/TaskListTool/constants.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
@@ -390,7 +390,7 @@
 | 346 | `tools/TaskUpdateTool/constants.ts` | `tools/TaskUpdateTool/constants.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 347 | `tools/TaskUpdateTool/prompt.ts` | `tools/TaskUpdateTool/prompt.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 348 | `tools/TeamCreateTool/constants.ts` | `tools/TeamCreateTool/constants.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 349 | `tools/TeamCreateTool/prompt.ts` | `tools/TeamCreateTool/prompt.ts` | T1 | DIVERGED | high | BLOCKED | DECIDE | overlap=27% |
+| 349 | `tools/TeamCreateTool/prompt.ts` | `tools/TeamCreateTool/prompt.ts` | T1 | DIVERGED | high | KEPT | skip | overlap=27% |
 | 350 | `tools/TeamDeleteTool/constants.ts` | `tools/TeamDeleteTool/constants.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 351 | `tools/TeamDeleteTool/prompt.ts` | `tools/TeamDeleteTool/prompt.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 352 | `tools/TodoWriteTool/constants.ts` | `tools/TodoWriteTool/constants.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
@@ -399,16 +399,16 @@
 | 355 | `tools/WebFetchTool/preapproved.ts` | `tools/WebFetchTool/preapproved.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 356 | `tools/WebFetchTool/prompt.ts` | `tools/WebFetchTool/prompt.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 357 | `tools/WebSearchTool/prompt.ts` | `tools/WebSearchTool/prompt.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | overlap=54% |
-| 358 | `tools/shared/gitOperationTracking.ts` | `tools/shared/gitOperationTracking.ts` | T1 | DIVERGED | high | BLOCKED | DECIDE | overlap=20% |
+| 358 | `tools/shared/gitOperationTracking.ts` | `tools/shared/gitOperationTracking.ts` | T1 | DIVERGED | high | KEPT | skip | overlap=20% |
 | 359 | `types/ids.ts` | `types/ids.ts` | T7 | PARTIAL | medium | MAPPED | adapt-complete | overlap=44% |
 | 360 | `utils/CircularBuffer.ts` | `utils/CircularBuffer.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 361 | `utils/Cursor.ts` | `utils/Cursor.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=36% |
 | 362 | `utils/QueryGuard.ts` | `utils/QueryGuard.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=47% |
 | 363 | `utils/abortController.ts` | `utils/abortController.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=40% |
-| 364 | `utils/activityManager.ts` | `utils/activityManager.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=27% |
+| 364 | `utils/activityManager.ts` | `utils/activityManager.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=27% |
 | 365 | `utils/agentContext.ts` | `utils/agentContext.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 5 extra exports |
 | 366 | `utils/agentId.ts` | `utils/agentId.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=41% |
-| 367 | `utils/agentSwarmsEnabled.ts` | `utils/agentSwarmsEnabled.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=21% |
+| 367 | `utils/agentSwarmsEnabled.ts` | `utils/agentSwarmsEnabled.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=21% |
 | 368 | `utils/analyzeContext.ts` | `utils/analyzeContext.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 5 extra exports |
 | 369 | `utils/apiPreconnect.ts` | `utils/apiPreconnect.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=53% |
 | 370 | `utils/argumentSubstitution.ts` | `utils/argumentSubstitution.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=44% |
@@ -418,14 +418,14 @@
 | 374 | `utils/autoRunIssue.tsx` | `utils/autoRunIssue.tsx` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 375 | `utils/aws.ts` | `utils/aws.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 376 | `utils/awsAuthStatusManager.ts` | `utils/awsAuthStatusManager.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 377 | `utils/backgroundHousekeeping.ts` | `utils/backgroundHousekeeping.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=29% |
-| 378 | `utils/bash/ast.ts` | `utils/bash/ast.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=1% |
+| 377 | `utils/backgroundHousekeeping.ts` | `utils/backgroundHousekeeping.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=29% |
+| 378 | `utils/bash/ast.ts` | `utils/bash/ast.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=1% |
 | 379 | `utils/bash/commands.ts` | `utils/bash/commands.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 380 | `utils/bash/heredoc.ts` | `utils/bash/heredoc.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 381 | `utils/bash/registry.ts` | `utils/bash/registry.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 382 | `utils/bash/shellPrefix.ts` | `utils/bash/shellPrefix.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 383 | `utils/bash/shellQuote.ts` | `utils/bash/shellQuote.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 384 | `utils/bash/shellQuoting.ts` | `utils/bash/shellQuoting.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=27% |
+| 384 | `utils/bash/shellQuoting.ts` | `utils/bash/shellQuoting.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=27% |
 | 385 | `utils/bash/specs/alias.ts` | `utils/bash/specs/alias.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 386 | `utils/bash/specs/index.ts` | `utils/bash/specs/index.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 387 | `utils/bash/specs/nohup.ts` | `utils/bash/specs/nohup.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
@@ -439,7 +439,7 @@
 | 395 | `utils/bufferedWriter.ts` | `utils/bufferedWriter.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 396 | `utils/bundledMode.ts` | `utils/bundledMode.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 397 | `utils/caCerts.ts` | `utils/caCerts.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 398 | `utils/caCertsConfig.ts` | `utils/caCertsConfig.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=23% |
+| 398 | `utils/caCertsConfig.ts` | `utils/caCertsConfig.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=23% |
 | 399 | `utils/cachePaths.ts` | `utils/cachePaths.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 400 | `utils/classifierApprovals.ts` | `utils/classifierApprovals.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 401 | `utils/classifierApprovalsHook.ts` | `utils/classifierApprovalsHook.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
@@ -455,7 +455,7 @@
 | 411 | `utils/completionCache.ts` | `utils/completionCache.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 412 | `utils/configConstants.ts` | `utils/configConstants.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 413 | `utils/contentArray.ts` | `utils/contentArray.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 414 | `utils/contextSuggestions.ts` | `utils/contextSuggestions.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=24% |
+| 414 | `utils/contextSuggestions.ts` | `utils/contextSuggestions.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=24% |
 | 415 | `utils/controlMessageCompat.ts` | `utils/controlMessageCompat.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 416 | `utils/cron.ts` | `utils/cron.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 417 | `utils/crypto.ts` | `utils/crypto.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
@@ -465,8 +465,8 @@
 | 421 | `utils/diagLogs.ts` | `utils/diagLogs.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 422 | `utils/diff.ts` | `utils/diff.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=50% |
 | 423 | `utils/directMemberMessage.ts` | `utils/directMemberMessage.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 424 | `utils/displayTags.ts` | `utils/displayTags.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=32% |
-| 425 | `utils/earlyInput.ts` | `utils/earlyInput.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=34% |
+| 424 | `utils/displayTags.ts` | `utils/displayTags.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=32% |
+| 425 | `utils/earlyInput.ts` | `utils/earlyInput.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=34% |
 | 426 | `utils/editor.ts` | `utils/editor.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=52% |
 | 427 | `utils/effort.ts` | `utils/effort.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 18 extra exports |
 | 428 | `utils/embeddedTools.ts` | `utils/embeddedTools.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=40% |
@@ -475,7 +475,7 @@
 | 431 | `utils/envValidation.ts` | `utils/envValidation.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 432 | `utils/errors.ts` | `utils/errors.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 8 extra exports |
 | 433 | `utils/exampleCommands.ts` | `utils/exampleCommands.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 434 | `utils/execFileNoThrow.ts` | `utils/execFileNoThrow.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=30% |
+| 434 | `utils/execFileNoThrow.ts` | `utils/execFileNoThrow.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=30% |
 | 435 | `utils/execSyncWrapper.ts` | `utils/execSyncWrapper.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 436 | `utils/file.ts` | `utils/file.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 13 extra exports |
 | 437 | `utils/fileHistory.ts` | `utils/fileHistory.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 7 extra exports |
@@ -501,9 +501,9 @@
 | 457 | `utils/git/gitFilesystem.ts` | `utils/git/gitFilesystem.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 458 | `utils/git/gitignore.ts` | `utils/git/gitignore.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 459 | `utils/gitDiff.ts` | `utils/gitDiff.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=48% |
-| 460 | `utils/gitSettings.ts` | `utils/gitSettings.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=25% |
+| 460 | `utils/gitSettings.ts` | `utils/gitSettings.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=25% |
 | 461 | `utils/github/ghAuthStatus.ts` | `utils/github/ghAuthStatus.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 462 | `utils/glob.ts` | `utils/glob.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=30% |
+| 462 | `utils/glob.ts` | `utils/glob.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=30% |
 | 463 | `utils/gracefulShutdown.ts` | `utils/gracefulShutdown.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 4 extra exports |
 | 464 | `utils/hash.ts` | `utils/hash.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=40% |
 | 465 | `utils/heatmap.ts` | `utils/heatmap.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -512,7 +512,7 @@
 | 468 | `utils/hooks/postSamplingHooks.ts` | `utils/hooks/postSamplingHooks.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=54% |
 | 469 | `utils/hooks/registerSkillHooks.ts` | `utils/hooks/registerSkillHooks.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 470 | `utils/horizontalScroll.ts` | `utils/horizontalScroll.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=49% |
-| 471 | `utils/http.ts` | `utils/http.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=26% |
+| 471 | `utils/http.ts` | `utils/http.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=26% |
 | 472 | `utils/hyperlink.ts` | `utils/hyperlink.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=45% |
 | 473 | `utils/idePathConversion.ts` | `utils/idePathConversion.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=51% |
 | 474 | `utils/idleTimeout.ts` | `utils/idleTimeout.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=51% |
@@ -520,7 +520,7 @@
 | 476 | `utils/imageValidation.ts` | `utils/imageValidation.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 477 | `utils/ink.ts` | `utils/ink.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=54% |
 | 478 | `utils/intl.ts` | `utils/intl.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 479 | `utils/json.ts` | `utils/json.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=14% |
+| 479 | `utils/json.ts` | `utils/json.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=14% |
 | 480 | `utils/jsonRead.ts` | `utils/jsonRead.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 481 | `utils/keyboardShortcuts.ts` | `utils/keyboardShortcuts.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 482 | `utils/lazySchema.ts` | `utils/lazySchema.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
@@ -529,17 +529,17 @@
 | 485 | `utils/mailbox.ts` | `utils/mailbox.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 486 | `utils/managedEnvConstants.ts` | `utils/managedEnvConstants.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=40% |
 | 487 | `utils/markdown.ts` | `utils/markdown.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 4 extra exports |
-| 488 | `utils/markdownConfigLoader.ts` | `utils/markdownConfigLoader.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=16% |
+| 488 | `utils/markdownConfigLoader.ts` | `utils/markdownConfigLoader.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=16% |
 | 489 | `utils/mcpOutputStorage.ts` | `utils/mcpOutputStorage.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 2 extra exports |
-| 490 | `utils/mcpValidation.ts` | `utils/mcpValidation.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=30% |
+| 490 | `utils/mcpValidation.ts` | `utils/mcpValidation.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=30% |
 | 491 | `utils/mcpWebSocketTransport.ts` | `utils/mcpWebSocketTransport.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 492 | `utils/memoize.ts` | `utils/memoize.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=34% |
+| 492 | `utils/memoize.ts` | `utils/memoize.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=34% |
 | 493 | `utils/memory/versions.ts` | `utils/memory/versions.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 494 | `utils/memoryFileDetection.ts` | `utils/memoryFileDetection.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=20% |
+| 494 | `utils/memoryFileDetection.ts` | `utils/memoryFileDetection.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=20% |
 | 495 | `utils/messagePredicates.ts` | `utils/messagePredicates.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=36% |
 | 496 | `utils/messages.ts` | `utils/messages.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 90 extra exports |
 | 497 | `utils/model/aliases.ts` | `utils/model/aliases.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 498 | `utils/model/check1mAccess.ts` | `utils/model/check1mAccess.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=23% |
+| 498 | `utils/model/check1mAccess.ts` | `utils/model/check1mAccess.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=23% |
 | 499 | `utils/model/configs.ts` | `utils/model/configs.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 500 | `utils/model/contextWindowUpgradeCheck.ts` | `utils/model/contextWindowUpgradeCheck.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 501 | `utils/model/deprecation.ts` | `utils/model/deprecation.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -552,7 +552,7 @@
 | 508 | `utils/notebook.ts` | `utils/notebook.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 509 | `utils/objectGroupBy.ts` | `utils/objectGroupBy.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 510 | `utils/pasteStore.ts` | `utils/pasteStore.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 511 | `utils/path.ts` | `utils/path.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=31% |
+| 511 | `utils/path.ts` | `utils/path.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=31% |
 | 512 | `utils/pdf.ts` | `utils/pdf.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 513 | `utils/pdfUtils.ts` | `utils/pdfUtils.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=52% |
 | 514 | `utils/peerAddress.ts` | `utils/peerAddress.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -565,22 +565,22 @@
 | 521 | `utils/permissions/dangerousPatterns.ts` | `utils/permissions/dangerousPatterns.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 2 extra exports |
 | 522 | `utils/permissions/denialTracking.ts` | `utils/permissions/denialTracking.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 523 | `utils/permissions/shellRuleMatching.ts` | `utils/permissions/shellRuleMatching.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=39% |
-| 524 | `utils/plans.ts` | `utils/plans.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=15% |
+| 524 | `utils/plans.ts` | `utils/plans.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=15% |
 | 525 | `utils/platform.ts` | `utils/platform.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 4 extra exports |
 | 526 | `utils/plugins/gitAvailability.ts` | `utils/plugins/gitAvailability.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=38% |
 | 527 | `utils/plugins/managedPlugins.ts` | `utils/plugins/managedPlugins.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 528 | `utils/plugins/officialMarketplace.ts` | `utils/plugins/officialMarketplace.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=41% |
-| 529 | `utils/plugins/pluginDirectories.ts` | `utils/plugins/pluginDirectories.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=28% |
+| 529 | `utils/plugins/pluginDirectories.ts` | `utils/plugins/pluginDirectories.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=28% |
 | 530 | `utils/plugins/pluginIdentifier.ts` | `utils/plugins/pluginIdentifier.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 3 extra exports |
 | 531 | `utils/plugins/pluginPolicy.ts` | `utils/plugins/pluginPolicy.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 532 | `utils/plugins/walkPluginMarkdown.ts` | `utils/plugins/walkPluginMarkdown.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 533 | `utils/powershell/dangerousCmdlets.ts` | `utils/powershell/dangerousCmdlets.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 534 | `utils/powershell/parser.ts` | `utils/powershell/parser.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=43% |
-| 535 | `utils/powershell/staticPrefix.ts` | `utils/powershell/staticPrefix.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=15% |
-| 536 | `utils/privacyLevel.ts` | `utils/privacyLevel.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=32% |
+| 535 | `utils/powershell/staticPrefix.ts` | `utils/powershell/staticPrefix.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=15% |
+| 536 | `utils/privacyLevel.ts` | `utils/privacyLevel.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=32% |
 | 537 | `utils/process.ts` | `utils/process.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=53% |
 | 538 | `utils/profilerBase.ts` | `utils/profilerBase.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 539 | `utils/promptShellExecution.ts` | `utils/promptShellExecution.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=29% |
+| 539 | `utils/promptShellExecution.ts` | `utils/promptShellExecution.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=29% |
 | 540 | `utils/proxy.ts` | `utils/proxy.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 9 extra exports |
 | 541 | `utils/queryHelpers.ts` | `utils/queryHelpers.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 3 extra exports |
 | 542 | `utils/releaseNotes.ts` | `utils/releaseNotes.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=43% |
@@ -608,33 +608,33 @@
 | 564 | `utils/settings/toolValidationConfig.ts` | `utils/settings/toolValidationConfig.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=52% |
 | 565 | `utils/settings/validationTips.ts` | `utils/settings/validationTips.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=53% |
 | 566 | `utils/shell/outputLimits.ts` | `utils/shell/outputLimits.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 567 | `utils/shell/powershellDetection.ts` | `utils/shell/powershellDetection.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=34% |
+| 567 | `utils/shell/powershellDetection.ts` | `utils/shell/powershellDetection.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=34% |
 | 568 | `utils/shell/resolveDefaultShell.ts` | `utils/shell/resolveDefaultShell.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 569 | `utils/shell/shellProvider.ts` | `utils/shell/shellProvider.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 570 | `utils/shell/shellToolUtils.ts` | `utils/shell/shellToolUtils.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=48% |
 | 571 | `utils/shellConfig.ts` | `utils/shellConfig.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=52% |
-| 572 | `utils/sideQuery.ts` | `utils/sideQuery.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=16% |
+| 572 | `utils/sideQuery.ts` | `utils/sideQuery.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=16% |
 | 573 | `utils/signal.ts` | `utils/signal.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 574 | `utils/slashCommandParsing.ts` | `utils/slashCommandParsing.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=47% |
 | 575 | `utils/sleep.ts` | `utils/sleep.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=49% |
 | 576 | `utils/sliceAnsi.ts` | `utils/sliceAnsi.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=41% |
 | 577 | `utils/slowOperations.ts` | `utils/slowOperations.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 4 extra exports |
-| 578 | `utils/startupProfiler.ts` | `utils/startupProfiler.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=24% |
+| 578 | `utils/startupProfiler.ts` | `utils/startupProfiler.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=24% |
 | 579 | `utils/staticRender.tsx` | `utils/staticRender.tsx` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=45% |
-| 580 | `utils/statsCache.ts` | `utils/statsCache.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=19% |
+| 580 | `utils/statsCache.ts` | `utils/statsCache.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=19% |
 | 581 | `utils/statusNoticeHelpers.ts` | `utils/statusNoticeHelpers.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 582 | `utils/stream.ts` | `utils/stream.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 583 | `utils/streamJsonStdoutGuard.ts` | `utils/streamJsonStdoutGuard.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=47% |
 | 584 | `utils/stringUtils.ts` | `utils/stringUtils.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 585 | `utils/subprocessEnv.ts` | `utils/subprocessEnv.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=33% |
+| 585 | `utils/subprocessEnv.ts` | `utils/subprocessEnv.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=33% |
 | 586 | `utils/suggestions/directoryCompletion.ts` | `utils/suggestions/directoryCompletion.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=54% |
 | 587 | `utils/suggestions/shellHistoryCompletion.ts` | `utils/suggestions/shellHistoryCompletion.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=52% |
 | 588 | `utils/suggestions/skillUsageTracking.ts` | `utils/suggestions/skillUsageTracking.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=54% |
 | 589 | `utils/swarm/constants.ts` | `utils/swarm/constants.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=48% |
 | 590 | `utils/swarm/leaderPermissionBridge.ts` | `utils/swarm/leaderPermissionBridge.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 8 extra exports |
 | 591 | `utils/swarm/teammateModel.ts` | `utils/swarm/teammateModel.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 592 | `utils/systemDirectories.ts` | `utils/systemDirectories.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=25% |
-| 593 | `utils/systemPrompt.ts` | `utils/systemPrompt.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=22% |
+| 592 | `utils/systemDirectories.ts` | `utils/systemDirectories.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=25% |
+| 593 | `utils/systemPrompt.ts` | `utils/systemPrompt.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=22% |
 | 594 | `utils/systemPromptType.ts` | `utils/systemPromptType.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 595 | `utils/systemTheme.ts` | `utils/systemTheme.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 596 | `utils/taggedId.ts` | `utils/taggedId.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -644,8 +644,8 @@
 | 600 | `utils/tempfile.ts` | `utils/tempfile.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=39% |
 | 601 | `utils/terminal.ts` | `utils/terminal.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=43% |
 | 602 | `utils/textHighlighting.ts` | `utils/textHighlighting.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 603 | `utils/theme.ts` | `utils/theme.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=34% |
-| 604 | `utils/thinking.ts` | `utils/thinking.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=29% |
+| 603 | `utils/theme.ts` | `utils/theme.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=34% |
+| 604 | `utils/thinking.ts` | `utils/thinking.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=29% |
 | 605 | `utils/timeouts.ts` | `utils/timeouts.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 606 | `utils/todo/types.ts` | `utils/todo/types.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 607 | `utils/tokenBudget.ts` | `utils/tokenBudget.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
@@ -654,19 +654,19 @@
 | 610 | `utils/toolPool.ts` | `utils/toolPool.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=46% |
 | 611 | `utils/toolResultStorage.ts` | `utils/toolResultStorage.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 10 extra exports |
 | 612 | `utils/toolSchemaCache.ts` | `utils/toolSchemaCache.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=41% |
-| 613 | `utils/treeify.ts` | `utils/treeify.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=31% |
+| 613 | `utils/treeify.ts` | `utils/treeify.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=31% |
 | 614 | `utils/truncate.ts` | `utils/truncate.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=49% |
 | 615 | `utils/ultraplan/keyword.ts` | `utils/ultraplan/keyword.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=49% |
 | 616 | `utils/unaryLogging.ts` | `utils/unaryLogging.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 617 | `utils/userAgent.ts` | `utils/userAgent.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 618 | `utils/userPromptKeywords.ts` | `utils/userPromptKeywords.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 619 | `utils/uuid.ts` | `utils/uuid.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 620 | `utils/warningHandler.ts` | `utils/warningHandler.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=24% |
+| 620 | `utils/warningHandler.ts` | `utils/warningHandler.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=24% |
 | 621 | `utils/which.ts` | `utils/which.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=47% |
-| 622 | `utils/windowsPaths.ts` | `utils/windowsPaths.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=21% |
+| 622 | `utils/windowsPaths.ts` | `utils/windowsPaths.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=21% |
 | 623 | `utils/withResolvers.ts` | `utils/withResolvers.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 624 | `utils/words.ts` | `utils/words.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 625 | `utils/workloadContext.ts` | `utils/workloadContext.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | overlap=29% |
+| 625 | `utils/workloadContext.ts` | `utils/workloadContext.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=29% |
 | 626 | `utils/worktree.ts` | `utils/worktree.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 6 extra exports |
 | 627 | `utils/worktreeModeEnabled.ts` | `utils/worktreeModeEnabled.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 628 | `utils/xdg.ts` | `utils/xdg.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -678,167 +678,167 @@
 | 634 | `vim/textObjects.ts` | `vim/textObjects.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 635 | `vim/transitions.ts` | `vim/transitions.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 636 | `vim/types.ts` | `vim/types.ts` | T2 | PARTIAL | medium | MAPPED | adapt-complete | overlap=49% |
-| 637 | `commands/fast/index.ts` | `commands/index.ts` | EXT | RESTRUCTURED | medium | MAPPED | — | → CC:commands/fast/index.ts |
-| 638 | `utils/model/model.ts` | `commands/model.ts` | EXT | RESTRUCTURED | medium | MAPPED | — | → CC:utils/model/model.ts |
-| 639 | `utils/claudeInChrome/setup.ts` | `commands/setup.ts` | EXT | RESTRUCTURED | medium | MAPPED | — | → CC:utils/claudeInChrome/setup.ts |
-| 640 | `services/compact/autoCompact.ts` | `compact/autoCompact.ts` | T6 | RESTRUCTURED | medium | MAPPED | — | → CC:services/compact/autoCompact.ts |
-| 641 | `ink/layout/engine.ts` | `compact/engine.ts` | T6 | RESTRUCTURED | medium | MAPPED | — | → CC:ink/layout/engine.ts |
-| 642 | `services/compact/postCompactCleanup.ts` | `compact/postCompactCleanup.ts` | T6 | RESTRUCTURED | medium | MAPPED | — | → CC:services/compact/postCompactCleanup.ts |
+| 637 | `commands/fast/index.ts` | `commands/index.ts` | EXT | RESTRUCTURED | medium | ALIGNED | skip | → CC:commands/fast/index.ts |
+| 638 | `utils/model/model.ts` | `commands/model.ts` | EXT | RESTRUCTURED | medium | ALIGNED | skip | → CC:utils/model/model.ts |
+| 639 | `utils/claudeInChrome/setup.ts` | `commands/setup.ts` | EXT | RESTRUCTURED | medium | ALIGNED | skip | → CC:utils/claudeInChrome/setup.ts |
+| 640 | `services/compact/autoCompact.ts` | `compact/autoCompact.ts` | T6 | RESTRUCTURED | medium | ALIGNED | skip | → CC:services/compact/autoCompact.ts |
+| 641 | `ink/layout/engine.ts` | `compact/engine.ts` | T6 | RESTRUCTURED | medium | ALIGNED | skip | → CC:ink/layout/engine.ts |
+| 642 | `services/compact/postCompactCleanup.ts` | `compact/postCompactCleanup.ts` | T6 | RESTRUCTURED | medium | ALIGNED | skip | → CC:services/compact/postCompactCleanup.ts |
 | 643 | `` | `compact/reactiveCompact.ts` | T6 | NEW | high | KEPT | skip |  |
 | 644 | `` | `compact/snipCompact.ts` | T6 | NEW | high | KEPT | skip |  |
-| 645 | `services/compact/timeBasedMCConfig.ts` | `compact/timeBasedMCConfig.ts` | T6 | RESTRUCTURED | medium | MAPPED | — | → CC:services/compact/timeBasedMCConfig.ts |
-| 646 | `query/tokenBudget.ts` | `compact/tokenBudget.ts` | T6 | RESTRUCTURED | medium | MAPPED | — | → CC:query/tokenBudget.ts |
+| 645 | `services/compact/timeBasedMCConfig.ts` | `compact/timeBasedMCConfig.ts` | T6 | RESTRUCTURED | medium | ALIGNED | skip | → CC:services/compact/timeBasedMCConfig.ts |
+| 646 | `query/tokenBudget.ts` | `compact/tokenBudget.ts` | T6 | RESTRUCTURED | medium | ALIGNED | skip | → CC:query/tokenBudget.ts |
 | 647 | `` | `compact/warningHook.ts` | T6 | NEW | high | KEPT | skip |  |
 | 648 | `` | `compact/warningState.ts` | T6 | NEW | high | KEPT | skip |  |
 | 649 | `` | `components/AskUserQuestionDialog.tsx` | T2 | NEW | high | KEPT | skip |  |
 | 650 | `` | `components/DiffView.tsx` | T2 | NEW | high | KEPT | skip |  |
-| 651 | `components/TrustDialog/utils.ts` | `components/FeedbackSurvey/utils.ts` | T2 | RESTRUCTURED | medium | MAPPED | — | → CC:components/TrustDialog/utils.ts |
-| 652 | `components/permissions/PermissionDialog.tsx` | `components/PermissionDialog.tsx` | T2 | RESTRUCTURED | medium | MAPPED | — | → CC:components/permissions/PermissionDialog.tsx |
+| 651 | `components/TrustDialog/utils.ts` | `components/FeedbackSurvey/utils.ts` | T2 | RESTRUCTURED | medium | ALIGNED | skip | → CC:components/TrustDialog/utils.ts |
+| 652 | `components/permissions/PermissionDialog.tsx` | `components/PermissionDialog.tsx` | T2 | RESTRUCTURED | medium | ALIGNED | skip | → CC:components/permissions/PermissionDialog.tsx |
 | 653 | `` | `components/PlanApprovalDialog.tsx` | T2 | NEW | high | KEPT | skip |  |
-| 654 | `components/PromptInput/PromptInput.tsx` | `components/PromptInput.tsx` | T2 | RESTRUCTURED | medium | MAPPED | — | → CC:components/PromptInput/PromptInput.tsx |
-| 655 | `screens/REPL.tsx` | `components/REPL.tsx` | T2 | RESTRUCTURED | medium | MAPPED | — | → CC:screens/REPL.tsx |
-| 656 | `components/agents/types.ts` | `components/Spinner/types.ts` | T2 | RESTRUCTURED | medium | MAPPED | — | → CC:components/agents/types.ts |
+| 654 | `components/PromptInput/PromptInput.tsx` | `components/PromptInput.tsx` | T2 | RESTRUCTURED | medium | ALIGNED | skip | → CC:components/PromptInput/PromptInput.tsx |
+| 655 | `screens/REPL.tsx` | `components/REPL.tsx` | T2 | RESTRUCTURED | medium | ALIGNED | skip | → CC:screens/REPL.tsx |
+| 656 | `components/agents/types.ts` | `components/Spinner/types.ts` | T2 | RESTRUCTURED | medium | ALIGNED | skip | → CC:components/agents/types.ts |
 | 657 | `` | `components/StartupBanner.tsx` | T2 | NEW | high | KEPT | skip |  |
 | 658 | `` | `components/StatusBar.tsx` | T2 | NEW | high | KEPT | skip |  |
 | 659 | `` | `components/ToolCallDisplay.tsx` | T2 | NEW | high | KEPT | skip |  |
-| 660 | `components/tasks/taskStatusUtils.tsx` | `components/tasks/taskStatusUtils.ts` | T2 | RESTRUCTURED | medium | MAPPED | — | → CC:components/tasks/taskStatusUtils.tsx |
-| 661 | `components/agents/types.ts` | `components/wizard/types.ts` | T2 | RESTRUCTURED | medium | MAPPED | — | → CC:components/agents/types.ts |
-| 662 | `services/lsp/manager.ts` | `history/manager.ts` | T6 | RESTRUCTURED | medium | MAPPED | — | → CC:services/lsp/manager.ts |
-| 663 | `commands/hooks/index.ts` | `hooks/index.ts` | T3 | RESTRUCTURED | medium | MAPPED | — | → CC:commands/hooks/index.ts |
-| 664 | `hooks/notifs/useDeprecationWarningNotification.tsx` | `hooks/notifs/useDeprecationWarningNotification.ts` | T3 | RESTRUCTURED | medium | MAPPED | — | → CC:hooks/notifs/useDeprecationWarningNotificat… |
-| 665 | `commands/keybindings/index.ts` | `keybindings/index.ts` | T4 | RESTRUCTURED | medium | MAPPED | — | → CC:commands/keybindings/index.ts |
+| 660 | `components/tasks/taskStatusUtils.tsx` | `components/tasks/taskStatusUtils.ts` | T2 | RESTRUCTURED | medium | ALIGNED | skip | → CC:components/tasks/taskStatusUtils.tsx |
+| 661 | `components/agents/types.ts` | `components/wizard/types.ts` | T2 | RESTRUCTURED | medium | ALIGNED | skip | → CC:components/agents/types.ts |
+| 662 | `services/lsp/manager.ts` | `history/manager.ts` | T6 | RESTRUCTURED | medium | ALIGNED | skip | → CC:services/lsp/manager.ts |
+| 663 | `commands/hooks/index.ts` | `hooks/index.ts` | T3 | RESTRUCTURED | medium | ALIGNED | skip | → CC:commands/hooks/index.ts |
+| 664 | `hooks/notifs/useDeprecationWarningNotification.tsx` | `hooks/notifs/useDeprecationWarningNotification.ts` | T3 | RESTRUCTURED | medium | ALIGNED | skip | → CC:hooks/notifs/useDeprecationWarningNotificat… |
+| 665 | `commands/keybindings/index.ts` | `keybindings/index.ts` | T4 | RESTRUCTURED | medium | ALIGNED | skip | → CC:commands/keybindings/index.ts |
 | 666 | `` | `keybindings/loader.ts` | T4 | NEW | high | KEPT | skip |  |
-| 667 | `components/agents/types.ts` | `keybindings/types.ts` | T4 | RESTRUCTURED | medium | MAPPED | — | → CC:components/agents/types.ts |
-| 668 | `services/lsp/manager.ts` | `mcp/manager.ts` | T6 | RESTRUCTURED | medium | MAPPED | — | → CC:services/lsp/manager.ts |
+| 667 | `components/agents/types.ts` | `keybindings/types.ts` | T4 | RESTRUCTURED | medium | ALIGNED | skip | → CC:components/agents/types.ts |
+| 668 | `services/lsp/manager.ts` | `mcp/manager.ts` | T6 | RESTRUCTURED | medium | ALIGNED | skip | → CC:services/lsp/manager.ts |
 | 669 | `` | `modes/planMode.ts` | T0 | NEW | high | KEPT | skip |  |
-| 670 | `utils/permissions/PermissionUpdate.ts` | `permissions/PermissionUpdate.ts` | T6 | RESTRUCTURED | medium | MAPPED | — | → CC:utils/permissions/PermissionUpdate.ts |
-| 671 | `utils/permissions/autoModeState.ts` | `permissions/autoModeState.ts` | T6 | RESTRUCTURED | medium | MAPPED | — | → CC:utils/permissions/autoModeState.ts |
+| 670 | `utils/permissions/PermissionUpdate.ts` | `permissions/PermissionUpdate.ts` | T6 | RESTRUCTURED | medium | ALIGNED | skip | → CC:utils/permissions/PermissionUpdate.ts |
+| 671 | `utils/permissions/autoModeState.ts` | `permissions/autoModeState.ts` | T6 | RESTRUCTURED | medium | ALIGNED | skip | → CC:utils/permissions/autoModeState.ts |
 | 672 | `` | `permissions/classifier.ts` | T6 | NEW | high | KEPT | skip |  |
-| 673 | `utils/permissions/dangerousPatterns.ts` | `permissions/dangerousPatterns.ts` | T6 | RESTRUCTURED | medium | MAPPED | — | → CC:utils/permissions/dangerousPatterns.ts |
-| 674 | `utils/permissions/denialTracking.ts` | `permissions/denialTracking.ts` | T6 | RESTRUCTURED | medium | MAPPED | — | → CC:utils/permissions/denialTracking.ts |
-| 675 | `commands/permissions/index.ts` | `permissions/index.ts` | T6 | RESTRUCTURED | medium | MAPPED | — | → CC:commands/permissions/index.ts |
-| 676 | `services/lsp/manager.ts` | `permissions/manager.ts` | T6 | RESTRUCTURED | medium | MAPPED | — | → CC:services/lsp/manager.ts |
-| 677 | `utils/permissions/pathValidation.ts` | `permissions/pathValidation.ts` | T6 | RESTRUCTURED | medium | MAPPED | — | → CC:utils/permissions/pathValidation.ts |
-| 678 | `utils/permissions/permissionExplainer.ts` | `permissions/permissionExplainer.ts` | T6 | RESTRUCTURED | medium | MAPPED | — | → CC:utils/permissions/permissionExplainer.ts |
-| 679 | `utils/permissions/permissionRuleParser.ts` | `permissions/permissionRuleParser.ts` | T6 | RESTRUCTURED | medium | MAPPED | — | → CC:utils/permissions/permissionRuleParser.ts |
+| 673 | `utils/permissions/dangerousPatterns.ts` | `permissions/dangerousPatterns.ts` | T6 | RESTRUCTURED | medium | ALIGNED | skip | → CC:utils/permissions/dangerousPatterns.ts |
+| 674 | `utils/permissions/denialTracking.ts` | `permissions/denialTracking.ts` | T6 | RESTRUCTURED | medium | ALIGNED | skip | → CC:utils/permissions/denialTracking.ts |
+| 675 | `commands/permissions/index.ts` | `permissions/index.ts` | T6 | RESTRUCTURED | medium | ALIGNED | skip | → CC:commands/permissions/index.ts |
+| 676 | `services/lsp/manager.ts` | `permissions/manager.ts` | T6 | RESTRUCTURED | medium | ALIGNED | skip | → CC:services/lsp/manager.ts |
+| 677 | `utils/permissions/pathValidation.ts` | `permissions/pathValidation.ts` | T6 | RESTRUCTURED | medium | ALIGNED | skip | → CC:utils/permissions/pathValidation.ts |
+| 678 | `utils/permissions/permissionExplainer.ts` | `permissions/permissionExplainer.ts` | T6 | RESTRUCTURED | medium | ALIGNED | skip | → CC:utils/permissions/permissionExplainer.ts |
+| 679 | `utils/permissions/permissionRuleParser.ts` | `permissions/permissionRuleParser.ts` | T6 | RESTRUCTURED | medium | ALIGNED | skip | → CC:utils/permissions/permissionRuleParser.ts |
 | 680 | `` | `permissions/rules.ts` | T6 | NEW | high | KEPT | skip |  |
-| 681 | `utils/permissions/shadowedRuleDetection.ts` | `permissions/shadowedRuleDetection.ts` | T6 | RESTRUCTURED | medium | MAPPED | — | → CC:utils/permissions/shadowedRuleDetection.ts |
-| 682 | `utils/permissions/shellRuleMatching.ts` | `permissions/shellRuleMatching.ts` | T6 | RESTRUCTURED | medium | MAPPED | — | → CC:utils/permissions/shellRuleMatching.ts |
-| 683 | `utils/permissions/yoloClassifier.ts` | `permissions/yoloClassifier.ts` | T6 | RESTRUCTURED | medium | MAPPED | — | → CC:utils/permissions/yoloClassifier.ts |
+| 681 | `utils/permissions/shadowedRuleDetection.ts` | `permissions/shadowedRuleDetection.ts` | T6 | RESTRUCTURED | medium | ALIGNED | skip | → CC:utils/permissions/shadowedRuleDetection.ts |
+| 682 | `utils/permissions/shellRuleMatching.ts` | `permissions/shellRuleMatching.ts` | T6 | RESTRUCTURED | medium | ALIGNED | skip | → CC:utils/permissions/shellRuleMatching.ts |
+| 683 | `utils/permissions/yoloClassifier.ts` | `permissions/yoloClassifier.ts` | T6 | RESTRUCTURED | medium | ALIGNED | skip | → CC:utils/permissions/yoloClassifier.ts |
 | 684 | `` | `plugins/loader.ts` | T6 | NEW | high | KEPT | skip |  |
-| 685 | `components/agents/types.ts` | `plugins/types.ts` | T6 | RESTRUCTURED | medium | MAPPED | — | → CC:components/agents/types.ts |
+| 685 | `components/agents/types.ts` | `plugins/types.ts` | T6 | RESTRUCTURED | medium | ALIGNED | skip | → CC:components/agents/types.ts |
 | 686 | `` | `providers/anthropic.ts` | EXT | NEW | high | KEPT | skip |  |
-| 687 | `utils/model/bedrock.ts` | `providers/bedrock.ts` | EXT | RESTRUCTURED | medium | MAPPED | — | → CC:utils/model/bedrock.ts |
+| 687 | `utils/model/bedrock.ts` | `providers/bedrock.ts` | EXT | RESTRUCTURED | medium | ALIGNED | skip | → CC:utils/model/bedrock.ts |
 | 688 | `` | `providers/doubao.ts` | EXT | NEW | high | KEPT | skip |  |
 | 689 | `` | `providers/glm.ts` | EXT | NEW | high | KEPT | skip |  |
-| 690 | `commands/fast/index.ts` | `providers/index.ts` | EXT | RESTRUCTURED | medium | MAPPED | — | → CC:commands/fast/index.ts |
+| 690 | `commands/fast/index.ts` | `providers/index.ts` | EXT | RESTRUCTURED | medium | ALIGNED | skip | → CC:commands/fast/index.ts |
 | 691 | `` | `providers/ollama.ts` | EXT | NEW | high | KEPT | skip |  |
 | 692 | `` | `providers/openai-compat.ts` | EXT | NEW | high | KEPT | skip |  |
 | 693 | `` | `providers/qwen.ts` | EXT | NEW | high | KEPT | skip |  |
 | 694 | `` | `providers/vertex.ts` | EXT | NEW | high | KEPT | skip |  |
-| 695 | `services/tools/StreamingToolExecutor.ts` | `query/StreamingToolExecutor.ts` | T0 | RESTRUCTURED | medium | MAPPED | — | → CC:services/tools/StreamingToolExecutor.ts |
-| 696 | `services/api/withRetry.ts` | `retry/withRetry.ts` | T6 | RESTRUCTURED | medium | MAPPED | — | → CC:services/api/withRetry.ts |
+| 695 | `services/tools/StreamingToolExecutor.ts` | `query/StreamingToolExecutor.ts` | T0 | RESTRUCTURED | medium | ALIGNED | skip | → CC:services/tools/StreamingToolExecutor.ts |
+| 696 | `services/api/withRetry.ts` | `retry/withRetry.ts` | T6 | RESTRUCTURED | medium | ALIGNED | skip | → CC:services/api/withRetry.ts |
 | 697 | `` | `services/background/sessions.ts` | T5 | NEW | high | KEPT | skip |  |
-| 698 | `state/store.ts` | `services/brief/store.ts` | T5 | RESTRUCTURED | medium | MAPPED | — | → CC:state/store.ts |
-| 699 | `services/oauth/index.ts` | `services/contextCollapse/index.ts` | T5 | RESTRUCTURED | medium | MAPPED | — | → CC:services/oauth/index.ts |
+| 698 | `state/store.ts` | `services/brief/store.ts` | T5 | RESTRUCTURED | medium | ALIGNED | skip | → CC:state/store.ts |
+| 699 | `services/oauth/index.ts` | `services/contextCollapse/index.ts` | T5 | RESTRUCTURED | medium | ALIGNED | skip | → CC:services/oauth/index.ts |
 | 700 | `` | `services/cron/scheduler.ts` | T5 | NEW | high | KEPT | skip |  |
-| 701 | `services/oauth/index.ts` | `services/extractMemories/index.ts` | T5 | RESTRUCTURED | medium | MAPPED | — | → CC:services/oauth/index.ts |
-| 702 | `services/oauth/index.ts` | `services/featureFlags/index.ts` | T5 | RESTRUCTURED | medium | MAPPED | — | → CC:services/oauth/index.ts |
-| 703 | `services/policyLimits/types.ts` | `services/lsp/types.ts` | T5 | RESTRUCTURED | medium | MAPPED | — | → CC:services/policyLimits/types.ts |
-| 704 | `services/lsp/manager.ts` | `services/mcp/manager.ts` | T5 | RESTRUCTURED | medium | MAPPED | — | → CC:services/lsp/manager.ts |
-| 705 | `services/oauth/index.ts` | `services/memdir/index.ts` | T5 | RESTRUCTURED | medium | MAPPED | — | → CC:services/oauth/index.ts |
-| 706 | `memdir/memoryAge.ts` | `services/memdir/memoryAge.ts` | T5 | RESTRUCTURED | medium | MAPPED | — | → CC:memdir/memoryAge.ts |
-| 707 | `memdir/memoryScan.ts` | `services/memdir/memoryScan.ts` | T5 | RESTRUCTURED | medium | MAPPED | — | → CC:memdir/memoryScan.ts |
-| 708 | `memdir/memoryTypes.ts` | `services/memdir/memoryTypes.ts` | T5 | RESTRUCTURED | medium | MAPPED | — | → CC:memdir/memoryTypes.ts |
-| 709 | `memdir/paths.ts` | `services/memdir/paths.ts` | T5 | RESTRUCTURED | medium | MAPPED | — | → CC:memdir/paths.ts |
+| 701 | `services/oauth/index.ts` | `services/extractMemories/index.ts` | T5 | RESTRUCTURED | medium | ALIGNED | skip | → CC:services/oauth/index.ts |
+| 702 | `services/oauth/index.ts` | `services/featureFlags/index.ts` | T5 | RESTRUCTURED | medium | ALIGNED | skip | → CC:services/oauth/index.ts |
+| 703 | `services/policyLimits/types.ts` | `services/lsp/types.ts` | T5 | RESTRUCTURED | medium | ALIGNED | skip | → CC:services/policyLimits/types.ts |
+| 704 | `services/lsp/manager.ts` | `services/mcp/manager.ts` | T5 | RESTRUCTURED | medium | ALIGNED | skip | → CC:services/lsp/manager.ts |
+| 705 | `services/oauth/index.ts` | `services/memdir/index.ts` | T5 | RESTRUCTURED | medium | ALIGNED | skip | → CC:services/oauth/index.ts |
+| 706 | `memdir/memoryAge.ts` | `services/memdir/memoryAge.ts` | T5 | RESTRUCTURED | medium | ALIGNED | skip | → CC:memdir/memoryAge.ts |
+| 707 | `memdir/memoryScan.ts` | `services/memdir/memoryScan.ts` | T5 | RESTRUCTURED | medium | ALIGNED | skip | → CC:memdir/memoryScan.ts |
+| 708 | `memdir/memoryTypes.ts` | `services/memdir/memoryTypes.ts` | T5 | RESTRUCTURED | medium | ALIGNED | skip | → CC:memdir/memoryTypes.ts |
+| 709 | `memdir/paths.ts` | `services/memdir/paths.ts` | T5 | RESTRUCTURED | medium | ALIGNED | skip | → CC:memdir/paths.ts |
 | 710 | `` | `services/memory/extractor.ts` | T5 | NEW | high | KEPT | skip |  |
-| 711 | `state/store.ts` | `services/memory/store.ts` | T5 | RESTRUCTURED | medium | MAPPED | — | → CC:state/store.ts |
+| 711 | `state/store.ts` | `services/memory/store.ts` | T5 | RESTRUCTURED | medium | ALIGNED | skip | → CC:state/store.ts |
 | 712 | `` | `services/messaging/bus.ts` | T5 | NEW | high | KEPT | skip |  |
 | 713 | `` | `services/oauth/authCodeListener.ts` | T5 | NEW | high | KEPT | skip |  |
 | 714 | `` | `services/outputStyles/loader.ts` | T5 | NEW | high | KEPT | skip |  |
-| 715 | `utils/stats.ts` | `services/stats.ts` | T5 | RESTRUCTURED | medium | MAPPED | — | → CC:utils/stats.ts |
-| 716 | `state/store.ts` | `services/tasks/store.ts` | T5 | RESTRUCTURED | medium | MAPPED | — | → CC:state/store.ts |
-| 717 | `state/store.ts` | `services/teams/store.ts` | T5 | RESTRUCTURED | medium | MAPPED | — | → CC:state/store.ts |
+| 715 | `utils/stats.ts` | `services/stats.ts` | T5 | RESTRUCTURED | medium | ALIGNED | skip | → CC:utils/stats.ts |
+| 716 | `state/store.ts` | `services/tasks/store.ts` | T5 | RESTRUCTURED | medium | ALIGNED | skip | → CC:state/store.ts |
+| 717 | `state/store.ts` | `services/teams/store.ts` | T5 | RESTRUCTURED | medium | ALIGNED | skip | → CC:state/store.ts |
 | 718 | `` | `services/tips.ts` | T5 | NEW | high | KEPT | skip |  |
 | 719 | `` | `services/toolUseSummary/generator.ts` | T5 | NEW | high | KEPT | skip |  |
-| 720 | `state/store.ts` | `services/triggers/store.ts` | T5 | RESTRUCTURED | medium | MAPPED | — | → CC:state/store.ts |
-| 721 | `state/store.ts` | `services/worktree/store.ts` | T5 | RESTRUCTURED | medium | MAPPED | — | → CC:state/store.ts |
-| 722 | `commands/resume/resume.tsx` | `session/resume.ts` | T6 | RESTRUCTURED | medium | MAPPED | — | → CC:commands/resume/resume.tsx |
-| 723 | `commands/fast/index.ts` | `settings/index.ts` | T0 | RESTRUCTURED | medium | MAPPED | — | → CC:commands/fast/index.ts |
+| 720 | `state/store.ts` | `services/triggers/store.ts` | T5 | RESTRUCTURED | medium | ALIGNED | skip | → CC:state/store.ts |
+| 721 | `state/store.ts` | `services/worktree/store.ts` | T5 | RESTRUCTURED | medium | ALIGNED | skip | → CC:state/store.ts |
+| 722 | `commands/resume/resume.tsx` | `session/resume.ts` | T6 | RESTRUCTURED | medium | ALIGNED | skip | → CC:commands/resume/resume.tsx |
+| 723 | `commands/fast/index.ts` | `settings/index.ts` | T0 | RESTRUCTURED | medium | ALIGNED | skip | → CC:commands/fast/index.ts |
 | 724 | `` | `settings/loader.ts` | T0 | NEW | high | KEPT | skip |  |
-| 725 | `keybindings/schema.ts` | `settings/schema.ts` | T0 | RESTRUCTURED | medium | MAPPED | — | → CC:keybindings/schema.ts |
+| 725 | `keybindings/schema.ts` | `settings/schema.ts` | T0 | RESTRUCTURED | medium | ALIGNED | skip | → CC:keybindings/schema.ts |
 | 726 | `` | `skills/loader.ts` | T6 | NEW | high | KEPT | skip |  |
 | 727 | `` | `stubs/react-devtools-core.ts` | EXT | NEW | high | KEPT | skip |  |
-| 728 | `tools/AgentTool/AgentTool.tsx` | `tools/AgentTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/AgentTool/AgentTool.tsx |
+| 728 | `tools/AgentTool/AgentTool.tsx` | `tools/AgentTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/AgentTool/AgentTool.tsx |
 | 729 | `` | `tools/AgentTool/built-in/qilingGuideAgent.ts` | T1 | NEW | high | KEPT | skip |  |
-| 730 | `tools/AskUserQuestionTool/AskUserQuestionTool.tsx` | `tools/AskUserQuestionTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/AskUserQuestionTool/AskUserQuestionTo… |
-| 731 | `tools/BashTool/BashTool.tsx` | `tools/BashTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/BashTool/BashTool.tsx |
-| 732 | `tools/BriefTool/BriefTool.ts` | `tools/BriefTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/BriefTool/BriefTool.ts |
-| 733 | `tools/ConfigTool/ConfigTool.ts` | `tools/ConfigTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/ConfigTool/ConfigTool.ts |
-| 734 | `tools/ScheduleCronTool/CronCreateTool.ts` | `tools/CronCreateTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/ScheduleCronTool/CronCreateTool.ts |
-| 735 | `tools/ScheduleCronTool/CronDeleteTool.ts` | `tools/CronDeleteTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/ScheduleCronTool/CronDeleteTool.ts |
-| 736 | `tools/ScheduleCronTool/CronListTool.ts` | `tools/CronListTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/ScheduleCronTool/CronListTool.ts |
-| 737 | `tools/EnterPlanModeTool/EnterPlanModeTool.ts` | `tools/EnterPlanModeTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/EnterPlanModeTool/EnterPlanModeTool.ts |
-| 738 | `tools/EnterWorktreeTool/EnterWorktreeTool.ts` | `tools/EnterWorktreeTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/EnterWorktreeTool/EnterWorktreeTool.ts |
+| 730 | `tools/AskUserQuestionTool/AskUserQuestionTool.tsx` | `tools/AskUserQuestionTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/AskUserQuestionTool/AskUserQuestionTo… |
+| 731 | `tools/BashTool/BashTool.tsx` | `tools/BashTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/BashTool/BashTool.tsx |
+| 732 | `tools/BriefTool/BriefTool.ts` | `tools/BriefTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/BriefTool/BriefTool.ts |
+| 733 | `tools/ConfigTool/ConfigTool.ts` | `tools/ConfigTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/ConfigTool/ConfigTool.ts |
+| 734 | `tools/ScheduleCronTool/CronCreateTool.ts` | `tools/CronCreateTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/ScheduleCronTool/CronCreateTool.ts |
+| 735 | `tools/ScheduleCronTool/CronDeleteTool.ts` | `tools/CronDeleteTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/ScheduleCronTool/CronDeleteTool.ts |
+| 736 | `tools/ScheduleCronTool/CronListTool.ts` | `tools/CronListTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/ScheduleCronTool/CronListTool.ts |
+| 737 | `tools/EnterPlanModeTool/EnterPlanModeTool.ts` | `tools/EnterPlanModeTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/EnterPlanModeTool/EnterPlanModeTool.ts |
+| 738 | `tools/EnterWorktreeTool/EnterWorktreeTool.ts` | `tools/EnterWorktreeTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/EnterWorktreeTool/EnterWorktreeTool.ts |
 | 739 | `` | `tools/ExitPlanModeTool.ts` | T1 | NEW | high | KEPT | skip |  |
-| 740 | `tools/ExitWorktreeTool/ExitWorktreeTool.ts` | `tools/ExitWorktreeTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/ExitWorktreeTool/ExitWorktreeTool.ts |
-| 741 | `tools/FileEditTool/FileEditTool.ts` | `tools/FileEditTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/FileEditTool/FileEditTool.ts |
-| 742 | `tools/FileReadTool/FileReadTool.ts` | `tools/FileReadTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/FileReadTool/FileReadTool.ts |
-| 743 | `tools/FileWriteTool/FileWriteTool.ts` | `tools/FileWriteTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/FileWriteTool/FileWriteTool.ts |
-| 744 | `tools/GlobTool/GlobTool.ts` | `tools/GlobTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/GlobTool/GlobTool.ts |
-| 745 | `tools/GrepTool/GrepTool.ts` | `tools/GrepTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/GrepTool/GrepTool.ts |
-| 746 | `tools/ListMcpResourcesTool/ListMcpResourcesTool.ts` | `tools/ListMcpResourcesTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/ListMcpResourcesTool/ListMcpResources… |
+| 740 | `tools/ExitWorktreeTool/ExitWorktreeTool.ts` | `tools/ExitWorktreeTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/ExitWorktreeTool/ExitWorktreeTool.ts |
+| 741 | `tools/FileEditTool/FileEditTool.ts` | `tools/FileEditTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/FileEditTool/FileEditTool.ts |
+| 742 | `tools/FileReadTool/FileReadTool.ts` | `tools/FileReadTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/FileReadTool/FileReadTool.ts |
+| 743 | `tools/FileWriteTool/FileWriteTool.ts` | `tools/FileWriteTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/FileWriteTool/FileWriteTool.ts |
+| 744 | `tools/GlobTool/GlobTool.ts` | `tools/GlobTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/GlobTool/GlobTool.ts |
+| 745 | `tools/GrepTool/GrepTool.ts` | `tools/GrepTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/GrepTool/GrepTool.ts |
+| 746 | `tools/ListMcpResourcesTool/ListMcpResourcesTool.ts` | `tools/ListMcpResourcesTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/ListMcpResourcesTool/ListMcpResources… |
 | 747 | `` | `tools/LspTool.ts` | T1 | NEW | high | KEPT | skip |  |
-| 748 | `tools/LSPTool/formatters.ts` | `tools/LspTool/formatters.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/LSPTool/formatters.ts |
-| 749 | `tools/ExitPlanModeTool/prompt.ts` | `tools/LspTool/prompt.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/ExitPlanModeTool/prompt.ts |
-| 750 | `tools/LSPTool/schemas.ts` | `tools/LspTool/schemas.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/LSPTool/schemas.ts |
-| 751 | `tools/LSPTool/symbolContext.ts` | `tools/LspTool/symbolContext.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/LSPTool/symbolContext.ts |
-| 752 | `tools/McpAuthTool/McpAuthTool.ts` | `tools/McpAuthTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/McpAuthTool/McpAuthTool.ts |
+| 748 | `tools/LSPTool/formatters.ts` | `tools/LspTool/formatters.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/LSPTool/formatters.ts |
+| 749 | `tools/ExitPlanModeTool/prompt.ts` | `tools/LspTool/prompt.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/ExitPlanModeTool/prompt.ts |
+| 750 | `tools/LSPTool/schemas.ts` | `tools/LspTool/schemas.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/LSPTool/schemas.ts |
+| 751 | `tools/LSPTool/symbolContext.ts` | `tools/LspTool/symbolContext.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/LSPTool/symbolContext.ts |
+| 752 | `tools/McpAuthTool/McpAuthTool.ts` | `tools/McpAuthTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/McpAuthTool/McpAuthTool.ts |
 | 753 | `` | `tools/McpTool.ts` | T1 | NEW | high | KEPT | skip |  |
-| 754 | `tools/MCPTool/classifyForCollapse.ts` | `tools/McpTool/classifyForCollapse.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/MCPTool/classifyForCollapse.ts |
-| 755 | `tools/ExitPlanModeTool/prompt.ts` | `tools/McpTool/prompt.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/ExitPlanModeTool/prompt.ts |
-| 756 | `tools/NotebookEditTool/NotebookEditTool.ts` | `tools/NotebookEditTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/NotebookEditTool/NotebookEditTool.ts |
+| 754 | `tools/MCPTool/classifyForCollapse.ts` | `tools/McpTool/classifyForCollapse.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/MCPTool/classifyForCollapse.ts |
+| 755 | `tools/ExitPlanModeTool/prompt.ts` | `tools/McpTool/prompt.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/ExitPlanModeTool/prompt.ts |
+| 756 | `tools/NotebookEditTool/NotebookEditTool.ts` | `tools/NotebookEditTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/NotebookEditTool/NotebookEditTool.ts |
 | 757 | `` | `tools/NotebookReadTool.ts` | T1 | NEW | high | KEPT | skip |  |
-| 758 | `tools/PowerShellTool/PowerShellTool.tsx` | `tools/PowerShellTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/PowerShellTool/PowerShellTool.tsx |
-| 759 | `tools/ReadMcpResourceTool/ReadMcpResourceTool.ts` | `tools/ReadMcpResourceTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/ReadMcpResourceTool/ReadMcpResourceTo… |
-| 760 | `tools/RemoteTriggerTool/RemoteTriggerTool.ts` | `tools/RemoteTriggerTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/RemoteTriggerTool/RemoteTriggerTool.ts |
+| 758 | `tools/PowerShellTool/PowerShellTool.tsx` | `tools/PowerShellTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/PowerShellTool/PowerShellTool.tsx |
+| 759 | `tools/ReadMcpResourceTool/ReadMcpResourceTool.ts` | `tools/ReadMcpResourceTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/ReadMcpResourceTool/ReadMcpResourceTo… |
+| 760 | `tools/RemoteTriggerTool/RemoteTriggerTool.ts` | `tools/RemoteTriggerTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/RemoteTriggerTool/RemoteTriggerTool.ts |
 | 761 | `` | `tools/RepoMapTool.ts` | T1 | NEW | high | KEPT | skip |  |
-| 762 | `tools/SendMessageTool/SendMessageTool.ts` | `tools/SendMessageTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/SendMessageTool/SendMessageTool.ts |
-| 763 | `tools/SkillTool/SkillTool.ts` | `tools/SkillTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/SkillTool/SkillTool.ts |
+| 762 | `tools/SendMessageTool/SendMessageTool.ts` | `tools/SendMessageTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/SendMessageTool/SendMessageTool.ts |
+| 763 | `tools/SkillTool/SkillTool.ts` | `tools/SkillTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/SkillTool/SkillTool.ts |
 | 764 | `` | `tools/SleepTool.ts` | T1 | NEW | high | KEPT | skip |  |
-| 765 | `tools/SyntheticOutputTool/SyntheticOutputTool.ts` | `tools/SyntheticOutputTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/SyntheticOutputTool/SyntheticOutputTo… |
-| 766 | `tools/TaskCreateTool/TaskCreateTool.ts` | `tools/TaskCreateTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/TaskCreateTool/TaskCreateTool.ts |
-| 767 | `tools/TaskGetTool/TaskGetTool.ts` | `tools/TaskGetTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/TaskGetTool/TaskGetTool.ts |
-| 768 | `tools/TaskListTool/TaskListTool.ts` | `tools/TaskListTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/TaskListTool/TaskListTool.ts |
-| 769 | `tools/TaskOutputTool/TaskOutputTool.tsx` | `tools/TaskOutputTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/TaskOutputTool/TaskOutputTool.tsx |
-| 770 | `tools/TaskStopTool/TaskStopTool.ts` | `tools/TaskStopTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/TaskStopTool/TaskStopTool.ts |
-| 771 | `tools/TaskUpdateTool/TaskUpdateTool.ts` | `tools/TaskUpdateTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/TaskUpdateTool/TaskUpdateTool.ts |
-| 772 | `tools/TeamCreateTool/TeamCreateTool.ts` | `tools/TeamCreateTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/TeamCreateTool/TeamCreateTool.ts |
-| 773 | `tools/TeamDeleteTool/TeamDeleteTool.ts` | `tools/TeamDeleteTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/TeamDeleteTool/TeamDeleteTool.ts |
-| 774 | `tools/TodoWriteTool/TodoWriteTool.ts` | `tools/TodoWriteTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/TodoWriteTool/TodoWriteTool.ts |
-| 775 | `tools/ToolSearchTool/ToolSearchTool.ts` | `tools/ToolSearchTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/ToolSearchTool/ToolSearchTool.ts |
-| 776 | `tools/WebFetchTool/WebFetchTool.ts` | `tools/WebFetchTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/WebFetchTool/WebFetchTool.ts |
-| 777 | `tools/WebSearchTool/WebSearchTool.ts` | `tools/WebSearchTool.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:tools/WebSearchTool/WebSearchTool.ts |
-| 778 | `commands/fast/index.ts` | `tools/index.ts` | T1 | RESTRUCTURED | medium | MAPPED | — | → CC:commands/fast/index.ts |
+| 765 | `tools/SyntheticOutputTool/SyntheticOutputTool.ts` | `tools/SyntheticOutputTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/SyntheticOutputTool/SyntheticOutputTo… |
+| 766 | `tools/TaskCreateTool/TaskCreateTool.ts` | `tools/TaskCreateTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/TaskCreateTool/TaskCreateTool.ts |
+| 767 | `tools/TaskGetTool/TaskGetTool.ts` | `tools/TaskGetTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/TaskGetTool/TaskGetTool.ts |
+| 768 | `tools/TaskListTool/TaskListTool.ts` | `tools/TaskListTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/TaskListTool/TaskListTool.ts |
+| 769 | `tools/TaskOutputTool/TaskOutputTool.tsx` | `tools/TaskOutputTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/TaskOutputTool/TaskOutputTool.tsx |
+| 770 | `tools/TaskStopTool/TaskStopTool.ts` | `tools/TaskStopTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/TaskStopTool/TaskStopTool.ts |
+| 771 | `tools/TaskUpdateTool/TaskUpdateTool.ts` | `tools/TaskUpdateTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/TaskUpdateTool/TaskUpdateTool.ts |
+| 772 | `tools/TeamCreateTool/TeamCreateTool.ts` | `tools/TeamCreateTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/TeamCreateTool/TeamCreateTool.ts |
+| 773 | `tools/TeamDeleteTool/TeamDeleteTool.ts` | `tools/TeamDeleteTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/TeamDeleteTool/TeamDeleteTool.ts |
+| 774 | `tools/TodoWriteTool/TodoWriteTool.ts` | `tools/TodoWriteTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/TodoWriteTool/TodoWriteTool.ts |
+| 775 | `tools/ToolSearchTool/ToolSearchTool.ts` | `tools/ToolSearchTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/ToolSearchTool/ToolSearchTool.ts |
+| 776 | `tools/WebFetchTool/WebFetchTool.ts` | `tools/WebFetchTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/WebFetchTool/WebFetchTool.ts |
+| 777 | `tools/WebSearchTool/WebSearchTool.ts` | `tools/WebSearchTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:tools/WebSearchTool/WebSearchTool.ts |
+| 778 | `commands/fast/index.ts` | `tools/index.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | → CC:commands/fast/index.ts |
 | 779 | `` | `tools/toolUtils.ts` | T1 | NEW | high | KEPT | skip |  |
-| 780 | `commands/fast/index.ts` | `types/index.ts` | T7 | RESTRUCTURED | medium | MAPPED | — | → CC:commands/fast/index.ts |
+| 780 | `commands/fast/index.ts` | `types/index.ts` | T7 | RESTRUCTURED | medium | ALIGNED | skip | → CC:commands/fast/index.ts |
 | 781 | `` | `types/message.ts` | T7 | NEW | high | KEPT | skip |  |
-| 782 | `utils/notebook.ts` | `types/notebook.ts` | T7 | RESTRUCTURED | medium | MAPPED | — | → CC:utils/notebook.ts |
+| 782 | `utils/notebook.ts` | `types/notebook.ts` | T7 | RESTRUCTURED | medium | ALIGNED | skip | → CC:utils/notebook.ts |
 | 783 | `` | `types/provider.ts` | T7 | NEW | high | KEPT | skip |  |
 | 784 | `` | `types/tool.ts` | T7 | NEW | high | KEPT | skip |  |
-| 785 | `utils/bash/specs/index.ts` | `utils/computerUse/index.ts` | T6 | RESTRUCTURED | medium | MAPPED | — | → CC:utils/bash/specs/index.ts |
+| 785 | `utils/bash/specs/index.ts` | `utils/computerUse/index.ts` | T6 | RESTRUCTURED | medium | ALIGNED | skip | → CC:utils/bash/specs/index.ts |
 | 786 | `` | `utils/errorMessages.ts` | T6 | NEW | high | KEPT | skip |  |
 | 787 | `` | `utils/mentions.ts` | T6 | NEW | high | KEPT | skip |  |
 | 788 | `` | `utils/migrations.ts` | T6 | NEW | high | KEPT | skip |  |
 | 789 | `` | `utils/modelAliases.ts` | T6 | NEW | high | KEPT | skip |  |
-| 790 | `cli/ndjsonSafeStringify.ts` | `utils/ndjsonSafeStringify.ts` | T6 | RESTRUCTURED | medium | MAPPED | — | → CC:cli/ndjsonSafeStringify.ts |
+| 790 | `cli/ndjsonSafeStringify.ts` | `utils/ndjsonSafeStringify.ts` | T6 | RESTRUCTURED | medium | ALIGNED | skip | → CC:cli/ndjsonSafeStringify.ts |
 | 791 | `` | `utils/processUtils.ts` | T6 | NEW | high | KEPT | skip |  |
 | 792 | `` | `utils/renderMarkdown.ts` | T6 | NEW | high | KEPT | skip |  |
-| 793 | `utils/bash/specs/index.ts` | `utils/sandbox/index.ts` | T6 | RESTRUCTURED | medium | MAPPED | — | → CC:utils/bash/specs/index.ts |
-| 794 | `utils/memory/types.ts` | `utils/secureStorage/types.ts` | T6 | RESTRUCTURED | medium | MAPPED | — | → CC:utils/memory/types.ts |
+| 793 | `utils/bash/specs/index.ts` | `utils/sandbox/index.ts` | T6 | RESTRUCTURED | medium | ALIGNED | skip | → CC:utils/bash/specs/index.ts |
+| 794 | `utils/memory/types.ts` | `utils/secureStorage/types.ts` | T6 | RESTRUCTURED | medium | ALIGNED | skip | → CC:utils/memory/types.ts |
 | 795 | `` | `utils/themeContext.tsx` | T6 | NEW | high | KEPT | skip |  |
 | 796 | `` | `utils/updater.ts` | T6 | NEW | high | KEPT | skip |  |
-| 797 | `ink/layout/engine.ts` | `vim/engine.ts` | T2 | RESTRUCTURED | medium | MAPPED | — | → CC:ink/layout/engine.ts |
+| 797 | `ink/layout/engine.ts` | `vim/engine.ts` | T2 | RESTRUCTURED | medium | ALIGNED | skip | → CC:ink/layout/engine.ts |
 | 798 | `QueryEngine.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 799 | `Task.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 800 | `Tool.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
