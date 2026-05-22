@@ -1,10 +1,10 @@
 # ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 → B (decisions locked)
-> **Last Updated:** 2026-05-22T12:27
+> **Last Updated:** 2026-05-22T12:43
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
 > **Verdict Distribution:** FULLY_ALIGNED 265 | PARTIAL 299 | DIVERGED 72 | RESTRUCTURED 109 | NEW 52 | MISSING 1248  
-> **Active Batch / Audit Task:** Phase B · Batch B-001 (T0 核心运行时)
+> **Active Batch / Audit Task:** B-001 ✅ DONE · B-002 ⏳ PENDING
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL ≈ 20% weighted
 
 ---
@@ -277,7 +277,7 @@
 | 233 | `keybindings/useShortcutDisplay.ts` | `keybindings/useShortcutDisplay.ts` | T4 | DIVERGED | high | KEPT | skip | overlap=34% |
 | 234 | `keybindings/validate.ts` | `keybindings/validate.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 235 | `main.tsx` | `main.tsx` | T6 | DIVERGED | high | KEPT | skip | overlap=9% |
-| 236 | `migrations/migrateReplBridgeEnabledToRemoteControlAtStartu…` | `migrations/migrateReplBridgeEnabledToRemoteControlAtStartu…` | T0 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 236 | `migrations/migrateReplBridgeEnabledToRemoteControlAtStartu…` | `migrations/migrateReplBridgeEnabledToRemoteControlAtStartu…` | T0 | PARTIAL | medium | ALIGNED | adapt-complete | stub→complete; no-op (QL schema differs) |
 | 237 | `moreright/useMoreRight.tsx` | `moreright/useMoreRight.tsx` | EXT | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 238 | `native-ts/yoga-layout/enums.ts` | `native-ts/yoga-layout/enums.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 239 | `plugins/bundled/index.ts` | `plugins/bundled/index.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
@@ -843,7 +843,7 @@
 | 799 | `Task.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 800 | `Tool.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 801 | `assistant/sessionHistory.ts` | `` | EXT | MISSING | high | UNTOUCHED | copy |  |
-| 802 | `bootstrap/state.ts` | `` | T0 | MISSING | high | UNTOUCHED | copy |  |
+| 802 | `bootstrap/state.ts` | `` | T0 | MISSING | high | ALIGNED | adapt-new | lightweight adapter; 200+ fns; OTEL=stub |
 | 803 | `bridge/bridgeApi.ts` | `` | EXT | MISSING | high | UNTOUCHED | copy |  |
 | 804 | `bridge/bridgeConfig.ts` | `` | EXT | MISSING | high | UNTOUCHED | copy |  |
 | 805 | `bridge/bridgeDebug.ts` | `` | EXT | MISSING | high | UNTOUCHED | copy |  |
@@ -1513,11 +1513,11 @@
 | 1469 | `memdir/paths.ts` | `` | T5 | MISSING | high | UNTOUCHED | copy |  |
 | 1470 | `memdir/teamMemPaths.ts` | `` | T5 | MISSING | high | UNTOUCHED | copy |  |
 | 1471 | `memdir/teamMemPrompts.ts` | `` | T5 | MISSING | high | UNTOUCHED | copy |  |
-| 1472 | `migrations/migrateAutoUpdatesToSettings.ts` | `` | T0 | MISSING | high | UNTOUCHED | copy |  |
-| 1473 | `migrations/migrateBypassPermissionsAcceptedToSettings.ts` | `` | T0 | MISSING | high | UNTOUCHED | copy |  |
-| 1474 | `migrations/migrateEnableAllProjectMcpServersToSettings.ts` | `` | T0 | MISSING | high | UNTOUCHED | copy |  |
-| 1475 | `migrations/migrateFennecToOpus.ts` | `` | T0 | MISSING | high | UNTOUCHED | copy |  |
-| 1476 | `migrations/migrateLegacyOpusToCurrent.ts` | `` | T0 | MISSING | high | UNTOUCHED | copy |  |
+| 1472 | `migrations/migrateAutoUpdatesToSettings.ts` | `` | T0 | MISSING | high | ALIGNED | — | no-op stub; QL schema differs |
+| 1473 | `migrations/migrateBypassPermissionsAcceptedToSettings.ts` | `` | T0 | MISSING | high | ALIGNED | — | no-op stub; QL uses mode state machine |
+| 1474 | `migrations/migrateEnableAllProjectMcpServersToSettings.ts` | `` | T0 | MISSING | high | ALIGNED | — | no-op stub; QL MCP in settings.json |
+| 1475 | `migrations/migrateFennecToOpus.ts` | `` | T0 | MISSING | high | ALIGNED | — | no-op stub; no Fennec aliases in QL |
+| 1476 | `migrations/migrateLegacyOpusToCurrent.ts` | `` | T0 | MISSING | high | ALIGNED | — | no-op stub; QL resolves at runtime |
 | 1477 | `migrations/migrateOpusToOpus1m.ts` | `` | T0 | MISSING | high | UNTOUCHED | copy |  |
 | 1478 | `migrations/migrateSonnet1mToSonnet45.ts` | `` | T0 | MISSING | high | UNTOUCHED | copy |  |
 | 1479 | `migrations/migrateSonnet45ToSonnet46.ts` | `` | T0 | MISSING | high | UNTOUCHED | copy |  |
