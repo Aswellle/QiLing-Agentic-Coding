@@ -1,10 +1,10 @@
 # ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 → B (decisions locked)
-> **Last Updated:** 2026-05-22T12:43
+> **Last Updated:** 2026-05-22T16:28
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
 > **Verdict Distribution:** FULLY_ALIGNED 265 | PARTIAL 299 | DIVERGED 72 | RESTRUCTURED 109 | NEW 52 | MISSING 1248  
-> **Active Batch / Audit Task:** B-001 ✅ DONE · B-002 ⏳ PENDING
+> **Active Batch / Audit Task:** B-002 ✅ DONE · B-003 ⏳ PENDING
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL ≈ 20% weighted
 
 ---
@@ -1518,19 +1518,19 @@
 | 1474 | `migrations/migrateEnableAllProjectMcpServersToSettings.ts` | `` | T0 | MISSING | high | ALIGNED | — | no-op stub; QL MCP in settings.json |
 | 1475 | `migrations/migrateFennecToOpus.ts` | `` | T0 | MISSING | high | ALIGNED | — | no-op stub; no Fennec aliases in QL |
 | 1476 | `migrations/migrateLegacyOpusToCurrent.ts` | `` | T0 | MISSING | high | ALIGNED | — | no-op stub; QL resolves at runtime |
-| 1477 | `migrations/migrateOpusToOpus1m.ts` | `` | T0 | MISSING | high | UNTOUCHED | copy |  |
-| 1478 | `migrations/migrateSonnet1mToSonnet45.ts` | `` | T0 | MISSING | high | UNTOUCHED | copy |  |
-| 1479 | `migrations/migrateSonnet45ToSonnet46.ts` | `` | T0 | MISSING | high | UNTOUCHED | copy |  |
-| 1480 | `migrations/resetAutoModeOptInForDefaultOffer.ts` | `` | T0 | MISSING | high | UNTOUCHED | copy |  |
-| 1481 | `migrations/resetProToOpusDefault.ts` | `` | T0 | MISSING | high | UNTOUCHED | copy |  |
+| 1477 | `migrations/migrateOpusToOpus1m.ts` | `` | T0 | MISSING | high | ALIGNED | — | no-op stub; model alias runtime |
+| 1478 | `migrations/migrateSonnet1mToSonnet45.ts` | `` | T0 | MISSING | high | ALIGNED | — | no-op stub; model alias runtime |
+| 1479 | `migrations/migrateSonnet45ToSonnet46.ts` | `` | T0 | MISSING | high | ALIGNED | — | no-op stub; firstParty/subscription |
+| 1480 | `migrations/resetAutoModeOptInForDefaultOffer.ts` | `` | T0 | MISSING | high | ALIGNED | — | no-op stub; ANT feature flag |
+| 1481 | `migrations/resetProToOpusDefault.ts` | `` | T0 | MISSING | high | ALIGNED | — | no-op stub; 1P Pro specific |
 | 1482 | `native-ts/color-diff/index.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1483 | `native-ts/file-index/index.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1484 | `native-ts/yoga-layout/index.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1485 | `outputStyles/loadOutputStylesDir.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1486 | `plugins/builtinPlugins.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1487 | `projectOnboardingState.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
-| 1488 | `query/deps.ts` | `` | T0 | MISSING | high | UNTOUCHED | copy |  |
-| 1489 | `query/stopHooks.ts` | `` | T0 | MISSING | high | UNTOUCHED | copy |  |
+| 1488 | `query/deps.ts` | `` | T0 | MISSING | high | ALIGNED | adapt-new | DI types + productionDeps for QL |
+| 1489 | `query/stopHooks.ts` | `` | T0 | MISSING | high | ALIGNED | adapt-new | Stop hook executor; ANT features stub; improved: extracted from query.ts |
 | 1490 | `remote/RemoteSessionManager.ts` | `` | EXT | MISSING | high | UNTOUCHED | copy |  |
 | 1491 | `remote/SessionsWebSocket.ts` | `` | EXT | MISSING | high | UNTOUCHED | copy |  |
 | 1492 | `remote/remotePermissionBridge.ts` | `` | EXT | MISSING | high | UNTOUCHED | copy |  |
