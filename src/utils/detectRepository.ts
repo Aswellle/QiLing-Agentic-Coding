@@ -6,6 +6,7 @@
  */
 
 import { getRemoteUrl, normalizeGitRemoteUrl } from './git'
+import { logForDebugging } from './log.js'
 
 export type ParsedRepository = {
   host: string
@@ -97,4 +98,35 @@ export async function detectCurrentRepositoryWithHost(
 export async function isGitHubRepository(cwd = process.cwd()): Promise<boolean> {
   const repo = await detectCurrentRepository(cwd)
   return repo !== null
+}
+
+// FROM CC: getCachedRepository
+/** Return the cached "owner/repo" for the current cwd (github.com only). */
+export function getCachedRepository(): string | null {
+  const parsed = _cache.get(process.cwd())
+  if (!parsed || parsed.host !== 'github.com') return null
+  return `${parsed.owner}/${parsed.name}`
+}
+
+// FROM CC: parseGitHubRepository
+/**
+ * Parse a git remote URL or "owner/repo" string and return "owner/repo".
+ * Only returns results for github.com — GHE URLs return null.
+ * Also accepts plain "owner/repo" strings for backward compatibility.
+ */
+export function parseGitHubRepository(input: string): string | null {
+  const trimmed = input.trim()
+  const parsed = parseGitRemote(trimmed)
+  if (parsed) {
+    if (parsed.host !== 'github.com') return null
+    return `${parsed.owner}/${parsed.name}`
+  }
+  if (!trimmed.includes('://') && !trimmed.includes('@') && trimmed.includes('/')) {
+    const parts = trimmed.split('/')
+    if (parts.length === 2 && parts[0] && parts[1]) {
+      return `${parts[0]}/${parts[1].replace(/\.git$/, '')}`
+    }
+  }
+  logForDebugging(`Could not parse repository from: ${trimmed}`)
+  return null
 }

@@ -83,3 +83,89 @@ export class FallbackTriggeredError extends Error {
     this.name = 'FallbackTriggeredError'
   }
 }
+
+// FROM CC: ClaudeError
+export class ClaudeError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = this.constructor.name
+  }
+}
+
+// FROM CC: MalformedCommandError
+export class MalformedCommandError extends Error {}
+
+// FROM CC: ConfigParseError
+export class ConfigParseError extends Error {
+  filePath: string
+  defaultConfig: unknown
+
+  constructor(message: string, filePath: string, defaultConfig: unknown) {
+    super(message)
+    this.name = 'ConfigParseError'
+    this.filePath = filePath
+    this.defaultConfig = defaultConfig
+  }
+}
+
+// FROM CC: ShellError
+export class ShellError extends Error {
+  constructor(
+    public readonly stdout: string,
+    public readonly stderr: string,
+    public readonly code: number,
+    public readonly interrupted: boolean,
+  ) {
+    super('Shell command failed')
+    this.name = 'ShellError'
+  }
+}
+
+// FROM CC: TeleportOperationError
+export class TeleportOperationError extends Error {
+  constructor(
+    message: string,
+    public readonly formattedMessage: string,
+  ) {
+    super(message)
+    this.name = 'TeleportOperationError'
+  }
+}
+
+// FROM CC: TelemetrySafeError_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS
+export class TelemetrySafeError_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS extends Error {
+  readonly telemetryMessage: string
+
+  constructor(message: string, telemetryMessage?: string) {
+    super(message)
+    this.name = 'TelemetrySafeError'
+    this.telemetryMessage = telemetryMessage ?? message
+  }
+}
+
+// FROM CC: AxiosErrorKind / classifyAxiosError
+export type AxiosErrorKind =
+  | 'auth'    // 401/403
+  | 'timeout' // ECONNABORTED
+  | 'network' // ECONNREFUSED/ENOTFOUND
+  | 'http'    // other axios error (may have status)
+  | 'other'   // not an axios error
+
+export function classifyAxiosError(e: unknown): {
+  kind: AxiosErrorKind
+  status?: number
+  message: string
+} {
+  const message = errorMessage(e)
+  if (!e || typeof e !== 'object' || !('isAxiosError' in e) || !e.isAxiosError) {
+    return { kind: 'other', message }
+  }
+  const err = e as { response?: { status?: number }; code?: string }
+  const status = err.response?.status
+  if (status === 401 || status === 403) return { kind: 'auth', status, message }
+  if (err.code === 'ECONNABORTED') return { kind: 'timeout', status, message }
+  if (err.code === 'ECONNREFUSED' || err.code === 'ENOTFOUND') {
+    return { kind: 'network', status, message }
+  }
+  return { kind: 'http', status, message }
+}

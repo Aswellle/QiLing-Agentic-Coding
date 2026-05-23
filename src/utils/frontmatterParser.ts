@@ -4,9 +4,10 @@
  * Extracts and parses YAML frontmatter between --- delimiters.
  * Used by skill/command loaders, output-style loaders, and agent definition loaders.
  *
- * QiLing adaptation: removed HooksSettings import (use Record<string,unknown>),
- * removed logForDebugging dependency (use console.error in debug mode).
+ * QiLing adaptation: removed HooksSettings import (use Record<string,unknown>).
  */
+
+import { logForDebugging } from './log.js'
 
 export type FrontmatterData = {
   'allowed-tools'?: string | string[] | null
@@ -107,8 +108,8 @@ function parseSimpleYaml(text: string): FrontmatterData {
   return result
 }
 
-// Regex: matches --- ... --- at start of file, capturing YAML content
-const FRONTMATTER_REGEX = /^---[ \t]*\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)/
+// FROM CC: FRONTMATTER_REGEX (exported so callers can use it directly)
+export const FRONTMATTER_REGEX = /^---[ \t]*\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)/
 
 /**
  * Parse a markdown file's YAML frontmatter.
@@ -160,6 +161,28 @@ export function parsePositiveIntFromFrontmatter(value: unknown): number | undefi
   return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined
 }
 
+// FROM CC: parseBooleanFrontmatter
+export function parseBooleanFrontmatter(value: unknown): boolean {
+  return value === true || value === 'true'
+}
+
+// FROM CC: FrontmatterShell / parseShellFrontmatter
+export type FrontmatterShell = 'bash' | 'powershell'
+
+const FRONTMATTER_SHELLS: readonly FrontmatterShell[] = ['bash', 'powershell']
+
+export function parseShellFrontmatter(value: unknown, source: string): FrontmatterShell | undefined {
+  if (value == null) return undefined
+  const normalized = String(value).trim().toLowerCase()
+  if (normalized === '') return undefined
+  if ((FRONTMATTER_SHELLS as readonly string[]).includes(normalized)) return normalized as FrontmatterShell
+  logForDebugging(
+    `Frontmatter 'shell: ${value}' in ${source} is not recognized. Valid values: ${FRONTMATTER_SHELLS.join(', ')}. Falling back to bash.`,
+    { level: 'warn' },
+  )
+  return undefined
+}
+
 /**
  * Validate and coerce a description value from frontmatter.
  * Strings → trimmed. Numbers/booleans → coerced. Arrays/objects → null.
@@ -167,22 +190,53 @@ export function parsePositiveIntFromFrontmatter(value: unknown): number | undefi
 export function coerceDescriptionToString(
   value: unknown,
   componentName?: string,
+  pluginName?: string, // FROM CC: added pluginName for plugin-scoped log messages
 ): string | null {
   if (value == null) return null
   if (typeof value === 'string') return value.trim() || null
   if (typeof value === 'number' || typeof value === 'boolean') return String(value)
   // Non-scalar (array/object) — invalid, omit
-  if (process.env.QILING_DEBUG === '1') {
-    console.error(`[frontmatterParser] Description invalid for ${componentName ?? 'unknown'} - omitting`)
-  }
+  const source = pluginName ? `${pluginName}:${componentName}` : (componentName ?? 'unknown')
+  logForDebugging(`Description invalid for ${source} - omitting`, { level: 'warn' })
   return null
+}
+
+// FROM CC: expandBraces — expands {a,b} glob patterns
+function expandBraces(pattern: string): string[] {
+  const braceMatch = pattern.match(/^([^{]*)\{([^}]+)\}(.*)$/)
+  if (!braceMatch) return [pattern]
+  const prefix = braceMatch[1] || ''
+  const alternatives = braceMatch[2] || ''
+  const suffix = braceMatch[3] || ''
+  const expanded: string[] = []
+  for (const part of alternatives.split(',').map(a => a.trim())) {
+    expanded.push(...expandBraces(prefix + part + suffix))
+  }
+  return expanded
 }
 
 /**
  * Split a path pattern from frontmatter (comma-separated or array).
+ * FROM CC: upgraded with brace expansion for glob patterns like src/*.{ts,tsx}
  */
 export function splitPathInFrontmatter(value: string | string[] | null | undefined): string[] {
   if (!value) return []
-  if (Array.isArray(value)) return value.filter(Boolean)
-  return value.split(',').map(s => s.trim()).filter(Boolean)
+  if (Array.isArray(value)) return value.flatMap(splitPathInFrontmatter)
+  // Split by comma while respecting braces
+  const parts: string[] = []
+  let current = ''
+  let braceDepth = 0
+  for (let i = 0; i < value.length; i++) {
+    const char = value[i]
+    if (char === '{') { braceDepth++; current += char }
+    else if (char === '}') { braceDepth--; current += char }
+    else if (char === ',' && braceDepth === 0) {
+      const trimmed = current.trim()
+      if (trimmed) parts.push(trimmed)
+      current = ''
+    } else { current += char }
+  }
+  const trimmed = current.trim()
+  if (trimmed) parts.push(trimmed)
+  return parts.filter(p => p.length > 0).flatMap(p => expandBraces(p))
 }
