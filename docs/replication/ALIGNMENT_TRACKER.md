@@ -244,7 +244,7 @@
 | 200 | `ink/measure-element.ts` | `ink/measure-element.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 201 | `ink/measure-text.ts` | `ink/measure-text.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 202 | `ink/node-cache.ts` | `ink/node-cache.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
-| 203 | `ink/optimizer.ts` | `ink/optimizer.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
+| 203 | `ink/optimizer.ts` | `ink/optimizer.ts` | T4 | FULLY_ALIGNED | high | DONE | — | export集合完整，confirmed |
 | 204 | `ink/squash-text-nodes.ts` | `ink/squash-text-nodes.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 205 | `ink/stringWidth.ts` | `ink/stringWidth.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
 | 206 | `ink/supports-hyperlinks.ts` | `ink/supports-hyperlinks.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -266,7 +266,7 @@
 | 222 | `ink/wrap-text.ts` | `ink/wrap-text.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 223 | `ink/wrapAnsi.ts` | `ink/wrapAnsi.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 224 | `keybindings/defaultBindings.ts` | `keybindings/defaultBindings.ts` | T4 | DIVERGED | high | KEPT | skip | overlap=19% |
-| 225 | `keybindings/match.ts` | `keybindings/match.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
+| 225 | `keybindings/match.ts` | `keybindings/match.ts` | T4 | FULLY_ALIGNED | high | DONE | — | export集合完整，confirmed |
 | 226 | `keybindings/parser.ts` | `keybindings/parser.ts` | T4 | DIVERGED | high | KEPT | skip | overlap=30% |
 | 227 | `keybindings/reservedShortcuts.ts` | `keybindings/reservedShortcuts.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
 | 228 | `keybindings/resolver.ts` | `keybindings/resolver.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
@@ -1474,16 +1474,16 @@
 | 1430 | `ink/components/App.tsx` | `` | T4 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1431 | `ink/components/Box.tsx` | `` | T4 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1432 | `ink/components/Button.tsx` | `` | T4 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1433 | `ink/components/ErrorOverview.tsx` | `` | T4 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1433 | `ink/components/ErrorOverview.tsx` | `ink/components/ErrorOverview.tsx` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | ink Box/Text替换CC内部组件，graceful stack-utils/code-excerpt |
 | 1434 | `ink/components/ScrollBox.tsx` | `` | T4 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1435 | `ink/components/StdinContext.ts` | `` | T4 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1436 | `ink/components/Text.tsx` | `` | T4 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1437 | `ink/dom.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
 | 1438 | `ink/events/dispatcher.ts` | `` | T4 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1439 | `ink/events/input-event.ts` | `` | T4 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1440 | `ink/frame.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
+| 1440 | `ink/frame.ts` | `ink/frame.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | Frame/Patch/Diff类型完整；Screen/StylePool为stub待B-T4-13 |
 | 1441 | `ink/hooks/use-search-highlight.ts` | `` | T4 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1442 | `ink/hooks/use-selection.ts` | `` | T4 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1442 | `ink/hooks/use-selection.ts` | `ink/hooks/use-selection.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | no-op stub；依赖ink/selection.ts待B-T4-11 |
 | 1443 | `ink/ink.tsx` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
 | 1444 | `ink/layout/yoga.ts` | `` | T4 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1445 | `ink/log-update.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
@@ -1496,7 +1496,7 @@
 | 1452 | `ink/renderer.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
 | 1453 | `ink/root.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
 | 1454 | `ink/screen.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
-| 1455 | `ink/searchHighlight.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
+| 1455 | `ink/searchHighlight.ts` | `ink/searchHighlight.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | no-op stub；依赖ink/screen.ts待B-T4-13 |
 | 1456 | `ink/selection.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
 | 1457 | `ink/styles.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
 | 1458 | `ink/terminal-querier.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
