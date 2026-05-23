@@ -1482,13 +1482,13 @@
 | 1438 | `ink/events/dispatcher.ts` | `ink/events/dispatcher.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | EventDispatcher; 键盘/鼠标路由; 委托hit-test |
 | 1439 | `ink/events/input-event.ts` | `ink/events/input-event.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | InputEvent类型+工厂; keypress/paste/mouse/resize |
 | 1440 | `ink/frame.ts` | `ink/frame.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | Frame/Patch/Diff类型完整；Screen/StylePool为stub待B-T4-13 |
-| 1441 | `ink/hooks/use-search-highlight.ts` | `` | T4 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1441 | `ink/hooks/use-search-highlight.ts` | `ink/hooks/use-search-highlight.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | no-op stub; 依赖screen.ts待B-T4-13 |
 | 1442 | `ink/hooks/use-selection.ts` | `ink/hooks/use-selection.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | no-op stub；依赖ink/selection.ts待B-T4-11 |
 | 1443 | `ink/ink.tsx` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
 | 1444 | `ink/layout/yoga.ts` | `ink/layout/yoga.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | YogaRect/Edges+常量枚举; getLayoutRect/getPaddingEdges; 委托Ink5 |
-| 1445 | `ink/log-update.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
+| 1445 | `ink/log-update.ts` | `ink/log-update.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | createLogUpdate; ANSI erase-in-place; clear+done |
 | 1446 | `ink/output.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
-| 1447 | `ink/parse-keypress.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
+| 1447 | `ink/parse-keypress.ts` | `ink/parse-keypress.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | parseKeypress; CSI/Alt/Ctrl解析; F1-F12/方向键/特殊键 |
 | 1448 | `ink/reconciler.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
 | 1449 | `ink/render-border.ts` | `ink/render-border.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | BORDER_STYLES 8种; renderBorder+getBorderChar |
 | 1450 | `ink/render-node-to-output.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
@@ -1498,13 +1498,13 @@
 | 1454 | `ink/screen.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
 | 1455 | `ink/searchHighlight.ts` | `ink/searchHighlight.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | no-op stub；依赖ink/screen.ts待B-T4-13 |
 | 1456 | `ink/selection.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
-| 1457 | `ink/styles.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
+| 1457 | `ink/styles.ts` | `ink/styles.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | TextStyle/BoxStyle; textStyleToConfig+mergeTextStyles |
 | 1458 | `ink/terminal-querier.ts` | `ink/terminal-querier.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | detectCapabilities; 颜色/unicode/kitty/WT/vscode检测; 缓存 |
 | 1459 | `ink/terminal.ts` | `ink/terminal.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | rawMode/cursor/altScreen/mouse/resize/getTerminalSize |
 | 1460 | `interactiveHelpers.tsx` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1461 | `keybindings/KeybindingContext.tsx` | `keybindings/KeybindingContext.tsx` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | KeybindingProvider+useKeybinding+useContextBindings |
-| 1462 | `keybindings/KeybindingProviderSetup.tsx` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
-| 1463 | `keybindings/loadUserBindings.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
+| 1462 | `keybindings/KeybindingProviderSetup.tsx` | `keybindings/KeybindingProviderSetup.tsx` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | 异步加载用户绑定; 渲染不阻塞; 错误静默降级 |
+| 1463 | `keybindings/loadUserBindings.ts` | `keybindings/loadUserBindings.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | async加载~/.qiling/keybindings.json; mergeBindings+默认回退 |
 | 1464 | `memdir/findRelevantMemories.ts` | `` | T5 | MISSING | high | UNTOUCHED | copy |  |
 | 1465 | `memdir/memdir.ts` | `` | T5 | MISSING | high | UNTOUCHED | copy |  |
 | 1466 | `memdir/memoryAge.ts` | `` | T5 | MISSING | high | UNTOUCHED | copy |  |
