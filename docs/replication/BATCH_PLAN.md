@@ -152,3 +152,25 @@
 | T6 基础工具 | 342 | 141 | 60+ | 最大体量，分领域处理 |
 | T2 UI层 | 299 | 25 | 40+ | 依赖T4/T6完成后处理 |
 | EXT 外部集成 | 140+ | — | 按需 | Bridge/CLI按需对齐 |
+
+---
+
+## T4 批次总览（Ink 基础设施 · 14批次 · 72文件）
+
+| 批次 | 文件数 | 估算行数 | 状态 | 说明 |
+|------|--------|---------|------|------|
+| B-T4-01 | 7 | ~50 | ⏳ PENDING | ink小型PARTIAL补全（constants/engine/hooks）|
+| B-T4-02 | 7 | ~127 | ⏳ PENDING | ink events + AppContext + Spacer |
+| B-T4-03 | 7 | ~296 | ⏳ PENDING | get-max-width/Newline/termio + 2 MISSING |
+| B-T4-04 | 7 | ~493 | ⏳ PENDING | RawAnsi/modalContext/AlternateScreen/voice |
+| B-T4-05 | 7 | ~735 | ⏳ PENDING | use-input/optimizer/searchHighlight/frame |
+| B-T4-06 | 7 | ~1101 | ⏳ PENDING | hit-test/bidi/overlayContext/renderer/root/Button |
+| B-T4-07 | 7 | ~1546 | ⏳ PENDING | input-event/terminal-querier/Box/colorize/render-* |
+| B-T4-08 | 7 | ~1767 | ⏳ PENDING | dispatcher/ScrollBox/KeybindingContext/terminal/Text/yoga |
+| B-T4-09 | 6 | ~2395 | ⏳ PENDING | KeybindingProviderSetup/termio/dom/loadUserBindings |
+| B-T4-10 | 4 | ~2714 | ⏳ PENDING | reconciler/App.tsx/styles/log-update（重型）|
+| B-T4-11 | 3 | ~2515 | ⏳ PENDING | output/parse-keypress/selection |
+| B-T4-12 | 1 | ~1462 | ⏳ PENDING | render-node-to-output（重型单文件）|
+| B-T4-13 | 1 | ~1486 | ⏳ PENDING | screen.ts（重型单文件）|
+| B-T4-14 | 1 | ~1723 | ⏳ PENDING | ink.tsx（核心，最重型）|
+

@@ -1,10 +1,10 @@
 # ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 → B (decisions locked)
-> **Last Updated:** 2026-05-23T11:35
+> **Last Updated:** 2026-05-23T11:39
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
 > **Verdict Distribution:** FULLY_ALIGNED 265 | PARTIAL 299 | DIVERGED 72 | RESTRUCTURED 109 | NEW 52 | MISSING 1248  
-> **Active Batch / Audit Task:** B-003 DONE T0完成 进入T4批次
+> **Active Batch / Audit Task:** T4 B-T4-01~03 DONE · B-T4-04 PENDING
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL ≈ 20% weighted
 
 ---
@@ -168,7 +168,7 @@
 | 124 | `context/QueuedMessageContext.tsx` | `context/QueuedMessageContext.tsx` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 125 | `context/fpsMetrics.tsx` | `context/fpsMetrics.tsx` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 126 | `context/mailbox.tsx` | `context/mailbox.tsx` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 127 | `context/modalContext.tsx` | `context/modalContext.tsx` | T4 | PARTIAL | medium | MAPPED | adapt-complete | overlap=45% |
+| 127 | `context/modalContext.tsx` | `context/modalContext.tsx` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
 | 128 | `context/notifications.tsx` | `context/notifications.tsx` | T4 | DIVERGED | high | KEPT | skip | overlap=33% |
 | 129 | `context/promptOverlayContext.tsx` | `context/promptOverlayContext.tsx` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 130 | `context/stats.tsx` | `context/stats.tsx` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -203,75 +203,75 @@
 | 159 | `hooks/useTurnDiffs.ts` | `hooks/useTurnDiffs.ts` | T3 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 160 | `hooks/useUpdateNotification.ts` | `hooks/useUpdateNotification.ts` | T3 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 161 | `ink/Ansi.tsx` | `ink/Ansi.tsx` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 162 | `ink/clearTerminal.ts` | `ink/clearTerminal.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | overlap=48% |
-| 163 | `ink/components/AppContext.ts` | `ink/components/AppContext.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 162 | `ink/clearTerminal.ts` | `ink/clearTerminal.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
+| 163 | `ink/components/AppContext.ts` | `ink/components/AppContext.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
 | 164 | `ink/components/ClockContext.tsx` | `ink/components/ClockContext.tsx` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 165 | `ink/components/CursorDeclarationContext.ts` | `ink/components/CursorDeclarationContext.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | overlap=40% |
+| 165 | `ink/components/CursorDeclarationContext.ts` | `ink/components/CursorDeclarationContext.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
 | 166 | `ink/components/Link.tsx` | `ink/components/Link.tsx` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 167 | `ink/components/Newline.tsx` | `ink/components/Newline.tsx` | T4 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 167 | `ink/components/Newline.tsx` | `ink/components/Newline.tsx` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
 | 168 | `ink/components/NoSelect.tsx` | `ink/components/NoSelect.tsx` | T4 | DIVERGED | high | KEPT | skip | overlap=34% |
-| 169 | `ink/components/RawAnsi.tsx` | `ink/components/RawAnsi.tsx` | T4 | PARTIAL | medium | MAPPED | adapt-complete | overlap=40% |
-| 170 | `ink/components/Spacer.tsx` | `ink/components/Spacer.tsx` | T4 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 169 | `ink/components/RawAnsi.tsx` | `ink/components/RawAnsi.tsx` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
+| 170 | `ink/components/Spacer.tsx` | `ink/components/Spacer.tsx` | T4 | PARTIAL | medium | ALIGNED | — | impl等效; 用ink.Box替代内部Box |
 | 171 | `ink/components/TerminalFocusContext.tsx` | `ink/components/TerminalFocusContext.tsx` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 172 | `ink/components/TerminalSizeContext.tsx` | `ink/components/TerminalSizeContext.tsx` | T4 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 173 | `ink/constants.ts` | `ink/constants.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 172 | `ink/components/TerminalSizeContext.tsx` | `ink/components/TerminalSizeContext.tsx` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
+| 173 | `ink/constants.ts` | `ink/constants.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
 | 174 | `ink/events/click-event.ts` | `ink/events/click-event.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 175 | `ink/events/emitter.ts` | `ink/events/emitter.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 176 | `ink/events/event-handlers.ts` | `ink/events/event-handlers.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 177 | `ink/events/event.ts` | `ink/events/event.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 178 | `ink/events/focus-event.ts` | `ink/events/focus-event.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 177 | `ink/events/event.ts` | `ink/events/event.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
+| 178 | `ink/events/focus-event.ts` | `ink/events/focus-event.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
 | 179 | `ink/events/keyboard-event.ts` | `ink/events/keyboard-event.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 180 | `ink/events/terminal-event.ts` | `ink/events/terminal-event.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 181 | `ink/events/terminal-focus-event.ts` | `ink/events/terminal-focus-event.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 181 | `ink/events/terminal-focus-event.ts` | `ink/events/terminal-focus-event.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
 | 182 | `ink/focus.ts` | `ink/focus.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 183 | `ink/get-max-width.ts` | `ink/get-max-width.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | overlap=39% |
-| 184 | `ink/hit-test.ts` | `ink/hit-test.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | overlap=45% |
+| 183 | `ink/get-max-width.ts` | `ink/get-max-width.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
+| 184 | `ink/hit-test.ts` | `ink/hit-test.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
 | 185 | `ink/hooks/use-animation-frame.ts` | `ink/hooks/use-animation-frame.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 186 | `ink/hooks/use-app.ts` | `ink/hooks/use-app.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 187 | `ink/hooks/use-declared-cursor.ts` | `ink/hooks/use-declared-cursor.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | overlap=41% |
-| 188 | `ink/hooks/use-input.ts` | `ink/hooks/use-input.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 186 | `ink/hooks/use-app.ts` | `ink/hooks/use-app.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
+| 187 | `ink/hooks/use-declared-cursor.ts` | `ink/hooks/use-declared-cursor.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
+| 188 | `ink/hooks/use-input.ts` | `ink/hooks/use-input.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
 | 189 | `ink/hooks/use-interval.ts` | `ink/hooks/use-interval.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 190 | `ink/hooks/use-stdin.ts` | `ink/hooks/use-stdin.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 190 | `ink/hooks/use-stdin.ts` | `ink/hooks/use-stdin.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
 | 191 | `ink/hooks/use-tab-status.ts` | `ink/hooks/use-tab-status.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 192 | `ink/hooks/use-terminal-focus.ts` | `ink/hooks/use-terminal-focus.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 192 | `ink/hooks/use-terminal-focus.ts` | `ink/hooks/use-terminal-focus.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
 | 193 | `ink/hooks/use-terminal-title.ts` | `ink/hooks/use-terminal-title.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 194 | `ink/hooks/use-terminal-viewport.ts` | `ink/hooks/use-terminal-viewport.ts` | T4 | DIVERGED | high | KEPT | skip | overlap=32% |
-| 195 | `ink/instances.ts` | `ink/instances.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 196 | `ink/layout/engine.ts` | `ink/layout/engine.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 195 | `ink/instances.ts` | `ink/instances.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
+| 196 | `ink/layout/engine.ts` | `ink/layout/engine.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
 | 197 | `ink/layout/geometry.ts` | `ink/layout/geometry.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 198 | `ink/layout/node.ts` | `ink/layout/node.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 199 | `ink/line-width-cache.ts` | `ink/line-width-cache.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 200 | `ink/measure-element.ts` | `ink/measure-element.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 201 | `ink/measure-text.ts` | `ink/measure-text.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 202 | `ink/node-cache.ts` | `ink/node-cache.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | overlap=42% |
-| 203 | `ink/optimizer.ts` | `ink/optimizer.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | overlap=41% |
+| 202 | `ink/node-cache.ts` | `ink/node-cache.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
+| 203 | `ink/optimizer.ts` | `ink/optimizer.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
 | 204 | `ink/squash-text-nodes.ts` | `ink/squash-text-nodes.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 205 | `ink/stringWidth.ts` | `ink/stringWidth.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 205 | `ink/stringWidth.ts` | `ink/stringWidth.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
 | 206 | `ink/supports-hyperlinks.ts` | `ink/supports-hyperlinks.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 207 | `ink/tabstops.ts` | `ink/tabstops.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 208 | `ink/terminal-focus-state.ts` | `ink/terminal-focus-state.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 209 | `ink/termio.ts` | `ink/termio.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | overlap=36% |
+| 209 | `ink/termio.ts` | `ink/termio.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
 | 210 | `ink/termio/ansi.ts` | `ink/termio/ansi.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 211 | `ink/termio/csi.ts` | `ink/termio/csi.ts` | T4 | PARTIAL | high | MAPPED | adapt-complete | CC has 29 extra exports |
+| 211 | `ink/termio/csi.ts` | `ink/termio/csi.ts` | T4 | PARTIAL | high | ALIGNED | adapt-complete | 追加30个缺失常量/函数(cursorUp/eraseLines/PASTE_START等) |
 | 212 | `ink/termio/dec.ts` | `ink/termio/dec.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 213 | `ink/termio/esc.ts` | `ink/termio/esc.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 214 | `ink/termio/osc.ts` | `ink/termio/osc.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | overlap=42% |
+| 214 | `ink/termio/osc.ts` | `ink/termio/osc.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
 | 215 | `ink/termio/parser.ts` | `ink/termio/parser.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 216 | `ink/termio/sgr.ts` | `ink/termio/sgr.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 217 | `ink/termio/tokenize.ts` | `ink/termio/tokenize.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | overlap=41% |
+| 217 | `ink/termio/tokenize.ts` | `ink/termio/tokenize.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
 | 218 | `ink/termio/types.ts` | `ink/termio/types.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 219 | `ink/useTerminalNotification.ts` | `ink/useTerminalNotification.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
-| 220 | `ink/warn.ts` | `ink/warn.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 221 | `ink/widest-line.ts` | `ink/widest-line.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 220 | `ink/warn.ts` | `ink/warn.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
+| 221 | `ink/widest-line.ts` | `ink/widest-line.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
 | 222 | `ink/wrap-text.ts` | `ink/wrap-text.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 223 | `ink/wrapAnsi.ts` | `ink/wrapAnsi.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 224 | `keybindings/defaultBindings.ts` | `keybindings/defaultBindings.ts` | T4 | DIVERGED | high | KEPT | skip | overlap=19% |
-| 225 | `keybindings/match.ts` | `keybindings/match.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | overlap=39% |
+| 225 | `keybindings/match.ts` | `keybindings/match.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
 | 226 | `keybindings/parser.ts` | `keybindings/parser.ts` | T4 | DIVERGED | high | KEPT | skip | overlap=30% |
-| 227 | `keybindings/reservedShortcuts.ts` | `keybindings/reservedShortcuts.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | overlap=55% |
-| 228 | `keybindings/resolver.ts` | `keybindings/resolver.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | overlap=40% |
+| 227 | `keybindings/reservedShortcuts.ts` | `keybindings/reservedShortcuts.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
+| 228 | `keybindings/resolver.ts` | `keybindings/resolver.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
 | 229 | `keybindings/schema.ts` | `keybindings/schema.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 230 | `keybindings/shortcutFormat.ts` | `keybindings/shortcutFormat.ts` | T4 | PARTIAL | medium | MAPPED | adapt-complete | overlap=48% |
+| 230 | `keybindings/shortcutFormat.ts` | `keybindings/shortcutFormat.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
 | 231 | `keybindings/template.ts` | `keybindings/template.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 232 | `keybindings/useKeybinding.ts` | `keybindings/useKeybinding.ts` | T4 | DIVERGED | high | KEPT | skip | overlap=28% |
 | 233 | `keybindings/useShortcutDisplay.ts` | `keybindings/useShortcutDisplay.ts` | T4 | DIVERGED | high | KEPT | skip | overlap=34% |
@@ -682,7 +682,7 @@
 | 638 | `utils/model/model.ts` | `commands/model.ts` | EXT | RESTRUCTURED | medium | ALIGNED | skip | → CC:utils/model/model.ts |
 | 639 | `utils/claudeInChrome/setup.ts` | `commands/setup.ts` | EXT | RESTRUCTURED | medium | ALIGNED | skip | → CC:utils/claudeInChrome/setup.ts |
 | 640 | `services/compact/autoCompact.ts` | `compact/autoCompact.ts` | T6 | RESTRUCTURED | medium | ALIGNED | skip | → CC:services/compact/autoCompact.ts |
-| 641 | `ink/layout/engine.ts` | `compact/engine.ts` | T6 | RESTRUCTURED | medium | ALIGNED | skip | → CC:ink/layout/engine.ts |
+| 641 | `ink/layout/engine.ts` | `compact/engine.ts` | T6 | RESTRUCTURED | medium | ALIGNED | — | export集合完整 |
 | 642 | `services/compact/postCompactCleanup.ts` | `compact/postCompactCleanup.ts` | T6 | RESTRUCTURED | medium | ALIGNED | skip | → CC:services/compact/postCompactCleanup.ts |
 | 643 | `` | `compact/reactiveCompact.ts` | T6 | NEW | high | KEPT | skip |  |
 | 644 | `` | `compact/snipCompact.ts` | T6 | NEW | high | KEPT | skip |  |
@@ -838,7 +838,7 @@
 | 794 | `utils/memory/types.ts` | `utils/secureStorage/types.ts` | T6 | RESTRUCTURED | medium | ALIGNED | skip | → CC:utils/memory/types.ts |
 | 795 | `` | `utils/themeContext.tsx` | T6 | NEW | high | KEPT | skip |  |
 | 796 | `` | `utils/updater.ts` | T6 | NEW | high | KEPT | skip |  |
-| 797 | `ink/layout/engine.ts` | `vim/engine.ts` | T2 | RESTRUCTURED | medium | ALIGNED | skip | → CC:ink/layout/engine.ts |
+| 797 | `ink/layout/engine.ts` | `vim/engine.ts` | T2 | RESTRUCTURED | medium | ALIGNED | — | export集合完整 |
 | 798 | `QueryEngine.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 799 | `Task.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 800 | `Tool.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |

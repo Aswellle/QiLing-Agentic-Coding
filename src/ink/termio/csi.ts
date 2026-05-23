@@ -78,3 +78,46 @@ export const CURSOR_STYLES: Array<{ style: CursorStyle; blinking: boolean }> = [
   { style: 'bar', blinking: true },
   { style: 'bar', blinking: false },
 ]
+
+// ─── Missing exports from CC's full csi.ts (adapt-complete) ──────────────────
+
+export const CSI_PREFIX = CSI_STR  // alias for CC compat
+export const CSI_RANGE = {
+  PARAM_START: 0x30, PARAM_END: 0x3f,
+  INTERMEDIATE_START: 0x20, INTERMEDIATE_END: 0x2f,
+  FINAL_START: 0x40, FINAL_END: 0x7e,
+} as const
+
+export function cursorUp(n = 1): string { return n === 0 ? '' : `${CSI_STR}${n}A` }
+export function cursorDown(n = 1): string { return n === 0 ? '' : `${CSI_STR}${n}B` }
+export function cursorForward(n = 1): string { return n === 0 ? '' : `${CSI_STR}${n}C` }
+export function cursorBack(n = 1): string { return n === 0 ? '' : `${CSI_STR}${n}D` }
+export function cursorPosition(row: number, col: number): string { return `${CSI_STR}${row};${col}H` }
+
+export const CURSOR_LEFT    = `${CSI_STR}G`
+export const CURSOR_SAVE    = `${CSI_STR}s`
+export const CURSOR_RESTORE = `${CSI_STR}u`
+
+export function eraseToEndOfLine(): string   { return `${CSI_STR}K`   }
+export function eraseToStartOfLine(): string { return `${CSI_STR}1K`  }
+export function eraseLine(): string          { return `${CSI_STR}2K`  }
+export const ERASE_LINE = `${CSI_STR}2K`
+
+export function eraseToEndOfScreen(): string   { return `${CSI_STR}J`   }
+export function eraseToStartOfScreen(): string { return `${CSI_STR}1J`  }
+export function eraseScreen(): string          { return `${CSI_STR}2J`  }
+
+export function scrollUp(n = 1): string   { return `${CSI_STR}${n}S` }
+export function scrollDown(n = 1): string { return `${CSI_STR}${n}T` }
+export function setScrollRegion(top: number, bottom: number): string { return `${CSI_STR}${top};${bottom}r` }
+export const RESET_SCROLL_REGION = `${CSI_STR}r`
+
+export const PASTE_START = `${CSI_STR}200~`
+export const PASTE_END   = `${CSI_STR}201~`
+export const FOCUS_IN    = `${CSI_STR}I`
+export const FOCUS_OUT   = `${CSI_STR}O`
+
+export const ENABLE_KITTY_KEYBOARD     = `${CSI_STR}>1u`
+export const DISABLE_KITTY_KEYBOARD    = `${CSI_STR}<u`
+export const ENABLE_MODIFY_OTHER_KEYS  = `${CSI_STR}>4;2m`
+export const DISABLE_MODIFY_OTHER_KEYS = `${CSI_STR}>4m`
