@@ -1,18 +1,16 @@
 /**
  * use-search-highlight — adapted from CC's ink/hooks/use-search-highlight.ts
  *
- * Hook that applies search highlight overlays to the rendered screen.
- * Depends on ink/searchHighlight.ts (already ported as a stub) and
- * ink/screen.ts (B-T4-13, not yet ported).
- *
- * QiLing stub: returns no-op operations until screen.ts is available.
- * Phase B-T4-13: replace stub bodies with real screen highlight calls.
+ * Manages search query state. The render pipeline calls applySearchHighlight()
+ * from searchHighlight.ts each frame to paint matches onto the screen buffer.
  */
+
+import { useCallback, useState } from 'react'
 
 export type SearchHighlightState = {
   /** The current search query (empty string = no highlight). */
   query: string
-  /** Total matches found in the current frame. */
+  /** Total matches found in the current frame (updated by render pipeline). */
   matchCount: number
   /** Index of the focused match (0-based). */
   focusedMatch: number
@@ -21,24 +19,43 @@ export type SearchHighlightState = {
 export type SearchHighlightHook = {
   state: SearchHighlightState
   setQuery: (query: string) => void
+  /** Update matchCount from the render pipeline after scanning the screen. */
+  setMatchCount: (count: number) => void
   nextMatch: () => void
   prevMatch: () => void
   clearQuery: () => void
 }
 
-const NO_OP_HOOK: SearchHighlightHook = {
-  state: { query: '', matchCount: 0, focusedMatch: 0 },
-  setQuery: () => {},
-  nextMatch: () => {},
-  prevMatch: () => {},
-  clearQuery: () => {},
-}
-
-/**
- * Manage search highlight state.
- * Returns no-op operations until ink/screen.ts is ported (B-T4-13).
- */
 export function useSearchHighlight(): SearchHighlightHook {
-  // QiLing stub: wire to real screen.ts highlight in B-T4-13
-  return NO_OP_HOOK
+  const [state, setState] = useState<SearchHighlightState>({
+    query: '', matchCount: 0, focusedMatch: 0,
+  })
+
+  const setQuery = useCallback((query: string) => {
+    setState({ query, matchCount: 0, focusedMatch: 0 })
+  }, [])
+
+  const setMatchCount = useCallback((count: number) => {
+    setState(s => ({ ...s, matchCount: count, focusedMatch: Math.min(s.focusedMatch, Math.max(0, count - 1)) }))
+  }, [])
+
+  const nextMatch = useCallback(() => {
+    setState(s => ({
+      ...s,
+      focusedMatch: s.matchCount > 0 ? (s.focusedMatch + 1) % s.matchCount : 0,
+    }))
+  }, [])
+
+  const prevMatch = useCallback(() => {
+    setState(s => ({
+      ...s,
+      focusedMatch: s.matchCount > 0 ? (s.focusedMatch - 1 + s.matchCount) % s.matchCount : 0,
+    }))
+  }, [])
+
+  const clearQuery = useCallback(() => {
+    setState({ query: '', matchCount: 0, focusedMatch: 0 })
+  }, [])
+
+  return { state, setQuery, setMatchCount, nextMatch, prevMatch, clearQuery }
 }

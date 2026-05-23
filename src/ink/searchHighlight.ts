@@ -3,44 +3,61 @@
  *
  * Applies case-insensitive text search highlights to the screen buffer by
  * inverting cell styles (SGR 7). Handles wide characters (CJK/emoji).
- *
- * QiLing stub: QiLing does not yet have the ink screen buffer (ink/screen.ts)
- * required to implement this. The function signatures are exported so
- * consumers compile; actual highlighting requires Phase B-T4-13 (screen.ts).
- *
- * Phase B-T4-13 adapt-complete: replace stub bodies with real implementation.
  */
 
-// Stub types matching CC's screen.ts interface shape
+import { type Screen } from './screen.js'
+
 export type StylePool = Map<number, string>
-export type Screen = {
-  width: number
-  height: number
-  noSelect?: Uint8Array
-  cells?: unknown[]
-}
 export type MatchPosition = { row: number; col: number }
 
 /**
- * Apply search highlight to screen buffer cells.
- * Stub: always returns false (no damage). Wire to screen.ts in B-T4-13.
+ * Apply search highlight to all matching cells in the screen buffer.
+ * Returns true if any cells were damaged (i.e. query was non-empty and matched).
  */
 export function applySearchHighlight(
-  _screen: Screen,
-  _query: string,
+  screen: Screen,
+  query: string,
   _stylePool: StylePool,
 ): boolean {
-  return false
+  if (!query) return false
+  const q = query.toLowerCase()
+  let damaged = false
+  for (let r = 0; r < screen.rows; r++) {
+    const rowText = screen.rowText(r).toLowerCase()
+    let col = 0
+    while ((col = rowText.indexOf(q, col)) !== -1) {
+      for (let i = 0; i < q.length; i++) {
+        const cell = screen.getCell(r, col + i)
+        screen.setCell(r, col + i, { style: { ...cell.style, inverse: true } })
+      }
+      damaged = true
+      col += q.length
+    }
+  }
+  return damaged
 }
 
 /**
- * Apply a positioned "current match" overlay (yellow highlight).
- * Stub: no-op. Wire to screen.ts in B-T4-13.
+ * Apply a "current match" overlay (yellow background) over one match position.
+ * rowOffset is subtracted from pos.row to convert absolute to viewport row.
  */
 export function applyPositionedHighlight(
-  _screen: Screen,
-  _positions: MatchPosition[],
-  _currentIdx: number,
-  _rowOffset: number,
+  screen: Screen,
+  positions: MatchPosition[],
+  currentIdx: number,
+  rowOffset: number,
   _stylePool: StylePool,
-): void {}
+): void {
+  const pos = positions[currentIdx]
+  if (!pos) return
+  const r = pos.row - rowOffset
+  if (r < 0 || r >= screen.rows) return
+  const rowText = screen.rowText(r)
+  const len = rowText.slice(pos.col).length
+  for (let i = 0; i < len && pos.col + i < screen.columns; i++) {
+    const cell = screen.getCell(r, pos.col + i)
+    screen.setCell(r, pos.col + i, {
+      style: { ...cell.style, backgroundColor: 'yellow', inverse: false },
+    })
+  }
+}

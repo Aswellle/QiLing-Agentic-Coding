@@ -1,10 +1,10 @@
 # ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 → B (decisions locked)
-> **Last Updated:** 2026-05-23T12:13
+> **Last Updated:** 2026-05-23T14:00
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
-> **Verdict Distribution:** FULLY_ALIGNED 265 | PARTIAL 299 | DIVERGED 72 | RESTRUCTURED 109 | NEW 52 | MISSING 1248  
-> **Active Batch / Audit Task:** T4 B-T4-04 DONE B-T4-05 PENDING
+> **Verdict Distribution:** FULLY_ALIGNED 265 | PARTIAL 300 | DIVERGED 72 | RESTRUCTURED 109 | NEW 52 | MISSING 1247  
+> **Active Batch / Audit Task:** B-T4-11 DONE → B-T4-12 PENDING (ink.tsx + render-node-to-output)
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL ≈ 20% weighted
 
 ---
@@ -1481,8 +1481,8 @@
 | 1437 | `ink/dom.ts` | `ink/dom.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | DOMElement+TextNode类型; walkDOM/findDOMNode; createDOMElement stub |
 | 1438 | `ink/events/dispatcher.ts` | `ink/events/dispatcher.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | EventDispatcher; 键盘/鼠标路由; 委托hit-test |
 | 1439 | `ink/events/input-event.ts` | `ink/events/input-event.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | InputEvent类型+工厂; keypress/paste/mouse/resize |
-| 1440 | `ink/frame.ts` | `ink/frame.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | Frame/Patch/Diff类型完整；Screen/StylePool为stub待B-T4-13 |
-| 1441 | `ink/hooks/use-search-highlight.ts` | `ink/hooks/use-search-highlight.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | no-op stub; 依赖screen.ts待B-T4-13 |
+| 1440 | `ink/frame.ts` | `ink/frame.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | Frame/Patch/Diff类型完整；Screen为宽松stub兼容optimizer |
+| 1441 | `ink/hooks/use-search-highlight.ts` | `ink/hooks/use-search-highlight.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | B-T4-11: 真实React state; setMatchCount供render pipeline更新计数 |
 | 1442 | `ink/hooks/use-selection.ts` | `ink/hooks/use-selection.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | no-op stub；依赖ink/selection.ts待B-T4-11 |
 | 1443 | `ink/ink.tsx` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
 | 1444 | `ink/layout/yoga.ts` | `ink/layout/yoga.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | YogaRect/Edges+常量枚举; getLayoutRect/getPaddingEdges; 委托Ink5 |
@@ -1492,12 +1492,12 @@
 | 1448 | `ink/reconciler.ts` | `ink/reconciler.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | ReconcilerContainer; createContainer/updateContainer stub; 委托Ink5 |
 | 1449 | `ink/render-border.ts` | `ink/render-border.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | BORDER_STYLES 8种; renderBorder+getBorderChar |
 | 1450 | `ink/render-node-to-output.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
-| 1451 | `ink/render-to-screen.ts` | `ink/render-to-screen.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | stub; 依赖screen.ts待B-T4-13 |
+| 1451 | `ink/render-to-screen.ts` | `ink/render-to-screen.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | stub; 实际渲染委托Ink5内部pipeline; 签名对齐 |
 | 1452 | `ink/renderer.ts` | `ink/renderer.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | createRenderer; 公共API完整; 内部pipeline待B-T4-13接入 |
 | 1453 | `ink/root.ts` | `ink/root.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | RootInstance+wrapInstance+getRootDimensions; B-T4-14接入ink.tsx |
-| 1454 | `ink/screen.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
-| 1455 | `ink/searchHighlight.ts` | `ink/searchHighlight.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | no-op stub；依赖ink/screen.ts待B-T4-13 |
-| 1456 | `ink/selection.ts` | `ink/selection.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | SelectionStore; anchor/focus/drag; copy stub待B-T4-13 screen.ts |
+| 1454 | `ink/screen.ts` | `ink/screen.ts` | T4 | PARTIAL | high | ALIGNED | adapt-new | B-T4-11: simplified impl ~204L vs CC~1486L; 覆盖公开API; 完整style-pools/hyperlinks/bidi留Phase C |
+| 1455 | `ink/searchHighlight.ts` | `ink/searchHighlight.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | B-T4-11: 真实实现; applySearchHighlight逐行查找+inverse; applyPositionedHighlight黄色高亮 |
+| 1456 | `ink/selection.ts` | `ink/selection.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | B-T4-11: copySelection/copySelectionNoClear接入Screen.extractText(); _extractText处理行列范围 |
 | 1457 | `ink/styles.ts` | `ink/styles.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | TextStyle/BoxStyle; textStyleToConfig+mergeTextStyles |
 | 1458 | `ink/terminal-querier.ts` | `ink/terminal-querier.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | detectCapabilities; 颜色/unicode/kitty/WT/vscode检测; 缓存 |
 | 1459 | `ink/terminal.ts` | `ink/terminal.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | rawMode/cursor/altScreen/mouse/resize/getTerminalSize |

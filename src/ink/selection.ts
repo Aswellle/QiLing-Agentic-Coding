@@ -4,14 +4,9 @@
  * Text selection store for the alternate-screen terminal.
  * Tracks an anchor + focus point (like a browser text selection),
  * provides copy-to-clipboard, and notifies subscribers on change.
- *
- * QiLing stub: the actual clipboard + screen-buffer text extraction
- * depends on screen.ts (B-T4-13). The store and subscriber API are
- * fully functional; copy operations are no-ops until screen.ts lands.
- *
- * Phase B-T4-13: wire copyFromScreen() to real screen buffer reads.
  */
 
+import type { Screen } from './screen.js'
 import type { SelectionState } from './hooks/use-selection.js'
 
 type Listener = () => void
@@ -71,15 +66,27 @@ export class SelectionStore {
   }
 
   /**
-   * Copy selected text to clipboard.
-   * QiLing stub: returns '' until screen.ts is ported (B-T4-13).
+   * Extract selected text from the screen buffer.
+   * Returns empty string if no selection or no screen provided.
    */
-  copySelection(): string {
-    return ''
+  copySelection(screen?: Screen): string {
+    if (!this._state || !screen) return ''
+    return this._extractText(screen)
   }
 
-  copySelectionNoClear(): string {
-    return ''
+  copySelectionNoClear(screen?: Screen): string {
+    if (!this._state || !screen) return ''
+    return this._extractText(screen)
+  }
+
+  private _extractText(screen: Screen): string {
+    if (!this._state) return ''
+    const { anchor, focus } = this._state
+    const startRow = Math.min(anchor.row, focus.row)
+    const endRow   = Math.max(anchor.row, focus.row)
+    const startCol = startRow === endRow ? Math.min(anchor.col, focus.col) : 0
+    const endCol   = startRow === endRow ? Math.max(anchor.col, focus.col) : screen.columns
+    return screen.extractText(startRow, startCol, endRow, endCol)
   }
 
   shiftAnchor(dRow: number, minRow: number, maxRow: number): void {
