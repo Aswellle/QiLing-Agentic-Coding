@@ -1475,17 +1475,17 @@
 | 1431 | `ink/components/Box.tsx` | `ink/components/Box.tsx` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | improved: re-export ink Box; Ink5原生支持border/flex无需fork |
 | 1432 | `ink/components/Button.tsx` | `ink/components/Button.tsx` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | 可聚焦按钮; useFocus+useInput; Enter/Space激活 |
 | 1433 | `ink/components/ErrorOverview.tsx` | `ink/components/ErrorOverview.tsx` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | ink Box/Text替换CC内部组件，graceful stack-utils/code-excerpt |
-| 1434 | `ink/components/ScrollBox.tsx` | `` | T4 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1435 | `ink/components/StdinContext.ts` | `` | T4 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1436 | `ink/components/Text.tsx` | `` | T4 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1437 | `ink/dom.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
+| 1434 | `ink/components/ScrollBox.tsx` | `ink/components/ScrollBox.tsx` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | 垂直滚动容器; pageUp/Down; computeScrollBar辅助 |
+| 1435 | `ink/components/StdinContext.ts` | `ink/components/StdinContext.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | StdinContext+useStdin; rawMode包装 |
+| 1436 | `ink/components/Text.tsx` | `ink/components/Text.tsx` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | improved: re-export ink Text; Ink5原生支持无需fork |
+| 1437 | `ink/dom.ts` | `ink/dom.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | DOMElement+TextNode类型; walkDOM/findDOMNode; createDOMElement stub |
 | 1438 | `ink/events/dispatcher.ts` | `ink/events/dispatcher.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | EventDispatcher; 键盘/鼠标路由; 委托hit-test |
 | 1439 | `ink/events/input-event.ts` | `ink/events/input-event.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | InputEvent类型+工厂; keypress/paste/mouse/resize |
 | 1440 | `ink/frame.ts` | `ink/frame.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | Frame/Patch/Diff类型完整；Screen/StylePool为stub待B-T4-13 |
 | 1441 | `ink/hooks/use-search-highlight.ts` | `` | T4 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1442 | `ink/hooks/use-selection.ts` | `ink/hooks/use-selection.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | no-op stub；依赖ink/selection.ts待B-T4-11 |
 | 1443 | `ink/ink.tsx` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
-| 1444 | `ink/layout/yoga.ts` | `` | T4 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1444 | `ink/layout/yoga.ts` | `ink/layout/yoga.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | YogaRect/Edges+常量枚举; getLayoutRect/getPaddingEdges; 委托Ink5 |
 | 1445 | `ink/log-update.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
 | 1446 | `ink/output.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
 | 1447 | `ink/parse-keypress.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
@@ -1500,9 +1500,9 @@
 | 1456 | `ink/selection.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
 | 1457 | `ink/styles.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
 | 1458 | `ink/terminal-querier.ts` | `ink/terminal-querier.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | detectCapabilities; 颜色/unicode/kitty/WT/vscode检测; 缓存 |
-| 1459 | `ink/terminal.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
+| 1459 | `ink/terminal.ts` | `ink/terminal.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | rawMode/cursor/altScreen/mouse/resize/getTerminalSize |
 | 1460 | `interactiveHelpers.tsx` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
-| 1461 | `keybindings/KeybindingContext.tsx` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
+| 1461 | `keybindings/KeybindingContext.tsx` | `keybindings/KeybindingContext.tsx` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | KeybindingProvider+useKeybinding+useContextBindings |
 | 1462 | `keybindings/KeybindingProviderSetup.tsx` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
 | 1463 | `keybindings/loadUserBindings.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
 | 1464 | `memdir/findRelevantMemories.ts` | `` | T5 | MISSING | high | UNTOUCHED | copy |  |
