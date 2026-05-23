@@ -1,10 +1,10 @@
 # ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 → B (decisions locked)
-> **Last Updated:** 2026-05-23T14:00
+> **Last Updated:** 2026-05-23T18:00
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
-> **Verdict Distribution:** FULLY_ALIGNED 265 | PARTIAL 300 | DIVERGED 72 | RESTRUCTURED 109 | NEW 52 | MISSING 1247  
-> **Active Batch / Audit Task:** B-T4-11 DONE → B-T4-12 PENDING (ink.tsx + render-node-to-output)
+> **Verdict Distribution:** FULLY_ALIGNED 276 | PARTIAL 277 | DIVERGED 80 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
+> **Active Batch / Audit Task:** T0 ✅ T4 ✅ B-T6-01 ✅ B-T6-02 ✅ B-T6-03 ✅ B-T6-04 ✅ → B-T6-05 NEXT (T6 utilities 继续)
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL ≈ 20% weighted
 
 ---
@@ -164,7 +164,7 @@
 | 120 | `constants/tools.ts` | `constants/tools.ts` | T7 | PARTIAL | medium | MAPPED | adapt-complete | overlap=43% |
 | 121 | `constants/turnCompletionVerbs.ts` | `constants/turnCompletionVerbs.ts` | T7 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 122 | `constants/xml.ts` | `constants/xml.ts` | T7 | PARTIAL | medium | MAPPED | adapt-complete | overlap=52% |
-| 123 | `context.ts` | `context.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 5 extra exports |
+| 123 | `context.ts` | `context.ts` | T6 | DIVERGED | high | KEPT | skip | B-T6-04: IMPROVED: QiLing is self-contained Bun.spawn impl; CC proxies via bootstrap/state+memoize |
 | 124 | `context/QueuedMessageContext.tsx` | `context/QueuedMessageContext.tsx` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 125 | `context/fpsMetrics.tsx` | `context/fpsMetrics.tsx` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 126 | `context/mailbox.tsx` | `context/mailbox.tsx` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -173,7 +173,7 @@
 | 129 | `context/promptOverlayContext.tsx` | `context/promptOverlayContext.tsx` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 130 | `context/stats.tsx` | `context/stats.tsx` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 131 | `coordinator/coordinatorMode.ts` | `coordinator/coordinatorMode.ts` | T0 | DIVERGED | high | KEPT | skip | overlap=11% |
-| 132 | `cost-tracker.ts` | `cost-tracker.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 5 extra exports |
+| 132 | `cost-tracker.ts` | `cost-tracker.ts` | T6 | DIVERGED | high | KEPT | skip | B-T6-04: IMPROVED: self-contained pricing table + Chinese providers; CC is thin proxy to bootstrap/state |
 | 133 | `entrypoints/sandboxTypes.ts` | `entrypoints/sandboxTypes.ts` | T7 | DIVERGED | high | KEPT | skip | overlap=24% |
 | 134 | `entrypoints/sdk/coreTypes.ts` | `entrypoints/sdk/coreTypes.ts` | T7 | PARTIAL | medium | MAPPED | adapt-complete | overlap=50% |
 | 135 | `hooks/notifs/useStartupNotification.ts` | `hooks/notifs/useStartupNotification.ts` | T3 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -404,15 +404,15 @@
 | 360 | `utils/CircularBuffer.ts` | `utils/CircularBuffer.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 361 | `utils/Cursor.ts` | `utils/Cursor.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=36% |
 | 362 | `utils/QueryGuard.ts` | `utils/QueryGuard.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=47% |
-| 363 | `utils/abortController.ts` | `utils/abortController.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=40% |
+| 363 | `utils/abortController.ts` | `utils/abortController.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-04: identical logic, same WeakRef pattern |
 | 364 | `utils/activityManager.ts` | `utils/activityManager.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=27% |
-| 365 | `utils/agentContext.ts` | `utils/agentContext.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 5 extra exports |
-| 366 | `utils/agentId.ts` | `utils/agentId.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=41% |
+| 365 | `utils/agentContext.ts` | `utils/agentContext.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | B-T6-04: CC type system = SubagentContext/TeammateAgentContext; QiLing = simple AgentContext; coordinator BLOCKED |
+| 366 | `utils/agentId.ts` | `utils/agentId.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-03: verified exact match with CC |
 | 367 | `utils/agentSwarmsEnabled.ts` | `utils/agentSwarmsEnabled.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=21% |
-| 368 | `utils/analyzeContext.ts` | `utils/analyzeContext.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 5 extra exports |
+| 368 | `utils/analyzeContext.ts` | `utils/analyzeContext.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | B-T6-04: CC=1383-line token API+grid viz; QiLing=110-line simple analysis; different purposes |
 | 369 | `utils/apiPreconnect.ts` | `utils/apiPreconnect.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=53% |
-| 370 | `utils/argumentSubstitution.ts` | `utils/argumentSubstitution.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=44% |
-| 371 | `utils/array.ts` | `utils/array.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 370 | `utils/argumentSubstitution.ts` | `utils/argumentSubstitution.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-04: IMPROVED: custom tokenizer (avoids bash/shellQuote dep); substituteArguments identical |
+| 371 | `utils/array.ts` | `utils/array.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-02: verified exact match with CC |
 | 372 | `utils/auth.ts` | `utils/auth.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 49 extra exports |
 | 373 | `utils/autoModeDenials.ts` | `utils/autoModeDenials.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 374 | `utils/autoRunIssue.tsx` | `utils/autoRunIssue.tsx` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -434,22 +434,22 @@
 | 390 | `utils/bash/specs/srun.ts` | `utils/bash/specs/srun.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 391 | `utils/bash/specs/time.ts` | `utils/bash/specs/time.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 392 | `utils/bash/specs/timeout.ts` | `utils/bash/specs/timeout.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 393 | `utils/binaryCheck.ts` | `utils/binaryCheck.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=50% |
+| 393 | `utils/binaryCheck.ts` | `utils/binaryCheck.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-04: IMPROVED: added isBinaryInstalledSync; CC only has isBinaryInstalled+clearBinaryCache |
 | 394 | `utils/browser.ts` | `utils/browser.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 395 | `utils/bufferedWriter.ts` | `utils/bufferedWriter.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 396 | `utils/bundledMode.ts` | `utils/bundledMode.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 396 | `utils/bundledMode.ts` | `utils/bundledMode.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-03: verified exact match with CC |
 | 397 | `utils/caCerts.ts` | `utils/caCerts.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 398 | `utils/caCertsConfig.ts` | `utils/caCertsConfig.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=23% |
 | 399 | `utils/cachePaths.ts` | `utils/cachePaths.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 400 | `utils/classifierApprovals.ts` | `utils/classifierApprovals.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 401 | `utils/classifierApprovalsHook.ts` | `utils/classifierApprovalsHook.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 402 | `utils/claudeCodeHints.ts` | `utils/claudeCodeHints.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=45% |
-| 403 | `utils/claudemd.ts` | `utils/claudemd.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 7 extra exports |
-| 404 | `utils/cleanupRegistry.ts` | `utils/cleanupRegistry.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=45% |
-| 405 | `utils/cliArgs.ts` | `utils/cliArgs.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=48% |
-| 406 | `utils/cliHighlight.ts` | `utils/cliHighlight.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=36% |
+| 403 | `utils/claudemd.ts` | `utils/claudemd.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | B-T6-04: CC deps memoize+analytics+memdir+fileStateCache; QiLing is clean fs-only impl; IMPROVED |
+| 404 | `utils/cleanupRegistry.ts` | `utils/cleanupRegistry.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-04: identical; QiLing adds .catch(()=>{}) safety in Promise.all |
+| 405 | `utils/cliArgs.ts` | `utils/cliArgs.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-04: identical exports and logic |
+| 406 | `utils/cliHighlight.ts` | `utils/cliHighlight.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-04: same API; QiLing uses eval-import for Bun compat, CC uses typed imports |
 | 407 | `utils/codeIndexing.ts` | `utils/codeIndexing.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 408 | `utils/collapseReadSearch.ts` | `utils/collapseReadSearch.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 6 extra exports |
+| 408 | `utils/collapseReadSearch.ts` | `utils/collapseReadSearch.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | B-T6-04: CC deps RenderableMessage/CollapsibleMessage from CC msg types; QiLing is standalone util |
 | 409 | `utils/combinedAbortSignal.ts` | `utils/combinedAbortSignal.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 410 | `utils/commandLifecycle.ts` | `utils/commandLifecycle.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 411 | `utils/completionCache.ts` | `utils/completionCache.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -458,10 +458,10 @@
 | 414 | `utils/contextSuggestions.ts` | `utils/contextSuggestions.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=24% |
 | 415 | `utils/controlMessageCompat.ts` | `utils/controlMessageCompat.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 416 | `utils/cron.ts` | `utils/cron.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 417 | `utils/crypto.ts` | `utils/crypto.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 417 | `utils/crypto.ts` | `utils/crypto.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-03: verified exact match with CC |
 | 418 | `utils/cwd.ts` | `utils/cwd.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 419 | `utils/debugFilter.ts` | `utils/debugFilter.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=47% |
-| 420 | `utils/detectRepository.ts` | `utils/detectRepository.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 2 extra exports |
+| 420 | `utils/detectRepository.ts` | `utils/detectRepository.ts` | T6 | PARTIAL | high | ALIGNED | adapt-complete | B-T6-01: +getCachedRepository +parseGitHubRepository |
 | 421 | `utils/diagLogs.ts` | `utils/diagLogs.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 422 | `utils/diff.ts` | `utils/diff.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=50% |
 | 423 | `utils/directMemberMessage.ts` | `utils/directMemberMessage.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -470,10 +470,10 @@
 | 426 | `utils/editor.ts` | `utils/editor.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=52% |
 | 427 | `utils/effort.ts` | `utils/effort.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 18 extra exports |
 | 428 | `utils/embeddedTools.ts` | `utils/embeddedTools.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=40% |
-| 429 | `utils/env.ts` | `utils/env.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 4 extra exports |
-| 430 | `utils/envUtils.ts` | `utils/envUtils.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 10 extra exports |
+| 429 | `utils/env.ts` | `utils/env.ts` | T6 | PARTIAL | high | ALIGNED | adapt-complete | B-T6-01: +JETBRAINS_IDES +detectDeploymentEnvironment +getHostPlatformForAnalytics; getGlobalClaudeFile skipped (fileSuffixForOauthConfig missing) |
+| 430 | `utils/envUtils.ts` | `utils/envUtils.ts` | T6 | PARTIAL | high | ALIGNED | adapt-complete | B-T6-01: +getClaudeConfigHomeDir +getTeamsDir +hasNodeOption +getAWSRegion +getDefaultVertexRegion +shouldMaintainProjectWorkingDir +isAntUser +isRunningOnHomespace +VERTEX_REGION_OVERRIDES +getVertexRegionForModel; isInProtectedNamespace skipped |
 | 431 | `utils/envValidation.ts` | `utils/envValidation.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
-| 432 | `utils/errors.ts` | `utils/errors.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 8 extra exports |
+| 432 | `utils/errors.ts` | `utils/errors.ts` | T6 | PARTIAL | high | ALIGNED | adapt-complete | B-T6-01: +ClaudeError +MalformedCommandError +ConfigParseError +ShellError +TeleportOperationError +TelemetrySafeError_* +AxiosErrorKind +classifyAxiosError |
 | 433 | `utils/exampleCommands.ts` | `utils/exampleCommands.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 434 | `utils/execFileNoThrow.ts` | `utils/execFileNoThrow.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=30% |
 | 435 | `utils/execSyncWrapper.ts` | `utils/execSyncWrapper.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -488,11 +488,11 @@
 | 444 | `utils/format.ts` | `utils/format.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=46% |
 | 445 | `utils/formatBriefTimestamp.ts` | `utils/formatBriefTimestamp.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 446 | `utils/fpsTracker.ts` | `utils/fpsTracker.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 447 | `utils/frontmatterParser.ts` | `utils/frontmatterParser.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 4 extra exports |
+| 447 | `utils/frontmatterParser.ts` | `utils/frontmatterParser.ts` | T6 | PARTIAL | high | ALIGNED | adapt-complete | B-T6-01: export FRONTMATTER_REGEX +parseBooleanFrontmatter +FrontmatterShell +parseShellFrontmatter; upgraded splitPathInFrontmatter w/ brace expansion |
 | 448 | `utils/fsOperations.ts` | `utils/fsOperations.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 6 extra exports |
 | 449 | `utils/generatedFiles.ts` | `utils/generatedFiles.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 450 | `utils/generators.ts` | `utils/generators.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 451 | `utils/genericProcessUtils.ts` | `utils/genericProcessUtils.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 2 extra exports |
+| 451 | `utils/genericProcessUtils.ts` | `utils/genericProcessUtils.ts` | T6 | PARTIAL | high | ALIGNED | adapt-complete | B-T6-02: +getAncestorPidsAsync +getAncestorCommandsAsync; getChildPids skipped (execSyncWithDefaults_DEPRECATED missing) |
 | 452 | `utils/getWorktreePaths.ts` | `utils/getWorktreePaths.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 453 | `utils/getWorktreePathsPortable.ts` | `utils/getWorktreePathsPortable.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 454 | `utils/ghPrStatus.ts` | `utils/ghPrStatus.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=54% |
@@ -505,7 +505,7 @@
 | 461 | `utils/github/ghAuthStatus.ts` | `utils/github/ghAuthStatus.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 462 | `utils/glob.ts` | `utils/glob.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=30% |
 | 463 | `utils/gracefulShutdown.ts` | `utils/gracefulShutdown.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 4 extra exports |
-| 464 | `utils/hash.ts` | `utils/hash.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=40% |
+| 464 | `utils/hash.ts` | `utils/hash.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-03: verified exact match with CC |
 | 465 | `utils/heatmap.ts` | `utils/heatmap.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 466 | `utils/highlightMatch.tsx` | `utils/highlightMatch.tsx` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 467 | `utils/hooks/hookEvents.ts` | `utils/hooks/hookEvents.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -513,7 +513,7 @@
 | 469 | `utils/hooks/registerSkillHooks.ts` | `utils/hooks/registerSkillHooks.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 470 | `utils/horizontalScroll.ts` | `utils/horizontalScroll.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=49% |
 | 471 | `utils/http.ts` | `utils/http.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=26% |
-| 472 | `utils/hyperlink.ts` | `utils/hyperlink.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=45% |
+| 472 | `utils/hyperlink.ts` | `utils/hyperlink.ts` | T6 | PARTIAL | medium | ALIGNED | adapt-complete | B-T6-03: +chalk.blue coloring, import supportsHyperlinks from ink, export HyperlinkOptions |
 | 473 | `utils/idePathConversion.ts` | `utils/idePathConversion.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=51% |
 | 474 | `utils/idleTimeout.ts` | `utils/idleTimeout.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=51% |
 | 475 | `utils/imageResizer.ts` | `utils/imageResizer.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 4 extra exports |
@@ -1484,14 +1484,14 @@
 | 1440 | `ink/frame.ts` | `ink/frame.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | Frame/Patch/Diff类型完整；Screen为宽松stub兼容optimizer |
 | 1441 | `ink/hooks/use-search-highlight.ts` | `ink/hooks/use-search-highlight.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | B-T4-11: 真实React state; setMatchCount供render pipeline更新计数 |
 | 1442 | `ink/hooks/use-selection.ts` | `ink/hooks/use-selection.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | no-op stub；依赖ink/selection.ts待B-T4-11 |
-| 1443 | `ink/ink.tsx` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
+| 1443 | `ink/ink.tsx` | `` | T4 | DIVERGED | high | KEPT | skip | 方案B: CC自定义渲染管线; 依赖auto-bind+bootstrap/state; QiLing委托Ink5; Phase D再决定 |
 | 1444 | `ink/layout/yoga.ts` | `ink/layout/yoga.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | YogaRect/Edges+常量枚举; getLayoutRect/getPaddingEdges; 委托Ink5 |
 | 1445 | `ink/log-update.ts` | `ink/log-update.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | createLogUpdate; ANSI erase-in-place; clear+done |
-| 1446 | `ink/output.ts` | `ink/output.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | Output类; 缓冲写入+flush; createOutput+writeToStdout |
+| 1446 | `ink/output.ts` | `ink/output.ts` | T4 | DIVERGED | high | KEPT | skip | 方案B: CC版797L含blit/shift/clip/noSelect; QiLing版88L简化委托Ink5; Phase D再决定 |
 | 1447 | `ink/parse-keypress.ts` | `ink/parse-keypress.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | parseKeypress; CSI/Alt/Ctrl解析; F1-F12/方向键/特殊键 |
 | 1448 | `ink/reconciler.ts` | `ink/reconciler.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | ReconcilerContainer; createContainer/updateContainer stub; 委托Ink5 |
 | 1449 | `ink/render-border.ts` | `ink/render-border.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | BORDER_STYLES 8种; renderBorder+getBorderChar |
-| 1450 | `ink/render-node-to-output.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
+| 1450 | `ink/render-node-to-output.ts` | `` | T4 | DIVERGED | high | KEPT | skip | 方案B: 依赖CC全量Output.blit/shift/clip(797L); 随ink.tsx+output.ts一起跳过 |
 | 1451 | `ink/render-to-screen.ts` | `ink/render-to-screen.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | stub; 实际渲染委托Ink5内部pipeline; 签名对齐 |
 | 1452 | `ink/renderer.ts` | `ink/renderer.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | createRenderer; 公共API完整; 内部pipeline待B-T4-13接入 |
 | 1453 | `ink/root.ts` | `ink/root.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | RootInstance+wrapInstance+getRootDimensions; B-T4-14接入ink.tsx |
