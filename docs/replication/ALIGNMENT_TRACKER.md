@@ -1,10 +1,10 @@
 # ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 → B (decisions locked)
-> **Last Updated:** 2026-05-23T11:39
+> **Last Updated:** 2026-05-23T12:13
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
 > **Verdict Distribution:** FULLY_ALIGNED 265 | PARTIAL 299 | DIVERGED 72 | RESTRUCTURED 109 | NEW 52 | MISSING 1248  
-> **Active Batch / Audit Task:** T4 B-T4-01~03 DONE · B-T4-04 PENDING
+> **Active Batch / Audit Task:** T4 B-T4-04 DONE B-T4-05 PENDING
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL ≈ 20% weighted
 
 ---
@@ -1379,7 +1379,7 @@
 | 1335 | `constants/system.ts` | `` | T7 | MISSING | high | UNTOUCHED | copy |  |
 | 1336 | `constants/systemPromptSections.ts` | `` | T7 | MISSING | high | UNTOUCHED | copy |  |
 | 1337 | `context/overlayContext.tsx` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
-| 1338 | `context/voice.tsx` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
+| 1338 | `context/voice.tsx` | `` | T4 | MISSING | high | ALIGNED | adapt-new | 语音状态Context; Phase D接入实际语音后端 |
 | 1339 | `costHook.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1340 | `dialogLaunchers.tsx` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1341 | `entrypoints/agentSdkTypes.ts` | `` | T7 | MISSING | high | UNTOUCHED | copy |  |
@@ -1470,7 +1470,7 @@
 | 1426 | `ink.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1427 | `ink/bidi.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
 | 1428 | `ink/colorize.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
-| 1429 | `ink/components/AlternateScreen.tsx` | `` | T4 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1429 | `ink/components/AlternateScreen.tsx` | `` | T4 | MISSING | high | ALIGNED | adapt-new | 备用屏幕组件; 省略ink内部instances; improved:useInsertionEffect |
 | 1430 | `ink/components/App.tsx` | `` | T4 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1431 | `ink/components/Box.tsx` | `` | T4 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1432 | `ink/components/Button.tsx` | `` | T4 | MISSING | high | UNTOUCHED | adapt-new |  |
