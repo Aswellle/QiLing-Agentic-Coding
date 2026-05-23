@@ -1487,9 +1487,9 @@
 | 1443 | `ink/ink.tsx` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
 | 1444 | `ink/layout/yoga.ts` | `ink/layout/yoga.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | YogaRect/Edges+常量枚举; getLayoutRect/getPaddingEdges; 委托Ink5 |
 | 1445 | `ink/log-update.ts` | `ink/log-update.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | createLogUpdate; ANSI erase-in-place; clear+done |
-| 1446 | `ink/output.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
+| 1446 | `ink/output.ts` | `ink/output.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | Output类; 缓冲写入+flush; createOutput+writeToStdout |
 | 1447 | `ink/parse-keypress.ts` | `ink/parse-keypress.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | parseKeypress; CSI/Alt/Ctrl解析; F1-F12/方向键/特殊键 |
-| 1448 | `ink/reconciler.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
+| 1448 | `ink/reconciler.ts` | `ink/reconciler.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | ReconcilerContainer; createContainer/updateContainer stub; 委托Ink5 |
 | 1449 | `ink/render-border.ts` | `ink/render-border.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | BORDER_STYLES 8种; renderBorder+getBorderChar |
 | 1450 | `ink/render-node-to-output.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
 | 1451 | `ink/render-to-screen.ts` | `ink/render-to-screen.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | stub; 依赖screen.ts待B-T4-13 |
@@ -1497,7 +1497,7 @@
 | 1453 | `ink/root.ts` | `ink/root.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | RootInstance+wrapInstance+getRootDimensions; B-T4-14接入ink.tsx |
 | 1454 | `ink/screen.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
 | 1455 | `ink/searchHighlight.ts` | `ink/searchHighlight.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | no-op stub；依赖ink/screen.ts待B-T4-13 |
-| 1456 | `ink/selection.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
+| 1456 | `ink/selection.ts` | `ink/selection.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | SelectionStore; anchor/focus/drag; copy stub待B-T4-13 screen.ts |
 | 1457 | `ink/styles.ts` | `ink/styles.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | TextStyle/BoxStyle; textStyleToConfig+mergeTextStyles |
 | 1458 | `ink/terminal-querier.ts` | `ink/terminal-querier.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | detectCapabilities; 颜色/unicode/kitty/WT/vscode检测; 缓存 |
 | 1459 | `ink/terminal.ts` | `ink/terminal.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | rawMode/cursor/altScreen/mouse/resize/getTerminalSize |
