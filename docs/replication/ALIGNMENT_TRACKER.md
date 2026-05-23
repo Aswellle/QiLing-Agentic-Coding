@@ -1469,18 +1469,18 @@
 | 1425 | `hooks/useVoiceIntegration.tsx` | `` | T3 | MISSING | high | UNTOUCHED | copy |  |
 | 1426 | `ink.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1427 | `ink/bidi.ts` | `ink/bidi.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | RTL检测+reorderLine+splitBidiRuns; QiLing中文LTR优先; Phase D接bidi-js |
-| 1428 | `ink/colorize.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
+| 1428 | `ink/colorize.ts` | `ink/colorize.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | openStyle/closeStyle/colorize; ansi256+truecolor+named颜色 |
 | 1429 | `ink/components/AlternateScreen.tsx` | `` | T4 | MISSING | high | ALIGNED | adapt-new | 备用屏幕组件; 省略ink内部instances; improved:useInsertionEffect |
-| 1430 | `ink/components/App.tsx` | `` | T4 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1431 | `ink/components/Box.tsx` | `` | T4 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1430 | `ink/components/App.tsx` | `ink/components/App.tsx` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | 根组件+ErrorBoundary; 省略Bridge/Swarm(Phase D) |
+| 1431 | `ink/components/Box.tsx` | `ink/components/Box.tsx` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | improved: re-export ink Box; Ink5原生支持border/flex无需fork |
 | 1432 | `ink/components/Button.tsx` | `ink/components/Button.tsx` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | 可聚焦按钮; useFocus+useInput; Enter/Space激活 |
 | 1433 | `ink/components/ErrorOverview.tsx` | `ink/components/ErrorOverview.tsx` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | ink Box/Text替换CC内部组件，graceful stack-utils/code-excerpt |
 | 1434 | `ink/components/ScrollBox.tsx` | `` | T4 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1435 | `ink/components/StdinContext.ts` | `` | T4 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1436 | `ink/components/Text.tsx` | `` | T4 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1437 | `ink/dom.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
-| 1438 | `ink/events/dispatcher.ts` | `` | T4 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1439 | `ink/events/input-event.ts` | `` | T4 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1438 | `ink/events/dispatcher.ts` | `ink/events/dispatcher.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | EventDispatcher; 键盘/鼠标路由; 委托hit-test |
+| 1439 | `ink/events/input-event.ts` | `ink/events/input-event.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | InputEvent类型+工厂; keypress/paste/mouse/resize |
 | 1440 | `ink/frame.ts` | `ink/frame.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | Frame/Patch/Diff类型完整；Screen/StylePool为stub待B-T4-13 |
 | 1441 | `ink/hooks/use-search-highlight.ts` | `` | T4 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1442 | `ink/hooks/use-selection.ts` | `ink/hooks/use-selection.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | no-op stub；依赖ink/selection.ts待B-T4-11 |
@@ -1490,7 +1490,7 @@
 | 1446 | `ink/output.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
 | 1447 | `ink/parse-keypress.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
 | 1448 | `ink/reconciler.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
-| 1449 | `ink/render-border.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
+| 1449 | `ink/render-border.ts` | `ink/render-border.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | BORDER_STYLES 8种; renderBorder+getBorderChar |
 | 1450 | `ink/render-node-to-output.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
 | 1451 | `ink/render-to-screen.ts` | `ink/render-to-screen.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | stub; 依赖screen.ts待B-T4-13 |
 | 1452 | `ink/renderer.ts` | `ink/renderer.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | createRenderer; 公共API完整; 内部pipeline待B-T4-13接入 |
@@ -1499,7 +1499,7 @@
 | 1455 | `ink/searchHighlight.ts` | `ink/searchHighlight.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | no-op stub；依赖ink/screen.ts待B-T4-13 |
 | 1456 | `ink/selection.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
 | 1457 | `ink/styles.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
-| 1458 | `ink/terminal-querier.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
+| 1458 | `ink/terminal-querier.ts` | `ink/terminal-querier.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | detectCapabilities; 颜色/unicode/kitty/WT/vscode检测; 缓存 |
 | 1459 | `ink/terminal.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
 | 1460 | `interactiveHelpers.tsx` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1461 | `keybindings/KeybindingContext.tsx` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
