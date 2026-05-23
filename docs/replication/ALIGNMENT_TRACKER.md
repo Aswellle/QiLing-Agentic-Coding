@@ -1,10 +1,10 @@
 # ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 → B (decisions locked)
-> **Last Updated:** 2026-05-22T16:28
+> **Last Updated:** 2026-05-23T11:35
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
 > **Verdict Distribution:** FULLY_ALIGNED 265 | PARTIAL 299 | DIVERGED 72 | RESTRUCTURED 109 | NEW 52 | MISSING 1248  
-> **Active Batch / Audit Task:** B-002 ✅ DONE · B-003 ⏳ PENDING
+> **Active Batch / Audit Task:** B-003 DONE T0完成 进入T4批次
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL ≈ 20% weighted
 
 ---
@@ -1653,11 +1653,11 @@
 | 1609 | `skills/bundled/verifyContent.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1610 | `skills/bundledSkills.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1611 | `skills/loadSkillsDir.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
-| 1612 | `state/AppState.tsx` | `` | T0 | MISSING | high | UNTOUCHED | copy |  |
-| 1613 | `state/AppStateStore.ts` | `` | T0 | MISSING | high | UNTOUCHED | copy |  |
-| 1614 | `state/onChangeAppState.ts` | `` | T0 | MISSING | high | UNTOUCHED | copy |  |
-| 1615 | `state/selectors.ts` | `` | T0 | MISSING | high | UNTOUCHED | copy |  |
-| 1616 | `state/teammateViewHelpers.ts` | `` | T0 | MISSING | high | UNTOUCHED | copy |  |
+| 1612 | `state/AppState.tsx` | `` | T0 | MISSING | high | ALIGNED | adapt-new | React层; useAppState/useSetAppState/global store |
+| 1613 | `state/AppStateStore.ts` | `` | T0 | MISSING | high | ALIGNED | adapt-new | 精简AppState类型; 去除Bridge/Swarm; improved:更小更可追踪 |
+| 1614 | `state/onChangeAppState.ts` | `` | T0 | MISSING | high | ALIGNED | adapt-new | 状态副作用; 同步bootstrap/state.ts; ANT sink裁剪 |
+| 1615 | `state/selectors.ts` | `` | T0 | MISSING | high | ALIGNED | adapt-new | 20个纯选择器; 去除Swarm路由 |
+| 1616 | `state/teammateViewHelpers.ts` | `` | T0 | MISSING | high | ALIGNED | adapt-new | Swarm视图助手存根; Phase D候选 |
 | 1617 | `tasks.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1618 | `tasks/DreamTask/DreamTask.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1619 | `tasks/InProcessTeammateTask/InProcessTeammateTask.tsx` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
