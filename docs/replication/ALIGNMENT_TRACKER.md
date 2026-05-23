@@ -225,7 +225,7 @@
 | 181 | `ink/events/terminal-focus-event.ts` | `ink/events/terminal-focus-event.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
 | 182 | `ink/focus.ts` | `ink/focus.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 183 | `ink/get-max-width.ts` | `ink/get-max-width.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
-| 184 | `ink/hit-test.ts` | `ink/hit-test.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
+| 184 | `ink/hit-test.ts` | `ink/hit-test.ts` | T4 | FULLY_ALIGNED | high | DONE | — | export集合完整，confirmed |
 | 185 | `ink/hooks/use-animation-frame.ts` | `ink/hooks/use-animation-frame.ts` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 186 | `ink/hooks/use-app.ts` | `ink/hooks/use-app.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
 | 187 | `ink/hooks/use-declared-cursor.ts` | `ink/hooks/use-declared-cursor.ts` | T4 | PARTIAL | medium | ALIGNED | — | export集合完整 |
@@ -1378,7 +1378,7 @@
 | 1334 | `constants/prompts.ts` | `` | T7 | MISSING | high | UNTOUCHED | copy |  |
 | 1335 | `constants/system.ts` | `` | T7 | MISSING | high | UNTOUCHED | copy |  |
 | 1336 | `constants/systemPromptSections.ts` | `` | T7 | MISSING | high | UNTOUCHED | copy |  |
-| 1337 | `context/overlayContext.tsx` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
+| 1337 | `context/overlayContext.tsx` | `context/overlayContext.tsx` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | OverlayProvider+useOverlayRegistration; depth计数支持嵌套overlay |
 | 1338 | `context/voice.tsx` | `` | T4 | MISSING | high | ALIGNED | adapt-new | 语音状态Context; Phase D接入实际语音后端 |
 | 1339 | `costHook.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1340 | `dialogLaunchers.tsx` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
@@ -1468,12 +1468,12 @@
 | 1424 | `hooks/useVoiceEnabled.ts` | `` | T3 | MISSING | high | UNTOUCHED | copy |  |
 | 1425 | `hooks/useVoiceIntegration.tsx` | `` | T3 | MISSING | high | UNTOUCHED | copy |  |
 | 1426 | `ink.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
-| 1427 | `ink/bidi.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
+| 1427 | `ink/bidi.ts` | `ink/bidi.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | RTL检测+reorderLine+splitBidiRuns; QiLing中文LTR优先; Phase D接bidi-js |
 | 1428 | `ink/colorize.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
 | 1429 | `ink/components/AlternateScreen.tsx` | `` | T4 | MISSING | high | ALIGNED | adapt-new | 备用屏幕组件; 省略ink内部instances; improved:useInsertionEffect |
 | 1430 | `ink/components/App.tsx` | `` | T4 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1431 | `ink/components/Box.tsx` | `` | T4 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1432 | `ink/components/Button.tsx` | `` | T4 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1432 | `ink/components/Button.tsx` | `ink/components/Button.tsx` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | 可聚焦按钮; useFocus+useInput; Enter/Space激活 |
 | 1433 | `ink/components/ErrorOverview.tsx` | `ink/components/ErrorOverview.tsx` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | ink Box/Text替换CC内部组件，graceful stack-utils/code-excerpt |
 | 1434 | `ink/components/ScrollBox.tsx` | `` | T4 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1435 | `ink/components/StdinContext.ts` | `` | T4 | MISSING | high | UNTOUCHED | adapt-new |  |
@@ -1492,9 +1492,9 @@
 | 1448 | `ink/reconciler.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
 | 1449 | `ink/render-border.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
 | 1450 | `ink/render-node-to-output.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
-| 1451 | `ink/render-to-screen.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
-| 1452 | `ink/renderer.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
-| 1453 | `ink/root.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
+| 1451 | `ink/render-to-screen.ts` | `ink/render-to-screen.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | stub; 依赖screen.ts待B-T4-13 |
+| 1452 | `ink/renderer.ts` | `ink/renderer.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | createRenderer; 公共API完整; 内部pipeline待B-T4-13接入 |
+| 1453 | `ink/root.ts` | `ink/root.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | RootInstance+wrapInstance+getRootDimensions; B-T4-14接入ink.tsx |
 | 1454 | `ink/screen.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
 | 1455 | `ink/searchHighlight.ts` | `ink/searchHighlight.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | no-op stub；依赖ink/screen.ts待B-T4-13 |
 | 1456 | `ink/selection.ts` | `` | T4 | MISSING | high | UNTOUCHED | copy |  |
