@@ -3,7 +3,7 @@
 > **Current Phase:** A.5 → B (decisions locked)
 > **Last Updated:** 2026-05-24T20:00
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
-> **Verdict Distribution:** FULLY_ALIGNED 323 | PARTIAL 221 | DIVERGED 89 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
+> **Verdict Distribution:** FULLY_ALIGNED 328 | PARTIAL 218 | DIVERGED 89 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
 > **Active Batch / Audit Task:** T0 ✅ T4 ✅ B-T6-01 ✅ ... B-T6-15 ✅ B-T6-16 ✅ → next: continue T6 PARTIAL scans
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL ≈ 20% weighted
 
@@ -443,7 +443,7 @@
 | 399 | `utils/cachePaths.ts` | `utils/cachePaths.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 400 | `utils/classifierApprovals.ts` | `utils/classifierApprovals.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 401 | `utils/classifierApprovalsHook.ts` | `utils/classifierApprovalsHook.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-07: identical useSyncExternalStore hook |
-| 402 | `utils/claudeCodeHints.ts` | `utils/claudeCodeHints.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=45% |
+| 402 | `utils/claudeCodeHints.ts` | `utils/claudeCodeHints.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | missing collapsed-newline step + _test export; parseAttrs while-loop vs matchAll |
 | 403 | `utils/claudemd.ts` | `utils/claudemd.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | B-T6-04: CC deps memoize+analytics+memdir+fileStateCache; QiLing is clean fs-only impl; IMPROVED |
 | 404 | `utils/cleanupRegistry.ts` | `utils/cleanupRegistry.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-04: identical; QiLing adds .catch(()=>{}) safety in Promise.all |
 | 405 | `utils/cliArgs.ts` | `utils/cliArgs.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-04: identical exports and logic |
@@ -467,9 +467,9 @@
 | 423 | `utils/directMemberMessage.ts` | `utils/directMemberMessage.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 424 | `utils/displayTags.ts` | `utils/displayTags.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=32% |
 | 425 | `utils/earlyInput.ts` | `utils/earlyInput.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=34% |
-| 426 | `utils/editor.ts` | `utils/editor.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=52% |
+| 426 | `utils/editor.ts` | `utils/editor.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | IMPROVED: ANSI alt-screen (no Ink dep) + getEditorDisplayName + wider default editor list |
 | 427 | `utils/effort.ts` | `utils/effort.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 18 extra exports |
-| 428 | `utils/embeddedTools.ts` | `utils/embeddedTools.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=40% |
+| 428 | `utils/embeddedTools.ts` | `utils/embeddedTools.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | always-false correct for QiLing; CC checks EMBEDDED_SEARCH_TOOLS env (ant-native only) |
 | 429 | `utils/env.ts` | `utils/env.ts` | T6 | PARTIAL | high | ALIGNED | adapt-complete | B-T6-01: +JETBRAINS_IDES +detectDeploymentEnvironment +getHostPlatformForAnalytics; getGlobalClaudeFile skipped (fileSuffixForOauthConfig missing) |
 | 430 | `utils/envUtils.ts` | `utils/envUtils.ts` | T6 | PARTIAL | high | ALIGNED | adapt-complete | B-T6-01: +getClaudeConfigHomeDir +getTeamsDir +hasNodeOption +getAWSRegion +getDefaultVertexRegion +shouldMaintainProjectWorkingDir +isAntUser +isRunningOnHomespace +VERTEX_REGION_OVERRIDES +getVertexRegionForModel; isInProtectedNamespace skipped |
 | 431 | `utils/envValidation.ts` | `utils/envValidation.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
@@ -480,8 +480,8 @@
 | 436 | `utils/file.ts` | `utils/file.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 13 extra exports |
 | 437 | `utils/fileHistory.ts` | `utils/fileHistory.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 7 extra exports |
 | 438 | `utils/filePersistence/outputsScanner.ts` | `utils/filePersistence/outputsScanner.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=53% |
-| 439 | `utils/fileRead.ts` | `utils/fileRead.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=47% |
-| 440 | `utils/fileReadCache.ts` | `utils/fileReadCache.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=51% |
+| 439 | `utils/fileRead.ts` | `utils/fileRead.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | same 4 exports + algorithms; plain fs replaces FsOperations (B-T6-11 pattern) |
+| 440 | `utils/fileReadCache.ts` | `utils/fileReadCache.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | same singleton interface; plain fs + detectEncodingForResolvedPath replaces FsOperations |
 | 441 | `utils/fileStateCache.ts` | `utils/fileStateCache.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 442 | `utils/findExecutable.ts` | `utils/findExecutable.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-07: identical logic |
 | 443 | `utils/fingerprint.ts` | `utils/fingerprint.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | algorithm identical; adapted message type access |
@@ -495,12 +495,12 @@
 | 451 | `utils/genericProcessUtils.ts` | `utils/genericProcessUtils.ts` | T6 | PARTIAL | high | ALIGNED | adapt-complete | B-T6-02: +getAncestorPidsAsync +getAncestorCommandsAsync; getChildPids skipped (execSyncWithDefaults_DEPRECATED missing) |
 | 452 | `utils/getWorktreePaths.ts` | `utils/getWorktreePaths.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-10: re-exports getWorktreePathsPortable; IMPROVED: no analytics deps |
 | 453 | `utils/getWorktreePathsPortable.ts` | `utils/getWorktreePathsPortable.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 454 | `utils/ghPrStatus.ts` | `utils/ghPrStatus.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=54% |
+| 454 | `utils/ghPrStatus.ts` | `utils/ghPrStatus.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | hardcodes main/master vs CC dynamic getDefaultBranch(); IMPROVED: cwd param + Bun.spawn |
 | 455 | `utils/git.ts` | `utils/git.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 20 extra exports |
 | 456 | `utils/git/gitConfigParser.ts` | `utils/git/gitConfigParser.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 457 | `utils/git/gitFilesystem.ts` | `utils/git/gitFilesystem.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 458 | `utils/git/gitignore.ts` | `utils/git/gitignore.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 459 | `utils/gitDiff.ts` | `utils/gitDiff.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=48% |
+| 459 | `utils/gitDiff.ts` | `utils/gitDiff.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | core functions matched; Bun.spawn replaces execFileNoThrow; git.ts funcs folded in (RESTRUCTURED) |
 | 460 | `utils/gitSettings.ts` | `utils/gitSettings.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=25% |
 | 461 | `utils/github/ghAuthStatus.ts` | `utils/github/ghAuthStatus.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 462 | `utils/glob.ts` | `utils/glob.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=30% |
@@ -514,7 +514,7 @@
 | 470 | `utils/horizontalScroll.ts` | `utils/horizontalScroll.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=49% |
 | 471 | `utils/http.ts` | `utils/http.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=26% |
 | 472 | `utils/hyperlink.ts` | `utils/hyperlink.ts` | T6 | PARTIAL | medium | ALIGNED | adapt-complete | B-T6-03: +chalk.blue coloring, import supportsHyperlinks from ink, export HyperlinkOptions |
-| 473 | `utils/idePathConversion.ts` | `utils/idePathConversion.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=51% |
+| 473 | `utils/idePathConversion.ts` | `utils/idePathConversion.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | checkWSLDistroMatch returns false vs CC true for non-WSL paths; IMPROVED: IdentityPathConverter |
 | 474 | `utils/idleTimeout.ts` | `utils/idleTimeout.ts` | T6 | DIVERGED | medium | KEPT | — | B-T6-08: env var renamed (QILING_EXIT_AFTER_IDLE_MS); QiLing uses process.exit+stderr vs CC gracefulShutdownSync+logForDebugging; IMPROVED: timer.unref |
 | 475 | `utils/imageResizer.ts` | `utils/imageResizer.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 4 extra exports |
 | 476 | `utils/imageValidation.ts` | `utils/imageValidation.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
