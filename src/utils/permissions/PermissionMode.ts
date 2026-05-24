@@ -6,12 +6,18 @@
  */
 
 import { PAUSE_ICON } from '../../constants/figures.js'
+import { z } from 'zod'
+import { lazySchema } from '../lazySchema.js'
 
 export type PermissionMode = 'default' | 'plan' | 'acceptEdits' | 'bypassPermissions' | 'dontAsk'
 export type ExternalPermissionMode = Exclude<PermissionMode, never>
 
 export const PERMISSION_MODES = ['default', 'plan', 'acceptEdits', 'bypassPermissions', 'dontAsk'] as const
 export const EXTERNAL_PERMISSION_MODES = PERMISSION_MODES
+
+// FROM CC: Zod schemas for permission mode validation
+export const permissionModeSchema = lazySchema(() => z.enum(PERMISSION_MODES))
+export const externalPermissionModeSchema = lazySchema(() => z.enum(EXTERNAL_PERMISSION_MODES))
 
 type ModeColorKey = 'text' | 'planMode' | 'permission' | 'autoAccept' | 'error' | 'warning'
 

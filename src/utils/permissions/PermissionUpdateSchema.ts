@@ -1,9 +1,13 @@
 /**
  * Permission update schema — adapted from CC's utils/permissions/PermissionUpdateSchema.ts
  *
- * Type definitions for permission rule updates.
- * Kept minimal to avoid circular dependencies.
+ * Type definitions and Zod schemas for permission rule updates.
  */
+
+import { z } from 'zod'
+import { lazySchema } from '../lazySchema.js'
+import { externalPermissionModeSchema } from './PermissionMode.js'
+import { permissionBehaviorSchema, permissionRuleValueSchema } from './PermissionRule.js'
 
 export type PermissionUpdateDestination =
   | 'userSettings'
@@ -24,3 +28,19 @@ export type PermissionUpdate =
   | { type: 'setMode'; mode: string; destination: PermissionUpdateDestination }
   | { type: 'addDirectories'; directories: string[]; destination: PermissionUpdateDestination }
   | { type: 'removeDirectories'; directories: string[]; destination: PermissionUpdateDestination }
+
+// FROM CC: Zod schemas for runtime validation
+export const permissionUpdateDestinationSchema = lazySchema(() =>
+  z.enum(['userSettings', 'projectSettings', 'localSettings', 'session', 'cliArg']),
+)
+
+export const permissionUpdateSchema = lazySchema(() =>
+  z.discriminatedUnion('type', [
+    z.object({ type: z.literal('addRules'), rules: z.array(permissionRuleValueSchema()), behavior: permissionBehaviorSchema(), destination: permissionUpdateDestinationSchema() }),
+    z.object({ type: z.literal('replaceRules'), rules: z.array(permissionRuleValueSchema()), behavior: permissionBehaviorSchema(), destination: permissionUpdateDestinationSchema() }),
+    z.object({ type: z.literal('removeRules'), rules: z.array(permissionRuleValueSchema()), behavior: permissionBehaviorSchema(), destination: permissionUpdateDestinationSchema() }),
+    z.object({ type: z.literal('setMode'), mode: externalPermissionModeSchema(), destination: permissionUpdateDestinationSchema() }),
+    z.object({ type: z.literal('addDirectories'), directories: z.array(z.string()), destination: permissionUpdateDestinationSchema() }),
+    z.object({ type: z.literal('removeDirectories'), directories: z.array(z.string()), destination: permissionUpdateDestinationSchema() }),
+  ]),
+)
