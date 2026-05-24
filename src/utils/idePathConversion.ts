@@ -40,7 +40,7 @@ export class WindowsToWSLConverter implements IDEPathConverter {
 
 export function checkWSLDistroMatch(windowsPath: string, wslDistroName: string): boolean {
   const wslUncMatch = windowsPath.match(/^\\\\wsl(?:\.localhost|\$)\\([^\\]+)(.*)$/)
-  return wslUncMatch ? wslUncMatch[1] === wslDistroName : false
+  return wslUncMatch ? wslUncMatch[1] === wslDistroName : true // FROM CC: non-WSL path → no distro mismatch
 }
 
 /** Identity converter — no-op for native Linux/macOS paths */

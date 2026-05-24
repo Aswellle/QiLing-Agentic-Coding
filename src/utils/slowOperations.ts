@@ -35,3 +35,14 @@ export function cloneDeep<T>(value: T): T {
   if (typeof structuredClone !== 'undefined') return structuredClone(value)
   return JSON.parse(JSON.stringify(value)) as T
 }
+
+// FROM CC: callerFrame — extracts first stack frame outside this file for slow-op attribution
+export function callerFrame(stack: string | undefined): string {
+  if (!stack) return ''
+  for (const line of stack.split('\n')) {
+    if (line.includes('slowOperations')) continue
+    const m = line.match(/([^/\\]+?):(\d+):\d+\)?$/)
+    if (m) return ` @ ${m[1]}:${m[2]}`
+  }
+  return ''
+}
