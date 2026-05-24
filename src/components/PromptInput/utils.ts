@@ -19,7 +19,9 @@ export function getNewlineInstructions(): string {
 }
 
 export function isNonSpacePrintable(input: string, key: Key): boolean {
-  if (key.ctrl || key.meta || key.escape || key.return || key.tab || key.backspace || key.delete || key.upArrow || key.downArrow || key.leftArrow || key.rightArrow) {
+  // FROM CC: added pageUp/pageDown/home/end to non-printable set
+  // FROM CC: added pageUp/pageDown (home/end not in Ink Key type)
+  if (key.ctrl || key.meta || key.escape || key.return || key.tab || key.backspace || key.delete || key.upArrow || key.downArrow || key.leftArrow || key.rightArrow || key.pageUp || key.pageDown) {
     return false
   }
   return input.length > 0 && !/^\s/.test(input) && !input.startsWith('\x1b')
