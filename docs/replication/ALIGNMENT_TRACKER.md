@@ -1,10 +1,10 @@
 # ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 → B (decisions locked)
-> **Last Updated:** 2026-05-24T11:00
+> **Last Updated:** 2026-05-24T12:00
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
-> **Verdict Distribution:** FULLY_ALIGNED 295 | PARTIAL 258 | DIVERGED 80 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
-> **Active Batch / Audit Task:** T0 ✅ T4 ✅ B-T6-01 ✅ B-T6-02 ✅ B-T6-03 ✅ B-T6-04 ✅ B-T6-05 ✅ B-T6-06 ✅ B-T6-07 ✅ → next: continue T6 PARTIAL scans
+> **Verdict Distribution:** FULLY_ALIGNED 297 | PARTIAL 253 | DIVERGED 83 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
+> **Active Batch / Audit Task:** T0 ✅ T4 ✅ B-T6-01 ✅ B-T6-02 ✅ B-T6-03 ✅ B-T6-04 ✅ B-T6-05 ✅ B-T6-06 ✅ B-T6-07 ✅ B-T6-08 ✅ → next: log.ts copy-block + continue T6 scans
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL ≈ 20% weighted
 
 ---
@@ -504,7 +504,7 @@
 | 460 | `utils/gitSettings.ts` | `utils/gitSettings.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=25% |
 | 461 | `utils/github/ghAuthStatus.ts` | `utils/github/ghAuthStatus.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 462 | `utils/glob.ts` | `utils/glob.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=30% |
-| 463 | `utils/gracefulShutdown.ts` | `utils/gracefulShutdown.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 4 extra exports |
+| 463 | `utils/gracefulShutdown.ts` | `utils/gracefulShutdown.ts` | T6 | DIVERGED | high | KEPT | — | B-T6-08: QiLing intentionally simplified (no analytics/terminal cleanup/signal-exit); CC 200+ lines vs QiLing ~100 |
 | 464 | `utils/hash.ts` | `utils/hash.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-03: verified exact match with CC |
 | 465 | `utils/heatmap.ts` | `utils/heatmap.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 466 | `utils/highlightMatch.tsx` | `utils/highlightMatch.tsx` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -515,7 +515,7 @@
 | 471 | `utils/http.ts` | `utils/http.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=26% |
 | 472 | `utils/hyperlink.ts` | `utils/hyperlink.ts` | T6 | PARTIAL | medium | ALIGNED | adapt-complete | B-T6-03: +chalk.blue coloring, import supportsHyperlinks from ink, export HyperlinkOptions |
 | 473 | `utils/idePathConversion.ts` | `utils/idePathConversion.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=51% |
-| 474 | `utils/idleTimeout.ts` | `utils/idleTimeout.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=51% |
+| 474 | `utils/idleTimeout.ts` | `utils/idleTimeout.ts` | T6 | DIVERGED | medium | KEPT | — | B-T6-08: env var renamed (QILING_EXIT_AFTER_IDLE_MS); QiLing uses process.exit+stderr vs CC gracefulShutdownSync+logForDebugging; IMPROVED: timer.unref |
 | 475 | `utils/imageResizer.ts` | `utils/imageResizer.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 4 extra exports |
 | 476 | `utils/imageValidation.ts` | `utils/imageValidation.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 477 | `utils/ink.ts` | `utils/ink.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=54% |
@@ -524,11 +524,11 @@
 | 480 | `utils/jsonRead.ts` | `utils/jsonRead.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-07: identical stripBOM |
 | 481 | `utils/keyboardShortcuts.ts` | `utils/keyboardShortcuts.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 482 | `utils/lazySchema.ts` | `utils/lazySchema.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-07: identical factory memoization |
-| 483 | `utils/lockfile.ts` | `utils/lockfile.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 3 extra exports |
+| 483 | `utils/lockfile.ts` | `utils/lockfile.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-08: same 4 exports; IMPROVED: fallback simple lock when proper-lockfile absent |
 | 484 | `utils/log.ts` | `utils/log.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 5 extra exports |
 | 485 | `utils/mailbox.ts` | `utils/mailbox.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 486 | `utils/managedEnvConstants.ts` | `utils/managedEnvConstants.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=40% |
-| 487 | `utils/markdown.ts` | `utils/markdown.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 4 extra exports |
+| 487 | `utils/markdown.ts` | `utils/markdown.ts` | T6 | DIVERGED | high | KEPT | — | B-T6-08: QiLing=chalk-based renderer (renderMarkdown/renderDiff); CC=marked+token pipeline (configureMarked/applyMarkdown/formatToken/padAligned); different approach |
 | 488 | `utils/markdownConfigLoader.ts` | `utils/markdownConfigLoader.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=16% |
 | 489 | `utils/mcpOutputStorage.ts` | `utils/mcpOutputStorage.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 2 extra exports |
 | 490 | `utils/mcpValidation.ts` | `utils/mcpValidation.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=30% |
@@ -578,7 +578,7 @@
 | 534 | `utils/powershell/parser.ts` | `utils/powershell/parser.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=43% |
 | 535 | `utils/powershell/staticPrefix.ts` | `utils/powershell/staticPrefix.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=15% |
 | 536 | `utils/privacyLevel.ts` | `utils/privacyLevel.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=32% |
-| 537 | `utils/process.ts` | `utils/process.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=53% |
+| 537 | `utils/process.ts` | `utils/process.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-08: identical logic; QiLing inlines writeOut helper inline, same effect |
 | 538 | `utils/profilerBase.ts` | `utils/profilerBase.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 539 | `utils/promptShellExecution.ts` | `utils/promptShellExecution.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=29% |
 | 540 | `utils/proxy.ts` | `utils/proxy.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 9 extra exports |
