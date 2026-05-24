@@ -93,7 +93,13 @@ export function extractClaudeCodeHints(
     return ''
   })
 
-  return { hints, stripped }
+  // FROM CC: collapse blank lines introduced by removing hint lines
+  const collapsed =
+    hints.length > 0 || stripped !== output
+      ? stripped.replace(/\n{3,}/g, '\n\n')
+      : stripped
+
+  return { hints, stripped: collapsed }
 }
 
 // ─── Pending-hint store (useSyncExternalStore) ────────────────────────────────
@@ -133,4 +139,10 @@ export function hasShownHintThisSession(): boolean {
 export function _resetClaudeCodeHintStore(): void {
   pendingHint = null
   shownThisSession = false
+}
+
+// FROM CC: _test — expose private helpers for unit tests
+export const _test = {
+  parseAttrs,
+  firstCommandToken,
 }
