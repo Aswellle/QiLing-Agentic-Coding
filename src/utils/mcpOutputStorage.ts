@@ -9,7 +9,8 @@
 import { writeFile, mkdir } from 'node:fs/promises'
 import { join } from 'node:path'
 import { homedir } from 'node:os'
-import { formatFileSize } from './format'
+import { toError } from './errors.js'
+import { formatFileSize } from './format.js'
 
 // ─── MCP result types ─────────────────────────────────────────────────────────
 
@@ -33,10 +34,30 @@ export function extensionForMimeType(mimeType: string | undefined): string {
     'application/pdf': 'pdf', 'application/json': 'json',
     'text/csv': 'csv', 'text/plain': 'txt', 'text/html': 'html',
     'text/markdown': 'md', 'text/xml': 'xml', 'application/xml': 'xml',
+    'application/zip': 'zip',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'pptx',
+    'application/msword': 'doc',
+    'application/vnd.ms-excel': 'xls',
+    'audio/mpeg': 'mp3', 'audio/wav': 'wav', 'audio/ogg': 'ogg',
+    'video/mp4': 'mp4', 'video/webm': 'webm',
     'image/png': 'png', 'image/jpeg': 'jpg', 'image/gif': 'gif',
     'image/webp': 'webp', 'image/svg+xml': 'svg',
   }
   return MIME_MAP[mt] ?? 'bin'
+}
+
+// FROM CC: isBinaryContentType — heuristic: text/*, json, xml, form-urlencoded = non-binary
+export function isBinaryContentType(contentType: string): boolean {
+  if (!contentType) return false
+  const mt = (contentType.split(';')[0] ?? '').trim().toLowerCase()
+  if (mt.startsWith('text/')) return false
+  if (mt.endsWith('+json') || mt === 'application/json') return false
+  if (mt.endsWith('+xml') || mt === 'application/xml') return false
+  if (mt.startsWith('application/javascript')) return false
+  if (mt === 'application/x-www-form-urlencoded') return false
+  return true
 }
 
 /**
@@ -65,11 +86,37 @@ export function getLargeOutputInstructions(
   return base + '\n' + truncWarn + completion
 }
 
-/**
- * Get a safe blob message for binary content that can't be persisted.
- */
-export function getBinaryBlobSavedMessage(filePath: string, size: number): string {
-  return `Binary content (${formatFileSize(size)}) saved to: ${filePath}`
+// FROM CC: getBinaryBlobSavedMessage — human-readable note about where binary was saved
+export function getBinaryBlobSavedMessage(
+  filepath: string,
+  mimeType: string | undefined,
+  size: number,
+  sourceDescription: string,
+): string {
+  const mt = mimeType || 'unknown type'
+  return `${sourceDescription}Binary content (${mt}, ${formatFileSize(size)}) saved to ${filepath}`
+}
+
+export type PersistBinaryResult =
+  | { filepath: string; size: number; ext: string }
+  | { error: string }
+
+// FROM CC: persistBinaryContent — write raw binary to tool-results dir with mime-derived extension
+export async function persistBinaryContent(
+  bytes: Buffer,
+  mimeType: string | undefined,
+  persistId: string,
+): Promise<PersistBinaryResult> {
+  await ensureMcpOutputDir()
+  const ext = extensionForMimeType(mimeType)
+  const filepath = join(getMcpOutputStorageDir(), `${persistId}.${ext}`)
+  try {
+    await writeFile(filepath, bytes)
+  } catch (error) {
+    const err = toError(error)
+    return { error: err.message }
+  }
+  return { filepath, size: bytes.length, ext }
 }
 
 // ─── Persistence ──────────────────────────────────────────────────────────────

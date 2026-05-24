@@ -11,6 +11,7 @@
  */
 
 import type { Tool } from '../types/tool.js'
+import type { ToolPermissionContext } from '../state/AppStateStore.js'
 import { COORDINATOR_MODE_ALLOWED_TOOLS } from '../constants/tools.js'
 import { isMcpTool } from '../services/mcp/mcpStringUtils.js'
 
@@ -43,6 +44,7 @@ export function applyCoordinatorToolFilter(tools: Tools): Tools {
 export function mergeAndFilterTools(
   initialTools: Tools,
   assembled: Tools,
+  mode: ToolPermissionContext['mode'],
 ): Tools {
   // Deduplicate: initialTools first so they win on name conflicts
   const seen = new Set<string>()

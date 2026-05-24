@@ -33,7 +33,7 @@ export class ImageResizeError extends Error {
 
 type ImageMediaType = 'image/png' | 'image/jpeg' | 'image/gif' | 'image/webp'
 
-function detectImageFormatFromBuffer(buf: Buffer): ImageMediaType {
+export function detectImageFormatFromBuffer(buf: Buffer): ImageMediaType {
   if (buf.length >= 8 &&
       buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) {
     return 'image/png'
@@ -299,4 +299,51 @@ export async function compressImageBufferWithTokenLimit(
   const maxBase64Chars = Math.floor(maxTokens / 0.125)
   const maxBytes = Math.floor(maxBase64Chars * 0.75)
   return compressImageBuffer(imageBuffer, maxBytes, originalMediaType)
+}
+
+// FROM CC: compressImageBlock — compress base64 ImageBlockParam to fit within maxBytes
+export async function compressImageBlock(
+  imageBlock: ImageBlockParam,
+  maxBytes: number = IMAGE_TARGET_RAW_SIZE,
+): Promise<ImageBlockParam> {
+  if (imageBlock.source.type !== 'base64') return imageBlock
+  const imageBuffer = Buffer.from(imageBlock.source.data, 'base64')
+  if (imageBuffer.length <= maxBytes) return imageBlock
+  const compressed = await compressImageBuffer(imageBuffer, maxBytes)
+  return {
+    type: 'image',
+    source: {
+      type: 'base64',
+      media_type: `image/${compressed.mediaType}` as Base64ImageSource['media_type'],
+      data: compressed.base64,
+    },
+  }
+}
+
+// FROM CC: detectImageFormatFromBase64 — detect format from base64 string via magic bytes
+export function detectImageFormatFromBase64(base64Data: string): ImageMediaType {
+  try {
+    return detectImageFormatFromBuffer(Buffer.from(base64Data, 'base64'))
+  } catch {
+    return 'image/png'
+  }
+}
+
+// FROM CC: createImageMetadataText — text description of image dimensions for context
+export function createImageMetadataText(dims: ImageDimensions, sourcePath?: string): string | null {
+  const { originalWidth, originalHeight, displayWidth, displayHeight } = dims
+  if (!originalWidth || !originalHeight || !displayWidth || !displayHeight || displayWidth <= 0 || displayHeight <= 0) {
+    return sourcePath ? `[Image source: ${sourcePath}]` : null
+  }
+  const wasResized = originalWidth !== displayWidth || originalHeight !== displayHeight
+  if (!wasResized && !sourcePath) return null
+  const parts: string[] = []
+  if (sourcePath) parts.push(`source: ${sourcePath}`)
+  if (wasResized) {
+    const scaleFactor = originalWidth / displayWidth
+    parts.push(
+      `original ${originalWidth}x${originalHeight}, displayed at ${displayWidth}x${displayHeight}. Multiply coordinates by ${scaleFactor.toFixed(2)} to map to original image.`,
+    )
+  }
+  return `[Image: ${parts.join(', ')}]`
 }

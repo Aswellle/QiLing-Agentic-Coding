@@ -132,3 +132,29 @@ export function getLSPDiagnosticsText(): string | null {
   if (sections.length === 0) return null
   return `## LSP Diagnostics\n${sections.join('\n\n')}`
 }
+
+// FROM CC: clearAllLSPDiagnostics — clear pending only, preserve cross-turn dedup state
+export function clearAllLSPDiagnostics(): void {
+  logForDebugging(`LSP Diagnostics: Clearing ${pendingDiagnostics.size} pending diagnostic(s)`)
+  pendingDiagnostics.clear()
+}
+
+// FROM CC: resetAllLSPDiagnosticState — full reset including cross-turn dedup (session reset/testing)
+export function resetAllLSPDiagnosticState(): void {
+  logForDebugging(`LSP Diagnostics: Resetting all state (${pendingDiagnostics.size} pending, ${deliveredDiagnostics.size} files tracked)`)
+  pendingDiagnostics.clear()
+  deliveredDiagnostics.clear()
+}
+
+// FROM CC: clearDeliveredDiagnosticsForFile — re-enable delivery for a file after it's been edited
+export function clearDeliveredDiagnosticsForFile(fileUri: string): void {
+  if (deliveredDiagnostics.has(fileUri)) {
+    logForDebugging(`LSP Diagnostics: Clearing delivered diagnostics for ${fileUri}`)
+    deliveredDiagnostics.delete(fileUri)
+  }
+}
+
+// FROM CC: getPendingLSPDiagnosticCount — count of pending diagnostics for monitoring
+export function getPendingLSPDiagnosticCount(): number {
+  return pendingDiagnostics.size
+}

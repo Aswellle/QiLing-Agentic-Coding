@@ -149,3 +149,12 @@ export function clearMTLSCache(): void {
   _mtlsAgent = null
   logForDebugging('Cleared mTLS configuration cache')
 }
+
+// FROM CC: configureGlobalMTLS — log NODE_EXTRA_CA_CERTS detection at startup
+export function configureGlobalMTLS(): void {
+  const mtlsConfig = getMTLSConfig()
+  if (!mtlsConfig) return
+  if (process.env.NODE_EXTRA_CA_CERTS) {
+    logForDebugging('NODE_EXTRA_CA_CERTS detected - Node.js will automatically append to built-in CAs')
+  }
+}
