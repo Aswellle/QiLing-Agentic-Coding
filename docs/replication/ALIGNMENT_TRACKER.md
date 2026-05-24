@@ -1,9 +1,9 @@
 # ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 → B (decisions locked)
-> **Last Updated:** 2026-05-24T20:00
+> **Last Updated:** 2026-05-24T21:00
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
-> **Verdict Distribution:** FULLY_ALIGNED 336 | PARTIAL 210 | DIVERGED 89 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
+> **Verdict Distribution:** FULLY_ALIGNED 339 | PARTIAL 207 | DIVERGED 89 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
 > **Active Batch / Audit Task:** T0 ✅ T4 ✅ B-T6-01 ✅ ... B-T6-15 ✅ B-T6-16 ✅ → next: continue T6 PARTIAL scans
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL ≈ 20% weighted
 
@@ -571,7 +571,7 @@
 | 527 | `utils/plugins/managedPlugins.ts` | `utils/plugins/managedPlugins.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub returns null; CC reads policySettings.enabledPlugins (no managed settings in QiLing) |
 | 528 | `utils/plugins/officialMarketplace.ts` | `utils/plugins/officialMarketplace.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | same 2 CC exports + values; IMPROVED: inline MarketplaceSource + QILING_MARKETPLACE_NAME |
 | 529 | `utils/plugins/pluginDirectories.ts` | `utils/plugins/pluginDirectories.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=28% |
-| 530 | `utils/plugins/pluginIdentifier.ts` | `utils/plugins/pluginIdentifier.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 3 extra exports |
+| 530 | `utils/plugins/pluginIdentifier.ts` | `utils/plugins/pluginIdentifier.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | missing SETTING_SOURCE_TO_SCOPE/scopeToSettingSource/settingSourceToScope; ALLOWED_OFFICIAL_MARKETPLACE_NAMES inlined |
 | 531 | `utils/plugins/pluginPolicy.ts` | `utils/plugins/pluginPolicy.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 532 | `utils/plugins/walkPluginMarkdown.ts` | `utils/plugins/walkPluginMarkdown.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 533 | `utils/powershell/dangerousCmdlets.ts` | `utils/powershell/dangerousCmdlets.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -602,11 +602,11 @@
 | 558 | `utils/sessionUrl.ts` | `utils/sessionUrl.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 559 | `utils/set.ts` | `utils/set.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 560 | `utils/settings/internalWrites.ts` | `utils/settings/internalWrites.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical 3 exports |
-| 561 | `utils/settings/managedPath.ts` | `utils/settings/managedPath.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=48% |
+| 561 | `utils/settings/managedPath.ts` | `utils/settings/managedPath.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | missing ant env override (USER_TYPE=ant + CLAUDE_CODE_MANAGED_SETTINGS_PATH); paths branded (// NAME:); IMPROVED: module cache + _resetManagedPathForTesting |
 | 562 | `utils/settings/pluginOnlyPolicy.ts` | `utils/settings/pluginOnlyPolicy.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | reads QILING_PLUGIN_ONLY_POLICY env vs CC policySettings.strictPluginOnlyCustomization |
 | 563 | `utils/settings/schemaOutput.ts` | `utils/settings/schemaOutput.ts` | T6 | DIVERGED | medium | KEPT | skip | CC uses toJSONSchema from zod/v4; QiLing uses plain zod — stub intentional until zod upgrade |
-| 564 | `utils/settings/toolValidationConfig.ts` | `utils/settings/toolValidationConfig.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=52% |
-| 565 | `utils/settings/validationTips.ts` | `utils/settings/validationTips.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=53% |
+| 564 | `utils/settings/toolValidationConfig.ts` | `utils/settings/toolValidationConfig.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical structure and content |
+| 565 | `utils/settings/validationTips.ts` | `utils/settings/validationTips.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical; DOCUMENTATION_BASE URL is // NAME: for Phase C |
 | 566 | `utils/shell/outputLimits.ts` | `utils/shell/outputLimits.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 567 | `utils/shell/powershellDetection.ts` | `utils/shell/powershellDetection.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=34% |
 | 568 | `utils/shell/resolveDefaultShell.ts` | `utils/shell/resolveDefaultShell.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -615,10 +615,10 @@
 | 571 | `utils/shellConfig.ts` | `utils/shellConfig.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=52% |
 | 572 | `utils/sideQuery.ts` | `utils/sideQuery.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=16% |
 | 573 | `utils/signal.ts` | `utils/signal.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 574 | `utils/slashCommandParsing.ts` | `utils/slashCommandParsing.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=47% |
+| 574 | `utils/slashCommandParsing.ts` | `utils/slashCommandParsing.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical 2 exports and parsing logic |
 | 575 | `utils/sleep.ts` | `utils/sleep.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | functionally identical; minor typing differences in unref guard |
 | 576 | `utils/sliceAnsi.ts` | `utils/sliceAnsi.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical logic; CC has more verbose inline comments only |
-| 577 | `utils/slowOperations.ts` | `utils/slowOperations.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 4 extra exports |
+| 577 | `utils/slowOperations.ts` | `utils/slowOperations.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | missing callerFrame/slowLogging/clone/writeFileSync_DEPRECATED; no bun-bundle feature flag or addSlowOperation infra; env var renamed QILING_SLOW_OP_THRESHOLD_MS |
 | 578 | `utils/startupProfiler.ts` | `utils/startupProfiler.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=24% |
 | 579 | `utils/staticRender.tsx` | `utils/staticRender.tsx` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=45% |
 | 580 | `utils/statsCache.ts` | `utils/statsCache.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=19% |
@@ -630,7 +630,7 @@
 | 586 | `utils/suggestions/directoryCompletion.ts` | `utils/suggestions/directoryCompletion.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=54% |
 | 587 | `utils/suggestions/shellHistoryCompletion.ts` | `utils/suggestions/shellHistoryCompletion.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=52% |
 | 588 | `utils/suggestions/skillUsageTracking.ts` | `utils/suggestions/skillUsageTracking.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=54% |
-| 589 | `utils/swarm/constants.ts` | `utils/swarm/constants.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=48% |
+| 589 | `utils/swarm/constants.ts` | `utils/swarm/constants.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | missing TEAM_LEAD_NAME/SWARM_VIEW_WINDOW_NAME/TMUX_COMMAND/getSwarmSocketName/TEAMMATE_COLOR_ENV_VAR/PLAN_MODE_REQUIRED_ENV_VAR; existing values branded (// NAME:) |
 | 590 | `utils/swarm/leaderPermissionBridge.ts` | `utils/swarm/leaderPermissionBridge.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 8 extra exports |
 | 591 | `utils/swarm/teammateModel.ts` | `utils/swarm/teammateModel.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 592 | `utils/systemDirectories.ts` | `utils/systemDirectories.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=25% |
@@ -650,7 +650,7 @@
 | 606 | `utils/todo/types.ts` | `utils/todo/types.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 607 | `utils/tokenBudget.ts` | `utils/tokenBudget.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 608 | `utils/tokens.ts` | `utils/tokens.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 5 extra exports |
-| 609 | `utils/toolErrors.ts` | `utils/toolErrors.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=45% |
+| 609 | `utils/toolErrors.ts` | `utils/toolErrors.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | missing getErrorParts; formatError lacks AbortError/ShellError/stderr-stdout handling; imports zod not zod/v4 |
 | 610 | `utils/toolPool.ts` | `utils/toolPool.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=46% |
 | 611 | `utils/toolResultStorage.ts` | `utils/toolResultStorage.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 10 extra exports |
 | 612 | `utils/toolSchemaCache.ts` | `utils/toolSchemaCache.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | all CC exports present; adds getCachedToolSchema helper (IMPROVED) |
