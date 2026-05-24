@@ -1,10 +1,10 @@
 # ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 → B (decisions locked)
-> **Last Updated:** 2026-05-24T18:00
+> **Last Updated:** 2026-05-24T19:00
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
-> **Verdict Distribution:** FULLY_ALIGNED 317 | PARTIAL 229 | DIVERGED 87 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
-> **Active Batch / Audit Task:** T0 ✅ T4 ✅ B-T6-01 ✅ ... B-T6-13 ✅ B-T6-14 ✅ → next: continue T6 PARTIAL scans
+> **Verdict Distribution:** FULLY_ALIGNED 319 | PARTIAL 226 | DIVERGED 88 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
+> **Active Batch / Audit Task:** T0 ✅ T4 ✅ B-T6-01 ✅ ... B-T6-14 ✅ B-T6-15 ✅ → next: continue T6 PARTIAL scans
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL ≈ 20% weighted
 
 ---
@@ -582,23 +582,23 @@
 | 538 | `utils/profilerBase.ts` | `utils/profilerBase.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 539 | `utils/promptShellExecution.ts` | `utils/promptShellExecution.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=29% |
 | 540 | `utils/proxy.ts` | `utils/proxy.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 9 extra exports |
-| 541 | `utils/queryHelpers.ts` | `utils/queryHelpers.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 3 extra exports |
+| 541 | `utils/queryHelpers.ts` | `utils/queryHelpers.ts` | T6 | DIVERGED | high | KEPT | skip | CC extras (isResultSuccessful/normalizeMessage/handleOrphanedPermission) need SDK types; QiLing has own extras |
 | 542 | `utils/releaseNotes.ts` | `utils/releaseNotes.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=43% |
 | 543 | `utils/renderOptions.ts` | `utils/renderOptions.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 544 | `utils/ripgrep.ts` | `utils/ripgrep.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 2 extra exports |
 | 545 | `utils/sandbox/sandbox-ui-utils.ts` | `utils/sandbox/sandbox-ui-utils.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical removeSandboxViolationTags |
-| 546 | `utils/sanitization.ts` | `utils/sanitization.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=41% |
+| 546 | `utils/sanitization.ts` | `utils/sanitization.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | Unicode literal chars vs hex escapes — functionally identical |
 | 547 | `utils/secureStorage/fallbackStorage.ts` | `utils/secureStorage/fallbackStorage.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=44% |
 | 548 | `utils/secureStorage/index.ts` | `utils/secureStorage/index.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 549 | `utils/secureStorage/plainTextStorage.ts` | `utils/secureStorage/plainTextStorage.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 550 | `utils/semanticBoolean.ts` | `utils/semanticBoolean.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical logic; zod vs zod/v4 import only |
 | 551 | `utils/semanticNumber.ts` | `utils/semanticNumber.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | regex /^-?\d+(\.\d+)?$/ makes isFinite check redundant; functionally equal |
-| 552 | `utils/semver.ts` | `utils/semver.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=54% |
+| 552 | `utils/semver.ts` | `utils/semver.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | Bun paths identical; fallback simplified (QiLing always runs on Bun) |
 | 553 | `utils/sequential.ts` | `utils/sequential.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 554 | `utils/sessionActivity.ts` | `utils/sessionActivity.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 555 | `utils/sessionEnvVars.ts` | `utils/sessionEnvVars.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 556 | `utils/sessionStorage.ts` | `utils/sessionStorage.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 44 extra exports |
-| 557 | `utils/sessionTitle.ts` | `utils/sessionTitle.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=42% |
+| 557 | `utils/sessionTitle.ts` | `utils/sessionTitle.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | adapted to QiLing msg type; missing logEvent/queryHaiku; core title logic present |
 | 558 | `utils/sessionUrl.ts` | `utils/sessionUrl.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 559 | `utils/set.ts` | `utils/set.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 560 | `utils/settings/internalWrites.ts` | `utils/settings/internalWrites.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=44% |
