@@ -1,10 +1,10 @@
 # ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 → B (decisions locked)
-> **Last Updated:** 2026-05-24T19:00
+> **Last Updated:** 2026-05-24T20:00
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
-> **Verdict Distribution:** FULLY_ALIGNED 319 | PARTIAL 226 | DIVERGED 88 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
-> **Active Batch / Audit Task:** T0 ✅ T4 ✅ B-T6-01 ✅ ... B-T6-14 ✅ B-T6-15 ✅ → next: continue T6 PARTIAL scans
+> **Verdict Distribution:** FULLY_ALIGNED 320 | PARTIAL 224 | DIVERGED 89 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
+> **Active Batch / Audit Task:** T0 ✅ T4 ✅ B-T6-01 ✅ ... B-T6-15 ✅ B-T6-16 ✅ → next: continue T6 PARTIAL scans
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL ≈ 20% weighted
 
 ---
@@ -548,7 +548,7 @@
 | 504 | `utils/model/providers.ts` | `utils/model/providers.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 505 | `utils/modelCost.ts` | `utils/modelCost.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 5 extra exports |
 | 506 | `utils/modifiers.ts` | `utils/modifiers.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 507 | `utils/mtls.ts` | `utils/mtls.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=55% |
+| 507 | `utils/mtls.ts` | `utils/mtls.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | missing configureGlobalMTLS; QiLing adds QILING_ env vars; core logic equivalent |
 | 508 | `utils/notebook.ts` | `utils/notebook.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 509 | `utils/objectGroupBy.ts` | `utils/objectGroupBy.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-07: identical logic |
 | 510 | `utils/pasteStore.ts` | `utils/pasteStore.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -583,9 +583,9 @@
 | 539 | `utils/promptShellExecution.ts` | `utils/promptShellExecution.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=29% |
 | 540 | `utils/proxy.ts` | `utils/proxy.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 9 extra exports |
 | 541 | `utils/queryHelpers.ts` | `utils/queryHelpers.ts` | T6 | DIVERGED | high | KEPT | skip | CC extras (isResultSuccessful/normalizeMessage/handleOrphanedPermission) need SDK types; QiLing has own extras |
-| 542 | `utils/releaseNotes.ts` | `utils/releaseNotes.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=43% |
+| 542 | `utils/releaseNotes.ts` | `utils/releaseNotes.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | missing migrateChangelogFromConfig; ant checks CC-specific (skip); fetch vs axios (IMPROVED) |
 | 543 | `utils/renderOptions.ts` | `utils/renderOptions.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
-| 544 | `utils/ripgrep.ts` | `utils/ripgrep.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 2 extra exports |
+| 544 | `utils/ripgrep.ts` | `utils/ripgrep.ts` | T6 | DIVERGED | high | KEPT | skip | Bun-native rewrite; CC extras (embedded mode/EAGAIN/codesign/countFilesRoundedRg) are CC-infra-specific |
 | 545 | `utils/sandbox/sandbox-ui-utils.ts` | `utils/sandbox/sandbox-ui-utils.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical removeSandboxViolationTags |
 | 546 | `utils/sanitization.ts` | `utils/sanitization.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | Unicode literal chars vs hex escapes — functionally identical |
 | 547 | `utils/secureStorage/fallbackStorage.ts` | `utils/secureStorage/fallbackStorage.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=44% |
@@ -617,7 +617,7 @@
 | 573 | `utils/signal.ts` | `utils/signal.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 574 | `utils/slashCommandParsing.ts` | `utils/slashCommandParsing.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=47% |
 | 575 | `utils/sleep.ts` | `utils/sleep.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | functionally identical; minor typing differences in unref guard |
-| 576 | `utils/sliceAnsi.ts` | `utils/sliceAnsi.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=41% |
+| 576 | `utils/sliceAnsi.ts` | `utils/sliceAnsi.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical logic; CC has more verbose inline comments only |
 | 577 | `utils/slowOperations.ts` | `utils/slowOperations.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 4 extra exports |
 | 578 | `utils/startupProfiler.ts` | `utils/startupProfiler.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=24% |
 | 579 | `utils/staticRender.tsx` | `utils/staticRender.tsx` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=45% |
