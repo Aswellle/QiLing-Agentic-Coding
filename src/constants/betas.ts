@@ -19,6 +19,13 @@ export const PROMPT_CACHING_SCOPE_BETA_HEADER = 'prompt-caching-scope-2026-01-05
 export const FAST_MODE_BETA_HEADER = 'fast-mode-2026-02-01'
 export const REDACT_THINKING_BETA_HEADER = 'redact-thinking-2026-02-12'
 export const TOKEN_EFFICIENT_TOOLS_BETA_HEADER = 'token-efficient-tools-2026-03-28'
+// FROM CC: feature-gated betas (bun-bundle feature() unavailable in QiLing; default off)
+export const SUMMARIZE_CONNECTOR_TEXT_BETA_HEADER = ''
+export const AFK_MODE_BETA_HEADER = ''
+// FROM CC: CLI_INTERNAL_BETA_HEADER — enabled for Anthropic-internal users
+export const CLI_INTERNAL_BETA_HEADER =
+  process.env.USER_TYPE === 'ant' ? 'cli-internal-2026-02-09' : ''
+export const ADVISOR_BETA_HEADER = 'advisor-tool-2026-03-01'
 
 /**
  * Bedrock only supports a limited number of beta headers and only through
