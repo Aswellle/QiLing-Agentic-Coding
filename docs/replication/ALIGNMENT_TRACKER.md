@@ -3,7 +3,7 @@
 > **Current Phase:** A.5 → B (decisions locked)
 > **Last Updated:** 2026-05-24T20:00
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
-> **Verdict Distribution:** FULLY_ALIGNED 328 | PARTIAL 218 | DIVERGED 89 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
+> **Verdict Distribution:** FULLY_ALIGNED 332 | PARTIAL 214 | DIVERGED 89 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
 > **Active Batch / Audit Task:** T0 ✅ T4 ✅ B-T6-01 ✅ ... B-T6-15 ✅ B-T6-16 ✅ → next: continue T6 PARTIAL scans
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL ≈ 20% weighted
 
@@ -410,7 +410,7 @@
 | 366 | `utils/agentId.ts` | `utils/agentId.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-03: verified exact match with CC |
 | 367 | `utils/agentSwarmsEnabled.ts` | `utils/agentSwarmsEnabled.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=21% |
 | 368 | `utils/analyzeContext.ts` | `utils/analyzeContext.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | B-T6-04: CC=1383-line token API+grid viz; QiLing=110-line simple analysis; different purposes |
-| 369 | `utils/apiPreconnect.ts` | `utils/apiPreconnect.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=53% |
+| 369 | `utils/apiPreconnect.ts` | `utils/apiPreconnect.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | IMPROVED: _resetPreconnectFlagForTesting + QILING_ env vars; CC adds FOUNDRY check (skip) |
 | 370 | `utils/argumentSubstitution.ts` | `utils/argumentSubstitution.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-04: IMPROVED: custom tokenizer (avoids bash/shellQuote dep); substituteArguments identical |
 | 371 | `utils/array.ts` | `utils/array.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-02: verified exact match with CC |
 | 372 | `utils/auth.ts` | `utils/auth.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 49 extra exports |
@@ -479,7 +479,7 @@
 | 435 | `utils/execSyncWrapper.ts` | `utils/execSyncWrapper.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 436 | `utils/file.ts` | `utils/file.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 13 extra exports |
 | 437 | `utils/fileHistory.ts` | `utils/fileHistory.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 7 extra exports |
-| 438 | `utils/filePersistence/outputsScanner.ts` | `utils/filePersistence/outputsScanner.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=53% |
+| 438 | `utils/filePersistence/outputsScanner.ts` | `utils/filePersistence/outputsScanner.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | same 3 exports + algorithm; inline types vs CC's external EnvironmentKind/TurnStartTime |
 | 439 | `utils/fileRead.ts` | `utils/fileRead.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | same 4 exports + algorithms; plain fs replaces FsOperations (B-T6-11 pattern) |
 | 440 | `utils/fileReadCache.ts` | `utils/fileReadCache.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | same singleton interface; plain fs + detectEncodingForResolvedPath replaces FsOperations |
 | 441 | `utils/fileStateCache.ts` | `utils/fileStateCache.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -509,16 +509,16 @@
 | 465 | `utils/heatmap.ts` | `utils/heatmap.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 466 | `utils/highlightMatch.tsx` | `utils/highlightMatch.tsx` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 467 | `utils/hooks/hookEvents.ts` | `utils/hooks/hookEvents.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 468 | `utils/hooks/postSamplingHooks.ts` | `utils/hooks/postSamplingHooks.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=54% |
+| 468 | `utils/hooks/postSamplingHooks.ts` | `utils/hooks/postSamplingHooks.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | same exports + logic; inline types vs CC's SystemPrompt/ToolUseContext/QuerySource |
 | 469 | `utils/hooks/registerSkillHooks.ts` | `utils/hooks/registerSkillHooks.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 470 | `utils/horizontalScroll.ts` | `utils/horizontalScroll.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=49% |
+| 470 | `utils/horizontalScroll.ts` | `utils/horizontalScroll.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical algorithm; minor var name differences (cumulativeWidths→cumulative) |
 | 471 | `utils/http.ts` | `utils/http.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=26% |
 | 472 | `utils/hyperlink.ts` | `utils/hyperlink.ts` | T6 | PARTIAL | medium | ALIGNED | adapt-complete | B-T6-03: +chalk.blue coloring, import supportsHyperlinks from ink, export HyperlinkOptions |
 | 473 | `utils/idePathConversion.ts` | `utils/idePathConversion.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | checkWSLDistroMatch returns false vs CC true for non-WSL paths; IMPROVED: IdentityPathConverter |
 | 474 | `utils/idleTimeout.ts` | `utils/idleTimeout.ts` | T6 | DIVERGED | medium | KEPT | — | B-T6-08: env var renamed (QILING_EXIT_AFTER_IDLE_MS); QiLing uses process.exit+stderr vs CC gracefulShutdownSync+logForDebugging; IMPROVED: timer.unref |
 | 475 | `utils/imageResizer.ts` | `utils/imageResizer.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 4 extra exports |
 | 476 | `utils/imageValidation.ts` | `utils/imageValidation.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
-| 477 | `utils/ink.ts` | `utils/ink.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=54% |
+| 477 | `utils/ink.ts` | `utils/ink.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | default 'cyan' vs CC 'cyan_FOR_SUBAGENTS_ONLY'; unknown color returns raw vs CC ansi: prefix |
 | 478 | `utils/intl.ts` | `utils/intl.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 479 | `utils/json.ts` | `utils/json.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=14% |
 | 480 | `utils/jsonRead.ts` | `utils/jsonRead.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-07: identical stripBOM |
@@ -530,7 +530,7 @@
 | 486 | `utils/managedEnvConstants.ts` | `utils/managedEnvConstants.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | SAFE_ENV_VARS missing ~35 CC entries; needs copy-block |
 | 487 | `utils/markdown.ts` | `utils/markdown.ts` | T6 | DIVERGED | high | KEPT | — | B-T6-08: QiLing=chalk-based renderer (renderMarkdown/renderDiff); CC=marked+token pipeline (configureMarked/applyMarkdown/formatToken/padAligned); different approach |
 | 488 | `utils/markdownConfigLoader.ts` | `utils/markdownConfigLoader.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=16% |
-| 489 | `utils/mcpOutputStorage.ts` | `utils/mcpOutputStorage.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 2 extra exports |
+| 489 | `utils/mcpOutputStorage.ts` | `utils/mcpOutputStorage.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | missing isBinaryContentType + persistBinaryContent; getBinaryBlobSavedMessage sig differs; extensionForMimeType missing ~15 MIME types |
 | 490 | `utils/mcpValidation.ts` | `utils/mcpValidation.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=30% |
 | 491 | `utils/mcpWebSocketTransport.ts` | `utils/mcpWebSocketTransport.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 492 | `utils/memoize.ts` | `utils/memoize.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=34% |
@@ -543,7 +543,7 @@
 | 499 | `utils/model/configs.ts` | `utils/model/configs.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 500 | `utils/model/contextWindowUpgradeCheck.ts` | `utils/model/contextWindowUpgradeCheck.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 501 | `utils/model/deprecation.ts` | `utils/model/deprecation.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 502 | `utils/model/modelAllowlist.ts` | `utils/model/modelAllowlist.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=43% |
+| 502 | `utils/model/modelAllowlist.ts` | `utils/model/modelAllowlist.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | missing bidirectional alias resolution + resolveOverriddenModel; parseUserSpecifiedModel not used |
 | 503 | `utils/model/modelSupportOverrides.ts` | `utils/model/modelSupportOverrides.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 504 | `utils/model/providers.ts` | `utils/model/providers.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 505 | `utils/modelCost.ts` | `utils/modelCost.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 5 extra exports |
@@ -554,7 +554,7 @@
 | 510 | `utils/pasteStore.ts` | `utils/pasteStore.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 511 | `utils/path.ts` | `utils/path.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=31% |
 | 512 | `utils/pdf.ts` | `utils/pdf.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 513 | `utils/pdfUtils.ts` | `utils/pdfUtils.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=52% |
+| 513 | `utils/pdfUtils.ts` | `utils/pdfUtils.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | missing isPDFSupported(); core parsePDFPageRange + isPDFExtension identical |
 | 514 | `utils/peerAddress.ts` | `utils/peerAddress.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 515 | `utils/permissions/PermissionMode.ts` | `utils/permissions/PermissionMode.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 516 | `utils/permissions/PermissionResult.ts` | `utils/permissions/PermissionResult.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QiLing has all CC types inline + extra |
