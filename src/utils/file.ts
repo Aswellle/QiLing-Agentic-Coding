@@ -6,6 +6,7 @@
  */
 
 import { existsSync, readFileSync, readdirSync, statSync } from 'fs'
+import { stat } from 'fs/promises'
 import { normalize, relative } from 'path'
 import { getPlatform } from './platform'
 
@@ -64,3 +65,27 @@ export const MAX_OUTPUT_SIZE = 0.25 * 1024 * 1024
 
 /** Text prepended when a file/dir is not found to help orient the model. Mirrors CC's FILE_NOT_FOUND_CWD_NOTE. */
 export const FILE_NOT_FOUND_CWD_NOTE = 'Note: your current working directory is'
+
+// FROM CC: async modification time (avoids blocking event loop on slow/network disks)
+export async function getFileModificationTimeAsync(filePath: string): Promise<number> {
+  const s = await stat(filePath)
+  return Math.floor(s.mtimeMs)
+}
+
+// FROM CC: addLineNumbers / stripLineNumberPrefix — compact N\t format (no GrowthBook killswitch)
+export function addLineNumbers({ content, startLine }: { content: string; startLine: number }): string {
+  if (!content) return ''
+  return content.split(/\r?\n/)
+    .map((line, index) => `${index + startLine}\t${line}`)
+    .join('\n')
+}
+
+export function stripLineNumberPrefix(line: string): string {
+  const match = line.match(/^\s*\d+[→\t](.*)$/)
+  return match?.[1] ?? line
+}
+
+// FROM CC: isFileWithinReadSizeLimit
+export function isFileWithinReadSizeLimit(filePath: string, maxSizeBytes: number = MAX_OUTPUT_SIZE): boolean {
+  try { return statSync(filePath).size <= maxSizeBytes } catch { return false }
+}
