@@ -1,10 +1,10 @@
 # ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 → B (decisions locked)
-> **Last Updated:** 2026-05-24T15:00
+> **Last Updated:** 2026-05-24T16:00
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
-> **Verdict Distribution:** FULLY_ALIGNED 301 | PARTIAL 247 | DIVERGED 85 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
-> **Active Batch / Audit Task:** T0 ✅ T4 ✅ B-T6-01 ✅ ... B-T6-10 ✅ B-T6-11 ✅ → next: continue T6 PARTIAL scans
+> **Verdict Distribution:** FULLY_ALIGNED 306 | PARTIAL 242 | DIVERGED 85 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
+> **Active Batch / Audit Task:** T0 ✅ T4 ✅ B-T6-01 ✅ ... B-T6-11 ✅ B-T6-12 ✅ → next: continue T6 PARTIAL scans
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL ≈ 20% weighted
 
 ---
@@ -538,7 +538,7 @@
 | 494 | `utils/memoryFileDetection.ts` | `utils/memoryFileDetection.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=20% |
 | 495 | `utils/messagePredicates.ts` | `utils/messagePredicates.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=36% |
 | 496 | `utils/messages.ts` | `utils/messages.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 90 extra exports |
-| 497 | `utils/model/aliases.ts` | `utils/model/aliases.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 497 | `utils/model/aliases.ts` | `utils/model/aliases.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | re-export shim; all 5 exports match CC |
 | 498 | `utils/model/check1mAccess.ts` | `utils/model/check1mAccess.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=23% |
 | 499 | `utils/model/configs.ts` | `utils/model/configs.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 500 | `utils/model/contextWindowUpgradeCheck.ts` | `utils/model/contextWindowUpgradeCheck.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -557,14 +557,14 @@
 | 513 | `utils/pdfUtils.ts` | `utils/pdfUtils.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=52% |
 | 514 | `utils/peerAddress.ts` | `utils/peerAddress.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 515 | `utils/permissions/PermissionMode.ts` | `utils/permissions/PermissionMode.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
-| 516 | `utils/permissions/PermissionResult.ts` | `utils/permissions/PermissionResult.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=49% |
-| 517 | `utils/permissions/PermissionRule.ts` | `utils/permissions/PermissionRule.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=42% |
+| 516 | `utils/permissions/PermissionResult.ts` | `utils/permissions/PermissionResult.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QiLing has all CC types inline + extra |
+| 517 | `utils/permissions/PermissionRule.ts` | `utils/permissions/PermissionRule.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | same schemas; types inline vs CC re-exports |
 | 518 | `utils/permissions/PermissionUpdateSchema.ts` | `utils/permissions/PermissionUpdateSchema.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | copy-block | B-T6-11: added permissionUpdateDestinationSchema + permissionUpdateSchema; also added permissionModeSchema/externalPermissionModeSchema to PermissionMode.ts |
 | 519 | `utils/permissions/bashClassifier.ts` | `utils/permissions/bashClassifier.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 520 | `utils/permissions/classifierShared.ts` | `utils/permissions/classifierShared.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 521 | `utils/permissions/dangerousPatterns.ts` | `utils/permissions/dangerousPatterns.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-11: QiLing is superset (re-exports CC's arrays + adds isDangerousBashPattern/isDangerousPowerShellPattern) |
 | 522 | `utils/permissions/denialTracking.ts` | `utils/permissions/denialTracking.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-07: re-export shim; impl at permissions/denialTracking.ts is identical |
-| 523 | `utils/permissions/shellRuleMatching.ts` | `utils/permissions/shellRuleMatching.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=39% |
+| 523 | `utils/permissions/shellRuleMatching.ts` | `utils/permissions/shellRuleMatching.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | same 7 exports confirmed |
 | 524 | `utils/plans.ts` | `utils/plans.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=15% |
 | 525 | `utils/platform.ts` | `utils/platform.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | copy-block | B-T6-10: added SUPPORTED_PLATFORMS, getWslVersion, LinuxDistroInfo, getLinuxDistroInfo, detectVcs; adapted: plain fs instead of getFsImplementation; IMPROVED: isWSL/isMacOS/isWindows/isLinux helpers |
 | 526 | `utils/plugins/gitAvailability.ts` | `utils/plugins/gitAvailability.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=38% |
@@ -586,7 +586,7 @@
 | 542 | `utils/releaseNotes.ts` | `utils/releaseNotes.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=43% |
 | 543 | `utils/renderOptions.ts` | `utils/renderOptions.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 544 | `utils/ripgrep.ts` | `utils/ripgrep.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 2 extra exports |
-| 545 | `utils/sandbox/sandbox-ui-utils.ts` | `utils/sandbox/sandbox-ui-utils.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 545 | `utils/sandbox/sandbox-ui-utils.ts` | `utils/sandbox/sandbox-ui-utils.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical removeSandboxViolationTags |
 | 546 | `utils/sanitization.ts` | `utils/sanitization.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=41% |
 | 547 | `utils/secureStorage/fallbackStorage.ts` | `utils/secureStorage/fallbackStorage.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=44% |
 | 548 | `utils/secureStorage/index.ts` | `utils/secureStorage/index.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
