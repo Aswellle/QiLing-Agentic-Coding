@@ -3,7 +3,7 @@
 > **Current Phase:** A.5 → B (decisions locked)
 > **Last Updated:** 2026-05-24T20:00
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
-> **Verdict Distribution:** FULLY_ALIGNED 320 | PARTIAL 224 | DIVERGED 89 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
+> **Verdict Distribution:** FULLY_ALIGNED 323 | PARTIAL 221 | DIVERGED 89 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
 > **Active Batch / Audit Task:** T0 ✅ T4 ✅ B-T6-01 ✅ ... B-T6-15 ✅ B-T6-16 ✅ → next: continue T6 PARTIAL scans
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL ≈ 20% weighted
 
@@ -484,8 +484,8 @@
 | 440 | `utils/fileReadCache.ts` | `utils/fileReadCache.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=51% |
 | 441 | `utils/fileStateCache.ts` | `utils/fileStateCache.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 442 | `utils/findExecutable.ts` | `utils/findExecutable.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-07: identical logic |
-| 443 | `utils/fingerprint.ts` | `utils/fingerprint.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=40% |
-| 444 | `utils/format.ts` | `utils/format.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=46% |
+| 443 | `utils/fingerprint.ts` | `utils/fingerprint.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | algorithm identical; adapted message type access |
+| 444 | `utils/format.ts` | `utils/format.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | formatRelativeTime/formatResetTime algorithms differ; CC has truncate re-exports |
 | 445 | `utils/formatBriefTimestamp.ts` | `utils/formatBriefTimestamp.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 446 | `utils/fpsTracker.ts` | `utils/fpsTracker.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 447 | `utils/frontmatterParser.ts` | `utils/frontmatterParser.ts` | T6 | PARTIAL | high | ALIGNED | adapt-complete | B-T6-01: export FRONTMATTER_REGEX +parseBooleanFrontmatter +FrontmatterShell +parseShellFrontmatter; upgraded splitPathInFrontmatter w/ brace expansion |
@@ -527,7 +527,7 @@
 | 483 | `utils/lockfile.ts` | `utils/lockfile.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-08: same 4 exports; IMPROVED: fallback simple lock when proper-lockfile absent |
 | 484 | `utils/log.ts` | `utils/log.ts` | T6 | DIVERGED | high | KEPT | copy-block | B-T6-09: added dateToFilename; ErrorLogSink/attachErrorLogSink (sink infra), loadErrorLogs/getErrorLogByIndex (CACHE_PATHS), captureAPIRequest (analytics) all DIVERGED; QiLing=direct console approach |
 | 485 | `utils/mailbox.ts` | `utils/mailbox.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 486 | `utils/managedEnvConstants.ts` | `utils/managedEnvConstants.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=40% |
+| 486 | `utils/managedEnvConstants.ts` | `utils/managedEnvConstants.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | SAFE_ENV_VARS missing ~35 CC entries; needs copy-block |
 | 487 | `utils/markdown.ts` | `utils/markdown.ts` | T6 | DIVERGED | high | KEPT | — | B-T6-08: QiLing=chalk-based renderer (renderMarkdown/renderDiff); CC=marked+token pipeline (configureMarked/applyMarkdown/formatToken/padAligned); different approach |
 | 488 | `utils/markdownConfigLoader.ts` | `utils/markdownConfigLoader.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=16% |
 | 489 | `utils/mcpOutputStorage.ts` | `utils/mcpOutputStorage.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 2 extra exports |
@@ -536,7 +536,7 @@
 | 492 | `utils/memoize.ts` | `utils/memoize.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=34% |
 | 493 | `utils/memory/versions.ts` | `utils/memory/versions.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-07: identical; imports findGitRoot from gitDiff instead of git (same function) |
 | 494 | `utils/memoryFileDetection.ts` | `utils/memoryFileDetection.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=20% |
-| 495 | `utils/messagePredicates.ts` | `utils/messagePredicates.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=36% |
+| 495 | `utils/messagePredicates.ts` | `utils/messagePredicates.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | adapted to QiLing role/content fields; same semantic |
 | 496 | `utils/messages.ts` | `utils/messages.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 90 extra exports |
 | 497 | `utils/model/aliases.ts` | `utils/model/aliases.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | re-export shim; all 5 exports match CC |
 | 498 | `utils/model/check1mAccess.ts` | `utils/model/check1mAccess.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=23% |
@@ -641,7 +641,7 @@
 | 597 | `utils/task/outputFormatting.ts` | `utils/task/outputFormatting.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 598 | `utils/teammateContext.ts` | `utils/teammateContext.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 599 | `utils/telemetry/logger.ts` | `utils/telemetry/logger.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
-| 600 | `utils/tempfile.ts` | `utils/tempfile.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=39% |
+| 600 | `utils/tempfile.ts` | `utils/tempfile.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | // NAME: prefix 'qiling-prompt'; logic identical |
 | 601 | `utils/terminal.ts` | `utils/terminal.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=43% |
 | 602 | `utils/textHighlighting.ts` | `utils/textHighlighting.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 603 | `utils/theme.ts` | `utils/theme.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=34% |
