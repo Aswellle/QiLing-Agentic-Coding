@@ -200,3 +200,13 @@ export function formatLogMetadata(log: {
 
   return parts.filter(Boolean).join(' · ')
 }
+
+// FROM CC: back-compat re-exports (truncate helpers live in ./truncate.ts)
+export {
+  truncate,
+  truncatePathMiddle,
+  truncateStartToWidth,
+  truncateToWidth,
+  truncateToWidthNoEllipsis,
+  wrapText,
+} from './truncate.js'

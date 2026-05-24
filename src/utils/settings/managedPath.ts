@@ -24,6 +24,12 @@ let _cachedPath: string | undefined
 export function getManagedFilePath(): string {
   if (_cachedPath) return _cachedPath
 
+  // FROM CC: ant-internal override (higher priority than product-specific env var)
+  if (process.env.USER_TYPE === 'ant' && process.env.CLAUDE_CODE_MANAGED_SETTINGS_PATH) { // NAME: CLAUDE_CODE_MANAGED_SETTINGS_PATH
+    _cachedPath = process.env.CLAUDE_CODE_MANAGED_SETTINGS_PATH
+    return _cachedPath
+  }
+
   if (process.env.QILING_MANAGED_SETTINGS_PATH) {
     _cachedPath = process.env.QILING_MANAGED_SETTINGS_PATH
     return _cachedPath
