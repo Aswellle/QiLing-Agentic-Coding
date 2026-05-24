@@ -35,6 +35,14 @@ export function pushToKillRing(text: string, direction: 'prepend' | 'append' = '
   }
 }
 export const getLastKill = (): string => killRing[0] ?? ''
+// FROM CC: getKillRingItem — access any kill ring entry by index (for Alt+Y cycling UI)
+export function getKillRingItem(index: number): string {
+  if (killRing.length === 0) return ''
+  const normalizedIndex = ((index % killRing.length) + killRing.length) % killRing.length
+  return killRing[normalizedIndex] ?? ''
+}
+// FROM CC: getKillRingSize
+export const getKillRingSize = (): number => killRing.length
 export const resetKillAccumulation = (): void => { lastActionWasKill = false }
 export function recordYank(start: number, length: number): void {
   lastYankStart = start; lastYankLength = length; lastActionWasYank = true; killRingIndex = 0
@@ -280,6 +288,62 @@ export class Cursor {
     return c
   }
 
+  // FROM CC: nextWord — Intl.Segmenter-based (handles CJK); distinct from Vim nextVimWord
+  nextWord(): Cursor {
+    if (this.isAtEnd()) return this
+    const wordBoundaries = this.measuredText.getWordBoundaries()
+    for (const boundary of wordBoundaries) {
+      if (boundary.isWordLike && boundary.start > this.offset) {
+        return new Cursor(this.measuredText, boundary.start)
+      }
+    }
+    return new Cursor(this.measuredText, this.text.length)
+  }
+
+  // FROM CC: endOfWord — Intl.Segmenter-based
+  endOfWord(): Cursor {
+    if (this.isAtEnd()) return this
+    const wordBoundaries = this.measuredText.getWordBoundaries()
+    for (const boundary of wordBoundaries) {
+      if (!boundary.isWordLike) continue
+      if (this.offset >= boundary.start && this.offset < boundary.end - 1) {
+        return new Cursor(this.measuredText, boundary.end - 1)
+      }
+      if (this.offset === boundary.end - 1) {
+        for (const nextBoundary of wordBoundaries) {
+          if (nextBoundary.isWordLike && nextBoundary.start > this.offset) {
+            return new Cursor(this.measuredText, nextBoundary.end - 1)
+          }
+        }
+        return this
+      }
+    }
+    for (const boundary of wordBoundaries) {
+      if (boundary.isWordLike && boundary.start > this.offset) {
+        return new Cursor(this.measuredText, boundary.end - 1)
+      }
+    }
+    return this
+  }
+
+  // FROM CC: prevWord — Intl.Segmenter-based
+  prevWord(): Cursor {
+    if (this.isAtStart()) return this
+    const wordBoundaries = this.measuredText.getWordBoundaries()
+    let prevWordStart: number | null = null
+    for (const boundary of wordBoundaries) {
+      if (!boundary.isWordLike) continue
+      if (boundary.start < this.offset) {
+        if (this.offset > boundary.start && this.offset <= boundary.end) {
+          return new Cursor(this.measuredText, boundary.start)
+        }
+        prevWordStart = boundary.start
+      }
+    }
+    if (prevWordStart !== null) return new Cursor(this.measuredText, prevWordStart)
+    return new Cursor(this.measuredText, 0)
+  }
+
   // ── Editing ──────────────────────────────────────────────────────────────────
 
   modifyText(end: Cursor, insertString = ''): Cursor {
@@ -377,6 +441,25 @@ export class Cursor {
     const endLine = Math.min(allLines.length, startLine + maxVisibleLines)
     if (endLine - startLine < maxVisibleLines) startLine = Math.max(0, endLine - maxVisibleLines)
     return startLine
+  }
+
+  // FROM CC: getViewportCharOffset
+  getViewportCharOffset(maxVisibleLines?: number): number {
+    const startLine = this.getViewportStartLine(maxVisibleLines)
+    if (startLine === 0) return 0
+    const wrappedLines = this.measuredText.getWrappedLines()
+    return wrappedLines[startLine]?.startOffset ?? 0
+  }
+
+  // FROM CC: getViewportCharEnd
+  getViewportCharEnd(maxVisibleLines?: number): number {
+    const startLine = this.getViewportStartLine(maxVisibleLines)
+    const allLines = this.measuredText.getWrappedLines()
+    if (maxVisibleLines === undefined || maxVisibleLines <= 0)
+      return this.text.length
+    const endLine = Math.min(allLines.length, startLine + maxVisibleLines)
+    if (endLine >= allLines.length) return this.text.length
+    return allLines[endLine]?.startOffset ?? this.text.length
   }
 }
 

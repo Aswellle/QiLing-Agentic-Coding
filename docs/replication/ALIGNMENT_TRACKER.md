@@ -1,10 +1,10 @@
 # ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 → B (decisions locked)
-> **Last Updated:** 2026-05-24T09:00
+> **Last Updated:** 2026-05-24T10:00
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
-> **Verdict Distribution:** FULLY_ALIGNED 279 | PARTIAL 274 | DIVERGED 80 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
-> **Active Batch / Audit Task:** T0 ✅ T4 ✅ B-T6-01 ✅ B-T6-02 ✅ B-T6-03 ✅ B-T6-04 ✅ B-T6-05 ✅ → B-T6-06 NEXT (Cursor.ts copy-block + more T6 scans)
+> **Verdict Distribution:** FULLY_ALIGNED 280 | PARTIAL 273 | DIVERGED 80 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
+> **Active Batch / Audit Task:** T0 ✅ T4 ✅ B-T6-01 ✅ B-T6-02 ✅ B-T6-03 ✅ B-T6-04 ✅ B-T6-05 ✅ B-T6-06 ✅ → next: continue T6 PARTIAL scans
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL ≈ 20% weighted
 
 ---
@@ -402,7 +402,7 @@
 | 358 | `tools/shared/gitOperationTracking.ts` | `tools/shared/gitOperationTracking.ts` | T1 | DIVERGED | high | KEPT | skip | overlap=20% |
 | 359 | `types/ids.ts` | `types/ids.ts` | T7 | PARTIAL | medium | MAPPED | adapt-complete | overlap=44% |
 | 360 | `utils/CircularBuffer.ts` | `utils/CircularBuffer.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 361 | `utils/Cursor.ts` | `utils/Cursor.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=36% |
+| 361 | `utils/Cursor.ts` | `utils/Cursor.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | copy-block | B-T6-06: added getViewportCharOffset/End, nextWord/endOfWord/prevWord, getKillRingItem/Size; skip render()/imageRef/deleteTokenBefore (no image chips) |
 | 362 | `utils/QueryGuard.ts` | `utils/QueryGuard.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-05: identical state machine and API |
 | 363 | `utils/abortController.ts` | `utils/abortController.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-04: identical logic, same WeakRef pattern |
 | 364 | `utils/activityManager.ts` | `utils/activityManager.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=27% |
