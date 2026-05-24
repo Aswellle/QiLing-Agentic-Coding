@@ -1,9 +1,9 @@
 # ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 → B (decisions locked)
-> **Last Updated:** 2026-05-24T21:00
+> **Last Updated:** 2026-05-24T22:00
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
-> **Verdict Distribution:** FULLY_ALIGNED 339 | PARTIAL 207 | DIVERGED 89 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
+> **Verdict Distribution:** FULLY_ALIGNED 344 | PARTIAL 202 | DIVERGED 89 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
 > **Active Batch / Audit Task:** T0 ✅ T4 ✅ B-T6-01 ✅ ... B-T6-15 ✅ B-T6-16 ✅ → next: continue T6 PARTIAL scans
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL ≈ 20% weighted
 
@@ -280,7 +280,7 @@
 | 236 | `migrations/migrateReplBridgeEnabledToRemoteControlAtStartu…` | `migrations/migrateReplBridgeEnabledToRemoteControlAtStartu…` | T0 | PARTIAL | medium | ALIGNED | adapt-complete | stub→complete; no-op (QL schema differs) |
 | 237 | `moreright/useMoreRight.tsx` | `moreright/useMoreRight.tsx` | EXT | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 238 | `native-ts/yoga-layout/enums.ts` | `native-ts/yoga-layout/enums.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 239 | `plugins/bundled/index.ts` | `plugins/bundled/index.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 239 | `plugins/bundled/index.ts` | `plugins/bundled/index.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical stub; initBuiltinPlugins() export matches |
 | 240 | `query.ts` | `query.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=18% |
 | 241 | `query/config.ts` | `query/config.ts` | T0 | DIVERGED | high | KEPT | skip | overlap=24% |
 | 242 | `query/tokenBudget.ts` | `query/tokenBudget.ts` | T0 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -324,7 +324,7 @@
 | 280 | `services/tips/tipHistory.ts` | `services/tips/tipHistory.ts` | T5 | PARTIAL | medium | MAPPED | adapt-complete | overlap=49% |
 | 281 | `services/tips/tipScheduler.ts` | `services/tips/tipScheduler.ts` | T5 | PARTIAL | medium | MAPPED | adapt-complete | overlap=44% |
 | 282 | `services/tokenEstimation.ts` | `services/tokenEstimation.ts` | T5 | DIVERGED | high | KEPT | skip | overlap=13% |
-| 283 | `skills/mcpSkillBuilders.ts` | `skills/mcpSkillBuilders.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=38% |
+| 283 | `skills/mcpSkillBuilders.ts` | `skills/mcpSkillBuilders.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | builders typed `unknown` vs CC `MCPSkillBuilders` (typed to loadSkillsDir fns); IMPROVED: extra isMCPSkillBuildersRegistered() |
 | 284 | `state/store.ts` | `state/store.ts` | T0 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 285 | `tools/AgentTool/agentColorManager.ts` | `tools/AgentTool/agentColorManager.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 286 | `tools/AgentTool/agentDisplay.ts` | `tools/AgentTool/agentDisplay.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -575,7 +575,7 @@
 | 531 | `utils/plugins/pluginPolicy.ts` | `utils/plugins/pluginPolicy.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 532 | `utils/plugins/walkPluginMarkdown.ts` | `utils/plugins/walkPluginMarkdown.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 533 | `utils/powershell/dangerousCmdlets.ts` | `utils/powershell/dangerousCmdlets.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 534 | `utils/powershell/parser.ts` | `utils/powershell/parser.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=43% |
+| 534 | `utils/powershell/parser.ts` | `utils/powershell/parser.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | IMPROVED: Bun.spawn vs execa, module-level LRU vs memoizeWithLRU, inlined pwsh detection; all exports/algorithm identical |
 | 535 | `utils/powershell/staticPrefix.ts` | `utils/powershell/staticPrefix.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=15% |
 | 536 | `utils/privacyLevel.ts` | `utils/privacyLevel.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=32% |
 | 537 | `utils/process.ts` | `utils/process.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-08: identical logic; QiLing inlines writeOut helper inline, same effect |
@@ -611,8 +611,8 @@
 | 567 | `utils/shell/powershellDetection.ts` | `utils/shell/powershellDetection.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=34% |
 | 568 | `utils/shell/resolveDefaultShell.ts` | `utils/shell/resolveDefaultShell.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 569 | `utils/shell/shellProvider.ts` | `utils/shell/shellProvider.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 570 | `utils/shell/shellToolUtils.ts` | `utils/shell/shellToolUtils.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=48% |
-| 571 | `utils/shellConfig.ts` | `utils/shellConfig.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=52% |
+| 570 | `utils/shell/shellToolUtils.ts` | `utils/shell/shellToolUtils.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | isPowerShellToolEnabled: CC has ant=default-ON/external=default-OFF via envUtils; QiLing default-ON for all Windows |
+| 571 | `utils/shellConfig.ts` | `utils/shellConfig.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | IMPROVED: inlines getLocalClaudePath vs CC import from localInstaller.js; same 6 exports + algorithm |
 | 572 | `utils/sideQuery.ts` | `utils/sideQuery.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=16% |
 | 573 | `utils/signal.ts` | `utils/signal.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 574 | `utils/slashCommandParsing.ts` | `utils/slashCommandParsing.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical 2 exports and parsing logic |
@@ -620,7 +620,7 @@
 | 576 | `utils/sliceAnsi.ts` | `utils/sliceAnsi.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical logic; CC has more verbose inline comments only |
 | 577 | `utils/slowOperations.ts` | `utils/slowOperations.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | missing callerFrame/slowLogging/clone/writeFileSync_DEPRECATED; no bun-bundle feature flag or addSlowOperation infra; env var renamed QILING_SLOW_OP_THRESHOLD_MS |
 | 578 | `utils/startupProfiler.ts` | `utils/startupProfiler.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=24% |
-| 579 | `utils/staticRender.tsx` | `utils/staticRender.tsx` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=45% |
+| 579 | `utils/staticRender.tsx` | `utils/staticRender.tsx` | T6 | FULLY_ALIGNED | high | ALIGNED | — | IMPROVED: inline ANSI strip regex vs strip-ansi package; same 2 exports + algorithm |
 | 580 | `utils/statsCache.ts` | `utils/statsCache.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=19% |
 | 581 | `utils/statusNoticeHelpers.ts` | `utils/statusNoticeHelpers.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 582 | `utils/stream.ts` | `utils/stream.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -642,7 +642,7 @@
 | 598 | `utils/teammateContext.ts` | `utils/teammateContext.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 599 | `utils/telemetry/logger.ts` | `utils/telemetry/logger.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 600 | `utils/tempfile.ts` | `utils/tempfile.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | // NAME: prefix 'qiling-prompt'; logic identical |
-| 601 | `utils/terminal.ts` | `utils/terminal.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=43% |
+| 601 | `utils/terminal.ts` | `utils/terminal.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical 2 exports and wrapText algorithm |
 | 602 | `utils/textHighlighting.ts` | `utils/textHighlighting.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 603 | `utils/theme.ts` | `utils/theme.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=34% |
 | 604 | `utils/thinking.ts` | `utils/thinking.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=29% |
@@ -651,7 +651,7 @@
 | 607 | `utils/tokenBudget.ts` | `utils/tokenBudget.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 608 | `utils/tokens.ts` | `utils/tokens.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 5 extra exports |
 | 609 | `utils/toolErrors.ts` | `utils/toolErrors.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | missing getErrorParts; formatError lacks AbortError/ShellError/stderr-stdout handling; imports zod not zod/v4 |
-| 610 | `utils/toolPool.ts` | `utils/toolPool.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=46% |
+| 610 | `utils/toolPool.ts` | `utils/toolPool.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | mergeAndFilterTools missing mode param; env check vs CC feature-flag + coordinatorModeModule.isCoordinatorMode(); lodash partition/uniqBy replaced with manual dedup |
 | 611 | `utils/toolResultStorage.ts` | `utils/toolResultStorage.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 10 extra exports |
 | 612 | `utils/toolSchemaCache.ts` | `utils/toolSchemaCache.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | all CC exports present; adds getCachedToolSchema helper (IMPROVED) |
 | 613 | `utils/treeify.ts` | `utils/treeify.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=31% |
