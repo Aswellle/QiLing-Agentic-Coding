@@ -1,10 +1,10 @@
 # ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 → B (decisions locked)
-> **Last Updated:** 2026-05-23T18:00
+> **Last Updated:** 2026-05-24T09:00
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
-> **Verdict Distribution:** FULLY_ALIGNED 276 | PARTIAL 277 | DIVERGED 80 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
-> **Active Batch / Audit Task:** T0 ✅ T4 ✅ B-T6-01 ✅ B-T6-02 ✅ B-T6-03 ✅ B-T6-04 ✅ → B-T6-05 NEXT (T6 utilities 继续)
+> **Verdict Distribution:** FULLY_ALIGNED 279 | PARTIAL 274 | DIVERGED 80 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
+> **Active Batch / Audit Task:** T0 ✅ T4 ✅ B-T6-01 ✅ B-T6-02 ✅ B-T6-03 ✅ B-T6-04 ✅ B-T6-05 ✅ → B-T6-06 NEXT (Cursor.ts copy-block + more T6 scans)
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL ≈ 20% weighted
 
 ---
@@ -403,7 +403,7 @@
 | 359 | `types/ids.ts` | `types/ids.ts` | T7 | PARTIAL | medium | MAPPED | adapt-complete | overlap=44% |
 | 360 | `utils/CircularBuffer.ts` | `utils/CircularBuffer.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 361 | `utils/Cursor.ts` | `utils/Cursor.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=36% |
-| 362 | `utils/QueryGuard.ts` | `utils/QueryGuard.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=47% |
+| 362 | `utils/QueryGuard.ts` | `utils/QueryGuard.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-05: identical state machine and API |
 | 363 | `utils/abortController.ts` | `utils/abortController.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-04: identical logic, same WeakRef pattern |
 | 364 | `utils/activityManager.ts` | `utils/activityManager.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=27% |
 | 365 | `utils/agentContext.ts` | `utils/agentContext.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | B-T6-04: CC type system = SubagentContext/TeammateAgentContext; QiLing = simple AgentContext; coordinator BLOCKED |
@@ -460,10 +460,10 @@
 | 416 | `utils/cron.ts` | `utils/cron.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 417 | `utils/crypto.ts` | `utils/crypto.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-03: verified exact match with CC |
 | 418 | `utils/cwd.ts` | `utils/cwd.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 419 | `utils/debugFilter.ts` | `utils/debugFilter.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=47% |
+| 419 | `utils/debugFilter.ts` | `utils/debugFilter.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-05: IMPROVED: manual Map memoize (no lodash dep); added _resetDebugFilterCacheForTesting |
 | 420 | `utils/detectRepository.ts` | `utils/detectRepository.ts` | T6 | PARTIAL | high | ALIGNED | adapt-complete | B-T6-01: +getCachedRepository +parseGitHubRepository |
 | 421 | `utils/diagLogs.ts` | `utils/diagLogs.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 422 | `utils/diff.ts` | `utils/diff.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=50% |
+| 422 | `utils/diff.ts` | `utils/diff.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-05: IMPROVED: stripped analytics deps; added formatPatchAsUnifiedDiff+hasDiff |
 | 423 | `utils/directMemberMessage.ts` | `utils/directMemberMessage.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 424 | `utils/displayTags.ts` | `utils/displayTags.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=32% |
 | 425 | `utils/earlyInput.ts` | `utils/earlyInput.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=34% |
