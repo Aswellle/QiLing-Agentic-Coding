@@ -1,10 +1,10 @@
 # ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 → B (decisions locked)
-> **Last Updated:** 2026-05-24T16:00
+> **Last Updated:** 2026-05-24T17:00
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
-> **Verdict Distribution:** FULLY_ALIGNED 306 | PARTIAL 242 | DIVERGED 85 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
-> **Active Batch / Audit Task:** T0 ✅ T4 ✅ B-T6-01 ✅ ... B-T6-11 ✅ B-T6-12 ✅ → next: continue T6 PARTIAL scans
+> **Verdict Distribution:** FULLY_ALIGNED 313 | PARTIAL 234 | DIVERGED 86 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
+> **Active Batch / Audit Task:** T0 ✅ T4 ✅ B-T6-01 ✅ ... B-T6-12 ✅ B-T6-13 ✅ → next: continue T6 PARTIAL scans
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL ≈ 20% weighted
 
 ---
@@ -591,8 +591,8 @@
 | 547 | `utils/secureStorage/fallbackStorage.ts` | `utils/secureStorage/fallbackStorage.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=44% |
 | 548 | `utils/secureStorage/index.ts` | `utils/secureStorage/index.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 549 | `utils/secureStorage/plainTextStorage.ts` | `utils/secureStorage/plainTextStorage.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 550 | `utils/semanticBoolean.ts` | `utils/semanticBoolean.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 551 | `utils/semanticNumber.ts` | `utils/semanticNumber.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 550 | `utils/semanticBoolean.ts` | `utils/semanticBoolean.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical logic; zod vs zod/v4 import only |
+| 551 | `utils/semanticNumber.ts` | `utils/semanticNumber.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | regex /^-?\d+(\.\d+)?$/ makes isFinite check redundant; functionally equal |
 | 552 | `utils/semver.ts` | `utils/semver.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=54% |
 | 553 | `utils/sequential.ts` | `utils/sequential.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 554 | `utils/sessionActivity.ts` | `utils/sessionActivity.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -604,7 +604,7 @@
 | 560 | `utils/settings/internalWrites.ts` | `utils/settings/internalWrites.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=44% |
 | 561 | `utils/settings/managedPath.ts` | `utils/settings/managedPath.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=48% |
 | 562 | `utils/settings/pluginOnlyPolicy.ts` | `utils/settings/pluginOnlyPolicy.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=36% |
-| 563 | `utils/settings/schemaOutput.ts` | `utils/settings/schemaOutput.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 563 | `utils/settings/schemaOutput.ts` | `utils/settings/schemaOutput.ts` | T6 | DIVERGED | medium | KEPT | skip | CC uses toJSONSchema from zod/v4; QiLing uses plain zod — stub intentional until zod upgrade |
 | 564 | `utils/settings/toolValidationConfig.ts` | `utils/settings/toolValidationConfig.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=52% |
 | 565 | `utils/settings/validationTips.ts` | `utils/settings/validationTips.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=53% |
 | 566 | `utils/shell/outputLimits.ts` | `utils/shell/outputLimits.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -635,7 +635,7 @@
 | 591 | `utils/swarm/teammateModel.ts` | `utils/swarm/teammateModel.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 592 | `utils/systemDirectories.ts` | `utils/systemDirectories.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=25% |
 | 593 | `utils/systemPrompt.ts` | `utils/systemPrompt.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=22% |
-| 594 | `utils/systemPromptType.ts` | `utils/systemPromptType.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 594 | `utils/systemPromptType.ts` | `utils/systemPromptType.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical type + asSystemPrompt function |
 | 595 | `utils/systemTheme.ts` | `utils/systemTheme.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 596 | `utils/taggedId.ts` | `utils/taggedId.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 597 | `utils/task/outputFormatting.ts` | `utils/task/outputFormatting.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -664,14 +664,14 @@
 | 620 | `utils/warningHandler.ts` | `utils/warningHandler.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=24% |
 | 621 | `utils/which.ts` | `utils/which.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=47% |
 | 622 | `utils/windowsPaths.ts` | `utils/windowsPaths.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=21% |
-| 623 | `utils/withResolvers.ts` | `utils/withResolvers.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 623 | `utils/withResolvers.ts` | `utils/withResolvers.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical polyfill |
 | 624 | `utils/words.ts` | `utils/words.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 625 | `utils/workloadContext.ts` | `utils/workloadContext.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=29% |
 | 626 | `utils/worktree.ts` | `utils/worktree.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 6 extra exports |
-| 627 | `utils/worktreeModeEnabled.ts` | `utils/worktreeModeEnabled.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 627 | `utils/worktreeModeEnabled.ts` | `utils/worktreeModeEnabled.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical; worktree unconditionally enabled |
 | 628 | `utils/xdg.ts` | `utils/xdg.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 629 | `utils/xml.ts` | `utils/xml.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 630 | `utils/yaml.ts` | `utils/yaml.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 629 | `utils/xml.ts` | `utils/xml.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical escapeXml + escapeXmlAttr |
+| 630 | `utils/yaml.ts` | `utils/yaml.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | same Bun.YAML/yaml fallback; QiLing adds try/catch (IMPROVED) |
 | 631 | `utils/zodToJsonSchema.ts` | `utils/zodToJsonSchema.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 632 | `vim/motions.ts` | `vim/motions.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 633 | `vim/operators.ts` | `vim/operators.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
