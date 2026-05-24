@@ -1,7 +1,7 @@
 # ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 → B (decisions locked)
-> **Last Updated:** 2026-05-24T23:00
+> **Last Updated:** 2026-05-24T23:30
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
 > **Verdict Distribution:** FULLY_ALIGNED 346 | PARTIAL 200 | DIVERGED 89 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
 > **Active Batch / Audit Task:** T0 ✅ T4 ✅ B-T6-01 ✅ ... B-T6-15 ✅ B-T6-16 ✅ → next: continue T6 PARTIAL scans
@@ -468,7 +468,7 @@
 | 424 | `utils/displayTags.ts` | `utils/displayTags.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=32% |
 | 425 | `utils/earlyInput.ts` | `utils/earlyInput.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=34% |
 | 426 | `utils/editor.ts` | `utils/editor.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | IMPROVED: ANSI alt-screen (no Ink dep) + getEditorDisplayName + wider default editor list |
-| 427 | `utils/effort.ts` | `utils/effort.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 18 extra exports |
+| 427 | `utils/effort.ts` | `utils/effort.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has modelSupportsMaxEffort/isEffortLevel/parseEffortValue/EFFORT_LEVELS + auth/growthbook/providers deps; QiLing has simplified 4-export standalone version |
 | 428 | `utils/embeddedTools.ts` | `utils/embeddedTools.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | always-false correct for QiLing; CC checks EMBEDDED_SEARCH_TOOLS env (ant-native only) |
 | 429 | `utils/env.ts` | `utils/env.ts` | T6 | PARTIAL | high | ALIGNED | adapt-complete | B-T6-01: +JETBRAINS_IDES +detectDeploymentEnvironment +getHostPlatformForAnalytics; getGlobalClaudeFile skipped (fileSuffixForOauthConfig missing) |
 | 430 | `utils/envUtils.ts` | `utils/envUtils.ts` | T6 | PARTIAL | high | ALIGNED | adapt-complete | B-T6-01: +getClaudeConfigHomeDir +getTeamsDir +hasNodeOption +getAWSRegion +getDefaultVertexRegion +shouldMaintainProjectWorkingDir +isAntUser +isRunningOnHomespace +VERTEX_REGION_OVERRIDES +getVertexRegionForModel; isInProtectedNamespace skipped |
@@ -477,7 +477,7 @@
 | 433 | `utils/exampleCommands.ts` | `utils/exampleCommands.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 434 | `utils/execFileNoThrow.ts` | `utils/execFileNoThrow.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=30% |
 | 435 | `utils/execSyncWrapper.ts` | `utils/execSyncWrapper.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 436 | `utils/file.ts` | `utils/file.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 13 extra exports |
+| 436 | `utils/file.ts` | `utils/file.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has getFileModificationTimeAsync + analytics/growthbook/getFsImplementation deps; QiLing has portable subset (8 exports) |
 | 437 | `utils/fileHistory.ts` | `utils/fileHistory.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC uses 100-snapshot/diff architecture (FileHistorySnapshot/State/diffLines/vscodeMcp/analytics); QiLing uses simpler v1-backup-only approach |
 | 438 | `utils/filePersistence/outputsScanner.ts` | `utils/filePersistence/outputsScanner.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | same 3 exports + algorithm; inline types vs CC's external EnvironmentKind/TurnStartTime |
 | 439 | `utils/fileRead.ts` | `utils/fileRead.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | same 4 exports + algorithms; plain fs replaces FsOperations (B-T6-11 pattern) |
@@ -631,7 +631,7 @@
 | 587 | `utils/suggestions/shellHistoryCompletion.ts` | `utils/suggestions/shellHistoryCompletion.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | getShellHistoryCommands is stub returning empty; CC reads from getHistory() async iterator |
 | 588 | `utils/suggestions/skillUsageTracking.ts` | `utils/suggestions/skillUsageTracking.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | IMPROVED: standalone JSON file vs CC globalConfig storage; same 2 exports + 7-day decay algorithm |
 | 589 | `utils/swarm/constants.ts` | `utils/swarm/constants.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | missing TEAM_LEAD_NAME/SWARM_VIEW_WINDOW_NAME/TMUX_COMMAND/getSwarmSocketName/TEAMMATE_COLOR_ENV_VAR/PLAN_MODE_REQUIRED_ENV_VAR; existing values branded (// NAME:) |
-| 590 | `utils/swarm/leaderPermissionBridge.ts` | `utils/swarm/leaderPermissionBridge.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 8 extra exports |
+| 590 | `utils/swarm/leaderPermissionBridge.ts` | `utils/swarm/leaderPermissionBridge.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 6 typed exports (ToolUseConfirm/ToolPermissionContext); QiLing has 5 generic-typed exports with different naming convention |
 | 591 | `utils/swarm/teammateModel.ts` | `utils/swarm/teammateModel.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 592 | `utils/systemDirectories.ts` | `utils/systemDirectories.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=25% |
 | 593 | `utils/systemPrompt.ts` | `utils/systemPrompt.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=22% |
@@ -652,7 +652,7 @@
 | 608 | `utils/tokens.ts` | `utils/tokens.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | missing tokenCountFromLastAPIResponse/finalContextTokensFromLastResponse; QiLing has extra CNY cost functions; CC uses msg.type='assistant' vs QiLing msg.role |
 | 609 | `utils/toolErrors.ts` | `utils/toolErrors.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | missing getErrorParts; formatError lacks AbortError/ShellError/stderr-stdout handling; imports zod not zod/v4 |
 | 610 | `utils/toolPool.ts` | `utils/toolPool.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | mergeAndFilterTools missing mode param; env check vs CC feature-flag + coordinatorModeModule.isCoordinatorMode(); lodash partition/uniqBy replaced with manual dedup |
-| 611 | `utils/toolResultStorage.ts` | `utils/toolResultStorage.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 10 extra exports |
+| 611 | `utils/toolResultStorage.ts` | `utils/toolResultStorage.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | missing getPersistenceThreshold/PERSIST_THRESHOLD_OVERRIDE_FLAG (GrowthBook); CC has analytics/sessionStorage/slowOperations deps |
 | 612 | `utils/toolSchemaCache.ts` | `utils/toolSchemaCache.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | all CC exports present; adds getCachedToolSchema helper (IMPROVED) |
 | 613 | `utils/treeify.ts` | `utils/treeify.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=31% |
 | 614 | `utils/truncate.ts` | `utils/truncate.ts` | T6 | DIVERGED | medium | KEPT | skip | intentional: custom displayWidth avoids ink dep; same exported API (PLATFORM: cjk-width) |
