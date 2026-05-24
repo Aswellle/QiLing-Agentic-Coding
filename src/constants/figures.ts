@@ -32,3 +32,13 @@ export const FLAG_ICON = '⚑'       // ⚑
 
 export const BLOCKQUOTE_BAR = '▎'   // ▎
 export const HEAVY_HORIZONTAL = '━' // ━
+
+// FROM CC: bridge/MCP connection status indicators
+export const BRIDGE_SPINNER_FRAMES = [
+  '·|·',
+  '·/·',
+  '·—·',
+  '·\\·',
+]
+export const BRIDGE_READY_INDICATOR = '·✔︎·'
+export const BRIDGE_FAILED_INDICATOR = '×'

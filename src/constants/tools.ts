@@ -21,6 +21,7 @@ import { GREP_TOOL_NAME } from '../tools/GrepTool/prompt.js'
 import { NOTEBOOK_EDIT_TOOL_NAME } from '../tools/NotebookEditTool/constants.js'
 import { SEND_MESSAGE_TOOL_NAME } from '../tools/SendMessageTool/constants.js'
 import { SKILL_TOOL_NAME } from '../tools/SkillTool/constants.js'
+import { TOOL_SEARCH_TOOL_NAME } from '../tools/ToolSearchTool/prompt.js'
 import { TASK_CREATE_TOOL_NAME } from '../tools/TaskCreateTool/constants.js'
 import { TASK_GET_TOOL_NAME } from '../tools/TaskGetTool/constants.js'
 import { TASK_LIST_TOOL_NAME } from '../tools/TaskListTool/constants.js'
@@ -86,6 +87,7 @@ export {
   TODO_WRITE_TOOL_NAME,
   TEAM_CREATE_TOOL_NAME,
   TEAM_DELETE_TOOL_NAME,
+  TOOL_SEARCH_TOOL_NAME,
 }
 
 // ─── Write tools (tools that modify files) ────────────────────────────────────
@@ -110,13 +112,50 @@ export const READ_ONLY_TOOLS = new Set([
 
 // ─── Tools disallowed for sub-agents ─────────────────────────────────────────
 
+// FROM CC: AGENT_TOOL_NAME conditionally allowed for Anthropic-internal users
 export const ALL_AGENT_DISALLOWED_TOOLS = new Set([
   TASK_OUTPUT_TOOL_NAME,
   EXIT_PLAN_MODE_V2_TOOL_NAME,
   ENTER_PLAN_MODE_TOOL_NAME,
-  AGENT_TOOL_NAME,
+  ...(process.env.USER_TYPE === 'ant' ? [] : [AGENT_TOOL_NAME]),
   ASK_USER_QUESTION_TOOL_NAME,
   TASK_STOP_TOOL_NAME,
+])
+
+// FROM CC: CUSTOM_AGENT_DISALLOWED_TOOLS — same as ALL but may diverge for custom agents
+export const CUSTOM_AGENT_DISALLOWED_TOOLS = new Set([
+  ...ALL_AGENT_DISALLOWED_TOOLS,
+])
+
+// FROM CC: ASYNC_AGENT_ALLOWED_TOOLS — tools available to async (out-of-process) agents
+export const ASYNC_AGENT_ALLOWED_TOOLS = new Set([
+  FILE_READ_TOOL_NAME,
+  WEB_SEARCH_TOOL_NAME,
+  TODO_WRITE_TOOL_NAME,
+  GREP_TOOL_NAME,
+  WEB_FETCH_TOOL_NAME,
+  GLOB_TOOL_NAME,
+  ...SHELL_TOOL_NAMES,
+  FILE_EDIT_TOOL_NAME,
+  FILE_WRITE_TOOL_NAME,
+  NOTEBOOK_EDIT_TOOL_NAME,
+  SKILL_TOOL_NAME,
+  SYNTHETIC_OUTPUT_TOOL_NAME,
+  TOOL_SEARCH_TOOL_NAME,
+  ENTER_WORKTREE_TOOL_NAME,
+  EXIT_WORKTREE_TOOL_NAME,
+])
+
+// FROM CC: IN_PROCESS_TEAMMATE_ALLOWED_TOOLS — extra tools for in-process teammates
+export const IN_PROCESS_TEAMMATE_ALLOWED_TOOLS = new Set([
+  TASK_CREATE_TOOL_NAME,
+  TASK_GET_TOOL_NAME,
+  TASK_LIST_TOOL_NAME,
+  TASK_UPDATE_TOOL_NAME,
+  SEND_MESSAGE_TOOL_NAME,
+  CRON_CREATE_TOOL_NAME,
+  CRON_DELETE_TOOL_NAME,
+  CRON_LIST_TOOL_NAME,
 ])
 
 // ─── Tools allowed in coordinator mode ───────────────────────────────────────
