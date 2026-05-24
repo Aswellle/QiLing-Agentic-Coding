@@ -6,6 +6,7 @@
  */
 
 import { getBranch } from './gitDiff'
+import { getDefaultBranch } from './git'
 
 export type PrReviewState =
   | 'approved'
@@ -47,9 +48,9 @@ export async function fetchPrStatus(cwd = process.cwd()): Promise<PrStatus | nul
     if (ghCode !== 0) return null
 
     // Get current branch to avoid showing merged PRs from default branch
-    const branch = await getBranch(cwd)
+    const [branch, defaultBranch] = await Promise.all([getBranch(cwd), getDefaultBranch(cwd)])
     if (!branch || branch === '(detached)') return null
-    if (branch === 'main' || branch === 'master') return null
+    if (branch === defaultBranch) return null
 
     const proc = Bun.spawn(
       ['gh', 'pr', 'view', '--json', 'number,url,reviewDecision,isDraft,headRefName,state'],
@@ -70,7 +71,7 @@ export async function fetchPrStatus(cwd = process.cwd()): Promise<PrStatus | nul
     }
 
     // Don't show for PRs from default branches
-    if (['main', 'master'].includes(data.headRefName)) return null
+    if (data.headRefName === defaultBranch || data.headRefName === 'main' || data.headRefName === 'master') return null
 
     // Don't show for merged/closed PRs
     if (data.state === 'MERGED' || data.state === 'CLOSED') return null

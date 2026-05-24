@@ -8,6 +8,10 @@
 
 export type EffortLevel = 'low' | 'medium' | 'high' | 'max'
 
+// FROM CC: EFFORT_LEVELS const array + EffortValue union
+export const EFFORT_LEVELS = ['low', 'medium', 'high', 'max'] as const satisfies readonly EffortLevel[]
+export type EffortValue = EffortLevel | number
+
 // Models that support effort/extended thinking
 const EFFORT_SUPPORTED_MODELS = new Set([
   'claude-opus-4-7',
@@ -83,4 +87,32 @@ export function getEffortDisplayName(level: EffortLevel): string {
 export function getEffortSuffix(level: EffortLevel): string {
   if (level === 'low') return ''
   return ` · ${getEffortDisplayName(level)}思考`
+}
+
+// FROM CC: isEffortLevel / isValidNumericEffort / convertEffortValueToLevel / toPersistableEffort
+export function isEffortLevel(value: string): value is EffortLevel {
+  return (EFFORT_LEVELS as readonly string[]).includes(value)
+}
+
+export function isValidNumericEffort(value: number): boolean {
+  return Number.isInteger(value)
+}
+
+export function convertEffortValueToLevel(value: EffortValue): EffortLevel {
+  if (typeof value === 'string') {
+    return isEffortLevel(value) ? value : 'high'
+  }
+  if (process.env.USER_TYPE === 'ant' && typeof value === 'number') {
+    if (value <= 50) return 'low'
+    if (value <= 85) return 'medium'
+    if (value <= 100) return 'high'
+    return 'max'
+  }
+  return 'high'
+}
+
+export function toPersistableEffort(value: EffortValue | undefined): EffortLevel | undefined {
+  if (value === 'low' || value === 'medium' || value === 'high') return value
+  if (value === 'max' && process.env.USER_TYPE === 'ant') return value
+  return undefined
 }
