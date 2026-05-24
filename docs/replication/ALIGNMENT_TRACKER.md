@@ -1,10 +1,10 @@
 # ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 → B (decisions locked)
-> **Last Updated:** 2026-05-24T17:00
+> **Last Updated:** 2026-05-24T18:00
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
-> **Verdict Distribution:** FULLY_ALIGNED 313 | PARTIAL 234 | DIVERGED 86 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
-> **Active Batch / Audit Task:** T0 ✅ T4 ✅ B-T6-01 ✅ ... B-T6-12 ✅ B-T6-13 ✅ → next: continue T6 PARTIAL scans
+> **Verdict Distribution:** FULLY_ALIGNED 317 | PARTIAL 229 | DIVERGED 87 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
+> **Active Batch / Audit Task:** T0 ✅ T4 ✅ B-T6-01 ✅ ... B-T6-13 ✅ B-T6-14 ✅ → next: continue T6 PARTIAL scans
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL ≈ 20% weighted
 
 ---
@@ -616,7 +616,7 @@
 | 572 | `utils/sideQuery.ts` | `utils/sideQuery.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=16% |
 | 573 | `utils/signal.ts` | `utils/signal.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 574 | `utils/slashCommandParsing.ts` | `utils/slashCommandParsing.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=47% |
-| 575 | `utils/sleep.ts` | `utils/sleep.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=49% |
+| 575 | `utils/sleep.ts` | `utils/sleep.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | functionally identical; minor typing differences in unref guard |
 | 576 | `utils/sliceAnsi.ts` | `utils/sliceAnsi.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=41% |
 | 577 | `utils/slowOperations.ts` | `utils/slowOperations.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 4 extra exports |
 | 578 | `utils/startupProfiler.ts` | `utils/startupProfiler.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=24% |
@@ -653,16 +653,16 @@
 | 609 | `utils/toolErrors.ts` | `utils/toolErrors.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=45% |
 | 610 | `utils/toolPool.ts` | `utils/toolPool.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=46% |
 | 611 | `utils/toolResultStorage.ts` | `utils/toolResultStorage.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 10 extra exports |
-| 612 | `utils/toolSchemaCache.ts` | `utils/toolSchemaCache.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=41% |
+| 612 | `utils/toolSchemaCache.ts` | `utils/toolSchemaCache.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | all CC exports present; adds getCachedToolSchema helper (IMPROVED) |
 | 613 | `utils/treeify.ts` | `utils/treeify.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=31% |
-| 614 | `utils/truncate.ts` | `utils/truncate.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=49% |
-| 615 | `utils/ultraplan/keyword.ts` | `utils/ultraplan/keyword.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=49% |
+| 614 | `utils/truncate.ts` | `utils/truncate.ts` | T6 | DIVERGED | medium | KEPT | skip | intentional: custom displayWidth avoids ink dep; same exported API (PLATFORM: cjk-width) |
+| 615 | `utils/ultraplan/keyword.ts` | `utils/ultraplan/keyword.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical logic; condensed early-return equivalent |
 | 616 | `utils/unaryLogging.ts` | `utils/unaryLogging.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 617 | `utils/userAgent.ts` | `utils/userAgent.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 618 | `utils/userPromptKeywords.ts` | `utils/userPromptKeywords.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 619 | `utils/uuid.ts` | `utils/uuid.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 620 | `utils/warningHandler.ts` | `utils/warningHandler.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=24% |
-| 621 | `utils/which.ts` | `utils/which.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=47% |
+| 621 | `utils/which.ts` | `utils/which.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | Bun.spawn vs execa; same exported API (IMPROVED: Bun-native) |
 | 622 | `utils/windowsPaths.ts` | `utils/windowsPaths.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=21% |
 | 623 | `utils/withResolvers.ts` | `utils/withResolvers.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical polyfill |
 | 624 | `utils/words.ts` | `utils/words.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
