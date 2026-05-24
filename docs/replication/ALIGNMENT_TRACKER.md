@@ -1,10 +1,10 @@
 # ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 → B (decisions locked)
-> **Last Updated:** 2026-05-24T12:00
+> **Last Updated:** 2026-05-24T13:00
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
-> **Verdict Distribution:** FULLY_ALIGNED 297 | PARTIAL 253 | DIVERGED 83 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
-> **Active Batch / Audit Task:** T0 ✅ T4 ✅ B-T6-01 ✅ B-T6-02 ✅ B-T6-03 ✅ B-T6-04 ✅ B-T6-05 ✅ B-T6-06 ✅ B-T6-07 ✅ B-T6-08 ✅ → next: log.ts copy-block + continue T6 scans
+> **Verdict Distribution:** FULLY_ALIGNED 297 | PARTIAL 252 | DIVERGED 84 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
+> **Active Batch / Audit Task:** T0 ✅ T4 ✅ B-T6-01 ✅ B-T6-02 ✅ B-T6-03 ✅ B-T6-04 ✅ B-T6-05 ✅ B-T6-06 ✅ B-T6-07 ✅ B-T6-08 ✅ B-T6-09 ✅ → next: continue T6 PARTIAL scans
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL ≈ 20% weighted
 
 ---
@@ -525,7 +525,7 @@
 | 481 | `utils/keyboardShortcuts.ts` | `utils/keyboardShortcuts.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 482 | `utils/lazySchema.ts` | `utils/lazySchema.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-07: identical factory memoization |
 | 483 | `utils/lockfile.ts` | `utils/lockfile.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-08: same 4 exports; IMPROVED: fallback simple lock when proper-lockfile absent |
-| 484 | `utils/log.ts` | `utils/log.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 5 extra exports |
+| 484 | `utils/log.ts` | `utils/log.ts` | T6 | DIVERGED | high | KEPT | copy-block | B-T6-09: added dateToFilename; ErrorLogSink/attachErrorLogSink (sink infra), loadErrorLogs/getErrorLogByIndex (CACHE_PATHS), captureAPIRequest (analytics) all DIVERGED; QiLing=direct console approach |
 | 485 | `utils/mailbox.ts` | `utils/mailbox.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 486 | `utils/managedEnvConstants.ts` | `utils/managedEnvConstants.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=40% |
 | 487 | `utils/markdown.ts` | `utils/markdown.ts` | T6 | DIVERGED | high | KEPT | — | B-T6-08: QiLing=chalk-based renderer (renderMarkdown/renderDiff); CC=marked+token pipeline (configureMarked/applyMarkdown/formatToken/padAligned); different approach |

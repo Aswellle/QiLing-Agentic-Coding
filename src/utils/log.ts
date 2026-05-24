@@ -9,6 +9,11 @@
  * logError writes to stderr always.
  */
 
+// FROM CC: dateToFilename — ISO timestamp → filesystem-safe filename
+export function dateToFilename(date: Date): string {
+  return date.toISOString().replace(/[:.]/g, '-')
+}
+
 // ─── Core logging ─────────────────────────────────────────────────────────────
 
 /**
