@@ -1,9 +1,9 @@
 # ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 → B (decisions locked)
-> **Last Updated:** 2026-05-24T22:00
+> **Last Updated:** 2026-05-24T23:00
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
-> **Verdict Distribution:** FULLY_ALIGNED 344 | PARTIAL 202 | DIVERGED 89 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
+> **Verdict Distribution:** FULLY_ALIGNED 346 | PARTIAL 200 | DIVERGED 89 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
 > **Active Batch / Audit Task:** T0 ✅ T4 ✅ B-T6-01 ✅ ... B-T6-15 ✅ B-T6-16 ✅ → next: continue T6 PARTIAL scans
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL ≈ 20% weighted
 
@@ -478,7 +478,7 @@
 | 434 | `utils/execFileNoThrow.ts` | `utils/execFileNoThrow.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=30% |
 | 435 | `utils/execSyncWrapper.ts` | `utils/execSyncWrapper.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 436 | `utils/file.ts` | `utils/file.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 13 extra exports |
-| 437 | `utils/fileHistory.ts` | `utils/fileHistory.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 7 extra exports |
+| 437 | `utils/fileHistory.ts` | `utils/fileHistory.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC uses 100-snapshot/diff architecture (FileHistorySnapshot/State/diffLines/vscodeMcp/analytics); QiLing uses simpler v1-backup-only approach |
 | 438 | `utils/filePersistence/outputsScanner.ts` | `utils/filePersistence/outputsScanner.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | same 3 exports + algorithm; inline types vs CC's external EnvironmentKind/TurnStartTime |
 | 439 | `utils/fileRead.ts` | `utils/fileRead.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | same 4 exports + algorithms; plain fs replaces FsOperations (B-T6-11 pattern) |
 | 440 | `utils/fileReadCache.ts` | `utils/fileReadCache.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | same singleton interface; plain fs + detectEncodingForResolvedPath replaces FsOperations |
@@ -546,7 +546,7 @@
 | 502 | `utils/model/modelAllowlist.ts` | `utils/model/modelAllowlist.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | missing bidirectional alias resolution + resolveOverriddenModel; parseUserSpecifiedModel not used |
 | 503 | `utils/model/modelSupportOverrides.ts` | `utils/model/modelSupportOverrides.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 504 | `utils/model/providers.ts` | `utils/model/providers.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 505 | `utils/modelCost.ts` | `utils/modelCost.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 5 extra exports |
+| 505 | `utils/modelCost.ts` | `utils/modelCost.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC imports analytics/fastMode/model-alias infra; QiLing standalone with extra CNY pricing; core cost tiers match |
 | 506 | `utils/modifiers.ts` | `utils/modifiers.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 507 | `utils/mtls.ts` | `utils/mtls.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | missing configureGlobalMTLS; QiLing adds QILING_ env vars; core logic equivalent |
 | 508 | `utils/notebook.ts` | `utils/notebook.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -581,7 +581,7 @@
 | 537 | `utils/process.ts` | `utils/process.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-08: identical logic; QiLing inlines writeOut helper inline, same effect |
 | 538 | `utils/profilerBase.ts` | `utils/profilerBase.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 539 | `utils/promptShellExecution.ts` | `utils/promptShellExecution.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=29% |
-| 540 | `utils/proxy.ts` | `utils/proxy.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 9 extra exports |
+| 540 | `utils/proxy.ts` | `utils/proxy.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has full axios+undici+AWS+mTLS stack; QiLing has core subset (getProxyUrl/getProxyAgent/getProxyFetchInit/isProxyConfigured) |
 | 541 | `utils/queryHelpers.ts` | `utils/queryHelpers.ts` | T6 | DIVERGED | high | KEPT | skip | CC extras (isResultSuccessful/normalizeMessage/handleOrphanedPermission) need SDK types; QiLing has own extras |
 | 542 | `utils/releaseNotes.ts` | `utils/releaseNotes.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | missing migrateChangelogFromConfig; ant checks CC-specific (skip); fetch vs axios (IMPROVED) |
 | 543 | `utils/renderOptions.ts` | `utils/renderOptions.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
@@ -627,9 +627,9 @@
 | 583 | `utils/streamJsonStdoutGuard.ts` | `utils/streamJsonStdoutGuard.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | same 3 exports + logic; split('\n') vs CC indexOf loop (equivalent) |
 | 584 | `utils/stringUtils.ts` | `utils/stringUtils.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 585 | `utils/subprocessEnv.ts` | `utils/subprocessEnv.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=33% |
-| 586 | `utils/suggestions/directoryCompletion.ts` | `utils/suggestions/directoryCompletion.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=54% |
-| 587 | `utils/suggestions/shellHistoryCompletion.ts` | `utils/suggestions/shellHistoryCompletion.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=52% |
-| 588 | `utils/suggestions/skillUsageTracking.ts` | `utils/suggestions/skillUsageTracking.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=54% |
+| 586 | `utils/suggestions/directoryCompletion.ts` | `utils/suggestions/directoryCompletion.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | IMPROVED: direct fs.readdir vs getFsImplementation; SuggestionItem inlined; same exports + algorithm |
+| 587 | `utils/suggestions/shellHistoryCompletion.ts` | `utils/suggestions/shellHistoryCompletion.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | getShellHistoryCommands is stub returning empty; CC reads from getHistory() async iterator |
+| 588 | `utils/suggestions/skillUsageTracking.ts` | `utils/suggestions/skillUsageTracking.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | IMPROVED: standalone JSON file vs CC globalConfig storage; same 2 exports + 7-day decay algorithm |
 | 589 | `utils/swarm/constants.ts` | `utils/swarm/constants.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | missing TEAM_LEAD_NAME/SWARM_VIEW_WINDOW_NAME/TMUX_COMMAND/getSwarmSocketName/TEAMMATE_COLOR_ENV_VAR/PLAN_MODE_REQUIRED_ENV_VAR; existing values branded (// NAME:) |
 | 590 | `utils/swarm/leaderPermissionBridge.ts` | `utils/swarm/leaderPermissionBridge.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 8 extra exports |
 | 591 | `utils/swarm/teammateModel.ts` | `utils/swarm/teammateModel.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -649,7 +649,7 @@
 | 605 | `utils/timeouts.ts` | `utils/timeouts.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 606 | `utils/todo/types.ts` | `utils/todo/types.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 607 | `utils/tokenBudget.ts` | `utils/tokenBudget.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
-| 608 | `utils/tokens.ts` | `utils/tokens.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 5 extra exports |
+| 608 | `utils/tokens.ts` | `utils/tokens.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | missing tokenCountFromLastAPIResponse/finalContextTokensFromLastResponse; QiLing has extra CNY cost functions; CC uses msg.type='assistant' vs QiLing msg.role |
 | 609 | `utils/toolErrors.ts` | `utils/toolErrors.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | missing getErrorParts; formatError lacks AbortError/ShellError/stderr-stdout handling; imports zod not zod/v4 |
 | 610 | `utils/toolPool.ts` | `utils/toolPool.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | mergeAndFilterTools missing mode param; env check vs CC feature-flag + coordinatorModeModule.isCoordinatorMode(); lodash partition/uniqBy replaced with manual dedup |
 | 611 | `utils/toolResultStorage.ts` | `utils/toolResultStorage.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 10 extra exports |
@@ -667,7 +667,7 @@
 | 623 | `utils/withResolvers.ts` | `utils/withResolvers.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical polyfill |
 | 624 | `utils/words.ts` | `utils/words.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 625 | `utils/workloadContext.ts` | `utils/workloadContext.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=29% |
-| 626 | `utils/worktree.ts` | `utils/worktree.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 6 extra exports |
+| 626 | `utils/worktree.ts` | `utils/worktree.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has hooks/tmux/settings-copy/iterm2/symlinks; QiLing has clean git-only subset (create/remove/list/cleanup) |
 | 627 | `utils/worktreeModeEnabled.ts` | `utils/worktreeModeEnabled.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical; worktree unconditionally enabled |
 | 628 | `utils/xdg.ts` | `utils/xdg.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 629 | `utils/xml.ts` | `utils/xml.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical escapeXml + escapeXmlAttr |
