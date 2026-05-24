@@ -1,7 +1,7 @@
 # ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 → B (decisions locked)
-> **Last Updated:** 2026-05-24T23:30
+> **Last Updated:** 2026-05-25T00:00
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
 > **Verdict Distribution:** FULLY_ALIGNED 346 | PARTIAL 200 | DIVERGED 89 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
 > **Active Batch / Audit Task:** T0 ✅ T4 ✅ B-T6-01 ✅ ... B-T6-15 ✅ B-T6-16 ✅ → next: continue T6 PARTIAL scans
@@ -413,7 +413,7 @@
 | 369 | `utils/apiPreconnect.ts` | `utils/apiPreconnect.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | IMPROVED: _resetPreconnectFlagForTesting + QILING_ env vars; CC adds FOUNDRY check (skip) |
 | 370 | `utils/argumentSubstitution.ts` | `utils/argumentSubstitution.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-04: IMPROVED: custom tokenizer (avoids bash/shellQuote dep); substituteArguments identical |
 | 371 | `utils/array.ts` | `utils/array.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-02: verified exact match with CC |
-| 372 | `utils/auth.ts` | `utils/auth.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 49 extra exports |
+| 372 | `utils/auth.ts` | `utils/auth.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC is full auth stack (OAuth/keychain/AWS-STS/SubscriptionType); QiLing has simplified AWS+GCP refresh + API key helpers only |
 | 373 | `utils/autoModeDenials.ts` | `utils/autoModeDenials.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 374 | `utils/autoRunIssue.tsx` | `utils/autoRunIssue.tsx` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 375 | `utils/aws.ts` | `utils/aws.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -496,7 +496,7 @@
 | 452 | `utils/getWorktreePaths.ts` | `utils/getWorktreePaths.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-10: re-exports getWorktreePathsPortable; IMPROVED: no analytics deps |
 | 453 | `utils/getWorktreePathsPortable.ts` | `utils/getWorktreePathsPortable.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 454 | `utils/ghPrStatus.ts` | `utils/ghPrStatus.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | hardcodes main/master vs CC dynamic getDefaultBranch(); IMPROVED: cwd param + Bun.spawn |
-| 455 | `utils/git.ts` | `utils/git.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 20 extra exports |
+| 455 | `utils/git.ts` | `utils/git.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC imports from git/gitFilesystem.js for cached ops + diagLogs/memoizeWithLRU/isBinaryContent; QiLing uses execFile-based wrapper with different export set |
 | 456 | `utils/git/gitConfigParser.ts` | `utils/git/gitConfigParser.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 457 | `utils/git/gitFilesystem.ts` | `utils/git/gitFilesystem.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 458 | `utils/git/gitignore.ts` | `utils/git/gitignore.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -537,7 +537,7 @@
 | 493 | `utils/memory/versions.ts` | `utils/memory/versions.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-07: identical; imports findGitRoot from gitDiff instead of git (same function) |
 | 494 | `utils/memoryFileDetection.ts` | `utils/memoryFileDetection.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=20% |
 | 495 | `utils/messagePredicates.ts` | `utils/messagePredicates.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | adapted to QiLing role/content fields; same semantic |
-| 496 | `utils/messages.ts` | `utils/messages.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 90 extra exports |
+| 496 | `utils/messages.ts` | `utils/messages.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC is massive message infra (90+ exports) with analytics/growthbook/buddy deps; QiLing has portable subset (stripThinkingBlocks/filterMetaMessages/extractTextContent) |
 | 497 | `utils/model/aliases.ts` | `utils/model/aliases.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | re-export shim; all 5 exports match CC |
 | 498 | `utils/model/check1mAccess.ts` | `utils/model/check1mAccess.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=23% |
 | 499 | `utils/model/configs.ts` | `utils/model/configs.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -597,7 +597,7 @@
 | 553 | `utils/sequential.ts` | `utils/sequential.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 554 | `utils/sessionActivity.ts` | `utils/sessionActivity.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 555 | `utils/sessionEnvVars.ts` | `utils/sessionEnvVars.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
-| 556 | `utils/sessionStorage.ts` | `utils/sessionStorage.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 44 extra exports |
+| 556 | `utils/sessionStorage.ts` | `utils/sessionStorage.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC is full transcript-write infra (44+ exports) with bootstrap/state/sessionIngress/growthbook deps; QiLing has path utilities only; transcript writing in history/manager.ts |
 | 557 | `utils/sessionTitle.ts` | `utils/sessionTitle.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | adapted to QiLing msg type; missing logEvent/queryHaiku; core title logic present |
 | 558 | `utils/sessionUrl.ts` | `utils/sessionUrl.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 559 | `utils/set.ts` | `utils/set.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
