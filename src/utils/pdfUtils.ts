@@ -3,7 +3,11 @@
  *
  * parsePDFPageRange(): parse "5", "1-10", "3-" into { firstPage, lastPage }
  * isPDFExtension(): check if file extension is PDF
+ * isPDFSupported(): check if current model supports PDF document blocks
  */
+
+import { getAppState } from '../state/AppState.js'
+import { selectMainLoopModel } from '../state/selectors.js'
 
 export const DOCUMENT_EXTENSIONS = new Set(['pdf'])
 
@@ -40,4 +44,10 @@ export function parsePDFPageRange(pages: string): { firstPage: number; lastPage:
 export function isPDFExtension(ext: string): boolean {
   const normalized = ext.startsWith('.') ? ext.slice(1) : ext
   return DOCUMENT_EXTENSIONS.has(normalized.toLowerCase())
+}
+
+// FROM CC: isPDFSupported — haiku-3 predates PDF support; all other models support it
+export function isPDFSupported(): boolean {
+  const model = selectMainLoopModel(getAppState()) ?? ''
+  return !model.toLowerCase().includes('claude-3-haiku')
 }

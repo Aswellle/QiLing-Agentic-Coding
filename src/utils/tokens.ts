@@ -265,3 +265,38 @@ export function tokenCountWithEstimation(messages: readonly Message[]): number {
   }
   return roughTokenCountEstimationForMessages([...messages])
 }
+
+// FROM CC: tokenCountFromLastAPIResponse — scan backwards for last real usage, return full context count
+export function tokenCountFromLastAPIResponse(messages: Message[]): number {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const usage = getAPITokenUsage(messages[i]!)
+    if (usage) return getTokenCountFromUsage(usage)
+  }
+  return 0
+}
+
+// FROM CC: finalContextTokensFromLastResponse — uses iterations[last] for server-side tool loop budget
+export function finalContextTokensFromLastResponse(messages: Message[]): number {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const usage = getAPITokenUsage(messages[i]!)
+    if (usage) {
+      const iterations = (usage as { iterations?: Array<{ input_tokens: number; output_tokens: number }> | null }).iterations
+      if (iterations && iterations.length > 0) {
+        const last = iterations.at(-1)!
+        return last.input_tokens + last.output_tokens
+      }
+      // No iterations → top-level usage IS the final window (input + output, no cache)
+      return usage.input_tokens + usage.output_tokens
+    }
+  }
+  return 0
+}
+
+// FROM CC: messageTokenCountFromLastAPIResponse — output_tokens only (how much Claude generated)
+export function messageTokenCountFromLastAPIResponse(messages: Message[]): number {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const usage = getAPITokenUsage(messages[i]!)
+    if (usage) return usage.output_tokens
+  }
+  return 0
+}
