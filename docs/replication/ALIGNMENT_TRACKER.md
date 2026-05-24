@@ -1,10 +1,10 @@
 # ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 → B (decisions locked)
-> **Last Updated:** 2026-05-24T13:00
+> **Last Updated:** 2026-05-24T14:00
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
-> **Verdict Distribution:** FULLY_ALIGNED 297 | PARTIAL 252 | DIVERGED 84 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
-> **Active Batch / Audit Task:** T0 ✅ T4 ✅ B-T6-01 ✅ B-T6-02 ✅ B-T6-03 ✅ B-T6-04 ✅ B-T6-05 ✅ B-T6-06 ✅ B-T6-07 ✅ B-T6-08 ✅ B-T6-09 ✅ → next: continue T6 PARTIAL scans
+> **Verdict Distribution:** FULLY_ALIGNED 299 | PARTIAL 250 | DIVERGED 84 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
+> **Active Batch / Audit Task:** T0 ✅ T4 ✅ B-T6-01 ✅ B-T6-02 ✅ B-T6-03 ✅ B-T6-04 ✅ B-T6-05 ✅ B-T6-06 ✅ B-T6-07 ✅ B-T6-08 ✅ B-T6-09 ✅ B-T6-10 ✅ → next: continue T6 PARTIAL scans
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL ≈ 20% weighted
 
 ---
@@ -493,7 +493,7 @@
 | 449 | `utils/generatedFiles.ts` | `utils/generatedFiles.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 450 | `utils/generators.ts` | `utils/generators.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 451 | `utils/genericProcessUtils.ts` | `utils/genericProcessUtils.ts` | T6 | PARTIAL | high | ALIGNED | adapt-complete | B-T6-02: +getAncestorPidsAsync +getAncestorCommandsAsync; getChildPids skipped (execSyncWithDefaults_DEPRECATED missing) |
-| 452 | `utils/getWorktreePaths.ts` | `utils/getWorktreePaths.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 452 | `utils/getWorktreePaths.ts` | `utils/getWorktreePaths.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-10: re-exports getWorktreePathsPortable; IMPROVED: no analytics deps |
 | 453 | `utils/getWorktreePathsPortable.ts` | `utils/getWorktreePathsPortable.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 454 | `utils/ghPrStatus.ts` | `utils/ghPrStatus.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=54% |
 | 455 | `utils/git.ts` | `utils/git.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 20 extra exports |
@@ -566,7 +566,7 @@
 | 522 | `utils/permissions/denialTracking.ts` | `utils/permissions/denialTracking.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-07: re-export shim; impl at permissions/denialTracking.ts is identical |
 | 523 | `utils/permissions/shellRuleMatching.ts` | `utils/permissions/shellRuleMatching.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=39% |
 | 524 | `utils/plans.ts` | `utils/plans.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=15% |
-| 525 | `utils/platform.ts` | `utils/platform.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 4 extra exports |
+| 525 | `utils/platform.ts` | `utils/platform.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | copy-block | B-T6-10: added SUPPORTED_PLATFORMS, getWslVersion, LinuxDistroInfo, getLinuxDistroInfo, detectVcs; adapted: plain fs instead of getFsImplementation; IMPROVED: isWSL/isMacOS/isWindows/isLinux helpers |
 | 526 | `utils/plugins/gitAvailability.ts` | `utils/plugins/gitAvailability.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=38% |
 | 527 | `utils/plugins/managedPlugins.ts` | `utils/plugins/managedPlugins.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 528 | `utils/plugins/officialMarketplace.ts` | `utils/plugins/officialMarketplace.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=41% |
