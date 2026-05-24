@@ -1,10 +1,10 @@
 # ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 → B (decisions locked)
-> **Last Updated:** 2026-05-24T10:00
+> **Last Updated:** 2026-05-24T11:00
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
-> **Verdict Distribution:** FULLY_ALIGNED 280 | PARTIAL 273 | DIVERGED 80 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
-> **Active Batch / Audit Task:** T0 ✅ T4 ✅ B-T6-01 ✅ B-T6-02 ✅ B-T6-03 ✅ B-T6-04 ✅ B-T6-05 ✅ B-T6-06 ✅ → next: continue T6 PARTIAL scans
+> **Verdict Distribution:** FULLY_ALIGNED 295 | PARTIAL 258 | DIVERGED 80 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
+> **Active Batch / Audit Task:** T0 ✅ T4 ✅ B-T6-01 ✅ B-T6-02 ✅ B-T6-03 ✅ B-T6-04 ✅ B-T6-05 ✅ B-T6-06 ✅ B-T6-07 ✅ → next: continue T6 PARTIAL scans
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL ≈ 20% weighted
 
 ---
@@ -426,14 +426,14 @@
 | 382 | `utils/bash/shellPrefix.ts` | `utils/bash/shellPrefix.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 383 | `utils/bash/shellQuote.ts` | `utils/bash/shellQuote.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 384 | `utils/bash/shellQuoting.ts` | `utils/bash/shellQuoting.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=27% |
-| 385 | `utils/bash/specs/alias.ts` | `utils/bash/specs/alias.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 386 | `utils/bash/specs/index.ts` | `utils/bash/specs/index.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 387 | `utils/bash/specs/nohup.ts` | `utils/bash/specs/nohup.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 385 | `utils/bash/specs/alias.ts` | `utils/bash/specs/alias.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-07: identical logic |
+| 386 | `utils/bash/specs/index.ts` | `utils/bash/specs/index.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-07: identical exports array |
+| 387 | `utils/bash/specs/nohup.ts` | `utils/bash/specs/nohup.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-07: identical logic |
 | 388 | `utils/bash/specs/pyright.ts` | `utils/bash/specs/pyright.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 389 | `utils/bash/specs/sleep.ts` | `utils/bash/specs/sleep.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 390 | `utils/bash/specs/srun.ts` | `utils/bash/specs/srun.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 391 | `utils/bash/specs/time.ts` | `utils/bash/specs/time.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 392 | `utils/bash/specs/timeout.ts` | `utils/bash/specs/timeout.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 389 | `utils/bash/specs/sleep.ts` | `utils/bash/specs/sleep.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-07: identical logic |
+| 390 | `utils/bash/specs/srun.ts` | `utils/bash/specs/srun.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-07: identical logic |
+| 391 | `utils/bash/specs/time.ts` | `utils/bash/specs/time.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-07: identical logic |
+| 392 | `utils/bash/specs/timeout.ts` | `utils/bash/specs/timeout.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-07: identical logic |
 | 393 | `utils/binaryCheck.ts` | `utils/binaryCheck.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-04: IMPROVED: added isBinaryInstalledSync; CC only has isBinaryInstalled+clearBinaryCache |
 | 394 | `utils/browser.ts` | `utils/browser.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 395 | `utils/bufferedWriter.ts` | `utils/bufferedWriter.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -442,7 +442,7 @@
 | 398 | `utils/caCertsConfig.ts` | `utils/caCertsConfig.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=23% |
 | 399 | `utils/cachePaths.ts` | `utils/cachePaths.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 400 | `utils/classifierApprovals.ts` | `utils/classifierApprovals.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 401 | `utils/classifierApprovalsHook.ts` | `utils/classifierApprovalsHook.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 401 | `utils/classifierApprovalsHook.ts` | `utils/classifierApprovalsHook.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-07: identical useSyncExternalStore hook |
 | 402 | `utils/claudeCodeHints.ts` | `utils/claudeCodeHints.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=45% |
 | 403 | `utils/claudemd.ts` | `utils/claudemd.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | B-T6-04: CC deps memoize+analytics+memdir+fileStateCache; QiLing is clean fs-only impl; IMPROVED |
 | 404 | `utils/cleanupRegistry.ts` | `utils/cleanupRegistry.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-04: identical; QiLing adds .catch(()=>{}) safety in Promise.all |
@@ -451,7 +451,7 @@
 | 407 | `utils/codeIndexing.ts` | `utils/codeIndexing.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 408 | `utils/collapseReadSearch.ts` | `utils/collapseReadSearch.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | B-T6-04: CC deps RenderableMessage/CollapsibleMessage from CC msg types; QiLing is standalone util |
 | 409 | `utils/combinedAbortSignal.ts` | `utils/combinedAbortSignal.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 410 | `utils/commandLifecycle.ts` | `utils/commandLifecycle.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 410 | `utils/commandLifecycle.ts` | `utils/commandLifecycle.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-07: identical listener pattern |
 | 411 | `utils/completionCache.ts` | `utils/completionCache.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 412 | `utils/configConstants.ts` | `utils/configConstants.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 413 | `utils/contentArray.ts` | `utils/contentArray.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -483,7 +483,7 @@
 | 439 | `utils/fileRead.ts` | `utils/fileRead.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=47% |
 | 440 | `utils/fileReadCache.ts` | `utils/fileReadCache.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=51% |
 | 441 | `utils/fileStateCache.ts` | `utils/fileStateCache.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 442 | `utils/findExecutable.ts` | `utils/findExecutable.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 442 | `utils/findExecutable.ts` | `utils/findExecutable.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-07: identical logic |
 | 443 | `utils/fingerprint.ts` | `utils/fingerprint.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=40% |
 | 444 | `utils/format.ts` | `utils/format.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=46% |
 | 445 | `utils/formatBriefTimestamp.ts` | `utils/formatBriefTimestamp.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -521,9 +521,9 @@
 | 477 | `utils/ink.ts` | `utils/ink.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=54% |
 | 478 | `utils/intl.ts` | `utils/intl.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 479 | `utils/json.ts` | `utils/json.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=14% |
-| 480 | `utils/jsonRead.ts` | `utils/jsonRead.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 480 | `utils/jsonRead.ts` | `utils/jsonRead.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-07: identical stripBOM |
 | 481 | `utils/keyboardShortcuts.ts` | `utils/keyboardShortcuts.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 482 | `utils/lazySchema.ts` | `utils/lazySchema.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 482 | `utils/lazySchema.ts` | `utils/lazySchema.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-07: identical factory memoization |
 | 483 | `utils/lockfile.ts` | `utils/lockfile.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 3 extra exports |
 | 484 | `utils/log.ts` | `utils/log.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 5 extra exports |
 | 485 | `utils/mailbox.ts` | `utils/mailbox.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -534,7 +534,7 @@
 | 490 | `utils/mcpValidation.ts` | `utils/mcpValidation.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=30% |
 | 491 | `utils/mcpWebSocketTransport.ts` | `utils/mcpWebSocketTransport.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 492 | `utils/memoize.ts` | `utils/memoize.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=34% |
-| 493 | `utils/memory/versions.ts` | `utils/memory/versions.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 493 | `utils/memory/versions.ts` | `utils/memory/versions.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-07: identical; imports findGitRoot from gitDiff instead of git (same function) |
 | 494 | `utils/memoryFileDetection.ts` | `utils/memoryFileDetection.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=20% |
 | 495 | `utils/messagePredicates.ts` | `utils/messagePredicates.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=36% |
 | 496 | `utils/messages.ts` | `utils/messages.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 90 extra exports |
@@ -550,7 +550,7 @@
 | 506 | `utils/modifiers.ts` | `utils/modifiers.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 507 | `utils/mtls.ts` | `utils/mtls.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=55% |
 | 508 | `utils/notebook.ts` | `utils/notebook.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 509 | `utils/objectGroupBy.ts` | `utils/objectGroupBy.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 509 | `utils/objectGroupBy.ts` | `utils/objectGroupBy.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-07: identical logic |
 | 510 | `utils/pasteStore.ts` | `utils/pasteStore.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 511 | `utils/path.ts` | `utils/path.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=31% |
 | 512 | `utils/pdf.ts` | `utils/pdf.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -563,7 +563,7 @@
 | 519 | `utils/permissions/bashClassifier.ts` | `utils/permissions/bashClassifier.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 520 | `utils/permissions/classifierShared.ts` | `utils/permissions/classifierShared.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 521 | `utils/permissions/dangerousPatterns.ts` | `utils/permissions/dangerousPatterns.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 2 extra exports |
-| 522 | `utils/permissions/denialTracking.ts` | `utils/permissions/denialTracking.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 522 | `utils/permissions/denialTracking.ts` | `utils/permissions/denialTracking.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-07: re-export shim; impl at permissions/denialTracking.ts is identical |
 | 523 | `utils/permissions/shellRuleMatching.ts` | `utils/permissions/shellRuleMatching.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=39% |
 | 524 | `utils/plans.ts` | `utils/plans.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=15% |
 | 525 | `utils/platform.ts` | `utils/platform.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 4 extra exports |
