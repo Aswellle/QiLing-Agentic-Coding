@@ -3,7 +3,7 @@
 > **Current Phase:** A.5 → B (decisions locked)
 > **Last Updated:** 2026-05-24T20:00
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
-> **Verdict Distribution:** FULLY_ALIGNED 332 | PARTIAL 214 | DIVERGED 89 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
+> **Verdict Distribution:** FULLY_ALIGNED 336 | PARTIAL 210 | DIVERGED 89 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
 > **Active Batch / Audit Task:** T0 ✅ T4 ✅ B-T6-01 ✅ ... B-T6-15 ✅ B-T6-16 ✅ → next: continue T6 PARTIAL scans
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL ≈ 20% weighted
 
@@ -516,7 +516,7 @@
 | 472 | `utils/hyperlink.ts` | `utils/hyperlink.ts` | T6 | PARTIAL | medium | ALIGNED | adapt-complete | B-T6-03: +chalk.blue coloring, import supportsHyperlinks from ink, export HyperlinkOptions |
 | 473 | `utils/idePathConversion.ts` | `utils/idePathConversion.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | checkWSLDistroMatch returns false vs CC true for non-WSL paths; IMPROVED: IdentityPathConverter |
 | 474 | `utils/idleTimeout.ts` | `utils/idleTimeout.ts` | T6 | DIVERGED | medium | KEPT | — | B-T6-08: env var renamed (QILING_EXIT_AFTER_IDLE_MS); QiLing uses process.exit+stderr vs CC gracefulShutdownSync+logForDebugging; IMPROVED: timer.unref |
-| 475 | `utils/imageResizer.ts` | `utils/imageResizer.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 4 extra exports |
+| 475 | `utils/imageResizer.ts` | `utils/imageResizer.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | missing compressImageBlock + detectImageFormatFromBase64 + createImageMetadataText; no analytics events |
 | 476 | `utils/imageValidation.ts` | `utils/imageValidation.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 477 | `utils/ink.ts` | `utils/ink.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | default 'cyan' vs CC 'cyan_FOR_SUBAGENTS_ONLY'; unknown color returns raw vs CC ansi: prefix |
 | 478 | `utils/intl.ts` | `utils/intl.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -567,9 +567,9 @@
 | 523 | `utils/permissions/shellRuleMatching.ts` | `utils/permissions/shellRuleMatching.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | same 7 exports confirmed |
 | 524 | `utils/plans.ts` | `utils/plans.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=15% |
 | 525 | `utils/platform.ts` | `utils/platform.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | copy-block | B-T6-10: added SUPPORTED_PLATFORMS, getWslVersion, LinuxDistroInfo, getLinuxDistroInfo, detectVcs; adapted: plain fs instead of getFsImplementation; IMPROVED: isWSL/isMacOS/isWindows/isLinux helpers |
-| 526 | `utils/plugins/gitAvailability.ts` | `utils/plugins/gitAvailability.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=38% |
-| 527 | `utils/plugins/managedPlugins.ts` | `utils/plugins/managedPlugins.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 528 | `utils/plugins/officialMarketplace.ts` | `utils/plugins/officialMarketplace.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=41% |
+| 526 | `utils/plugins/gitAvailability.ts` | `utils/plugins/gitAvailability.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | IMPROVED: module-level Promise cache vs lodash memoize; same 3 exports |
+| 527 | `utils/plugins/managedPlugins.ts` | `utils/plugins/managedPlugins.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub returns null; CC reads policySettings.enabledPlugins (no managed settings in QiLing) |
+| 528 | `utils/plugins/officialMarketplace.ts` | `utils/plugins/officialMarketplace.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | same 2 CC exports + values; IMPROVED: inline MarketplaceSource + QILING_MARKETPLACE_NAME |
 | 529 | `utils/plugins/pluginDirectories.ts` | `utils/plugins/pluginDirectories.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=28% |
 | 530 | `utils/plugins/pluginIdentifier.ts` | `utils/plugins/pluginIdentifier.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 3 extra exports |
 | 531 | `utils/plugins/pluginPolicy.ts` | `utils/plugins/pluginPolicy.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
@@ -588,7 +588,7 @@
 | 544 | `utils/ripgrep.ts` | `utils/ripgrep.ts` | T6 | DIVERGED | high | KEPT | skip | Bun-native rewrite; CC extras (embedded mode/EAGAIN/codesign/countFilesRoundedRg) are CC-infra-specific |
 | 545 | `utils/sandbox/sandbox-ui-utils.ts` | `utils/sandbox/sandbox-ui-utils.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical removeSandboxViolationTags |
 | 546 | `utils/sanitization.ts` | `utils/sanitization.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | Unicode literal chars vs hex escapes — functionally identical |
-| 547 | `utils/secureStorage/fallbackStorage.ts` | `utils/secureStorage/fallbackStorage.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=44% |
+| 547 | `utils/secureStorage/fallbackStorage.ts` | `utils/secureStorage/fallbackStorage.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | delete() short-circuits secondary when primary succeeds; CC explicitly deletes both |
 | 548 | `utils/secureStorage/index.ts` | `utils/secureStorage/index.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 549 | `utils/secureStorage/plainTextStorage.ts` | `utils/secureStorage/plainTextStorage.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 550 | `utils/semanticBoolean.ts` | `utils/semanticBoolean.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical logic; zod vs zod/v4 import only |
@@ -601,9 +601,9 @@
 | 557 | `utils/sessionTitle.ts` | `utils/sessionTitle.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | adapted to QiLing msg type; missing logEvent/queryHaiku; core title logic present |
 | 558 | `utils/sessionUrl.ts` | `utils/sessionUrl.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 559 | `utils/set.ts` | `utils/set.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 560 | `utils/settings/internalWrites.ts` | `utils/settings/internalWrites.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=44% |
+| 560 | `utils/settings/internalWrites.ts` | `utils/settings/internalWrites.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical 3 exports |
 | 561 | `utils/settings/managedPath.ts` | `utils/settings/managedPath.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=48% |
-| 562 | `utils/settings/pluginOnlyPolicy.ts` | `utils/settings/pluginOnlyPolicy.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=36% |
+| 562 | `utils/settings/pluginOnlyPolicy.ts` | `utils/settings/pluginOnlyPolicy.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | reads QILING_PLUGIN_ONLY_POLICY env vs CC policySettings.strictPluginOnlyCustomization |
 | 563 | `utils/settings/schemaOutput.ts` | `utils/settings/schemaOutput.ts` | T6 | DIVERGED | medium | KEPT | skip | CC uses toJSONSchema from zod/v4; QiLing uses plain zod — stub intentional until zod upgrade |
 | 564 | `utils/settings/toolValidationConfig.ts` | `utils/settings/toolValidationConfig.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=52% |
 | 565 | `utils/settings/validationTips.ts` | `utils/settings/validationTips.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=53% |
@@ -624,7 +624,7 @@
 | 580 | `utils/statsCache.ts` | `utils/statsCache.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=19% |
 | 581 | `utils/statusNoticeHelpers.ts` | `utils/statusNoticeHelpers.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 582 | `utils/stream.ts` | `utils/stream.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 583 | `utils/streamJsonStdoutGuard.ts` | `utils/streamJsonStdoutGuard.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=47% |
+| 583 | `utils/streamJsonStdoutGuard.ts` | `utils/streamJsonStdoutGuard.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | same 3 exports + logic; split('\n') vs CC indexOf loop (equivalent) |
 | 584 | `utils/stringUtils.ts` | `utils/stringUtils.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 585 | `utils/subprocessEnv.ts` | `utils/subprocessEnv.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=33% |
 | 586 | `utils/suggestions/directoryCompletion.ts` | `utils/suggestions/directoryCompletion.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | overlap=54% |
