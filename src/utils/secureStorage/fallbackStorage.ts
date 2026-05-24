@@ -41,7 +41,11 @@ export function createFallbackStorage(primary: SecureStorage, secondary: SecureS
     },
 
     delete(): boolean {
-      return primary.delete() || secondary.delete()
+      // FROM CC: explicitly delete both — short-circuit would leave stale
+      // primary entries that shadow fresh secondary writes (#30337)
+      const primarySuccess = primary.delete()
+      const secondarySuccess = secondary.delete()
+      return primarySuccess || secondarySuccess
     },
   }
 }

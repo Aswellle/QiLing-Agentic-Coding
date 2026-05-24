@@ -6,15 +6,35 @@
  */
 
 import type { ZodError } from 'zod'
+import { AbortError, ShellError } from './errors.js'
+import { INTERRUPT_MESSAGE_FOR_TOOL_USE } from './messages.js'
 
 const MAX_ERROR_LENGTH = 10_000
 const HALF_LENGTH = 5_000
 
+// FROM CC: getErrorParts — decompose an error into display parts (exit code, stderr, stdout)
+export function getErrorParts(error: Error): string[] {
+  if (error instanceof ShellError) {
+    return [
+      `Exit code ${error.code}`,
+      error.interrupted ? INTERRUPT_MESSAGE_FOR_TOOL_USE : '',
+      error.stderr,
+      error.stdout,
+    ]
+  }
+  const parts = [error.message]
+  if ('stderr' in error && typeof error.stderr === 'string') parts.push(error.stderr)
+  if ('stdout' in error && typeof error.stdout === 'string') parts.push(error.stdout)
+  return parts
+}
+
 export function formatError(error: unknown): string {
+  // FROM CC: AbortError is displayed with its own message (interrupt flow)
+  if (error instanceof AbortError) return error.message || INTERRUPT_MESSAGE_FOR_TOOL_USE
   if (!(error instanceof Error)) return String(error)
-  const msg = error.message?.trim() || 'Command failed with no output'
-  if (msg.length <= MAX_ERROR_LENGTH) return msg
-  return `${msg.slice(0, HALF_LENGTH)}\n\n... [${msg.length - MAX_ERROR_LENGTH} characters truncated] ...\n\n${msg.slice(-HALF_LENGTH)}`
+  const fullMessage = getErrorParts(error).filter(Boolean).join('\n').trim() || 'Command failed with no output'
+  if (fullMessage.length <= MAX_ERROR_LENGTH) return fullMessage
+  return `${fullMessage.slice(0, HALF_LENGTH)}\n\n... [${fullMessage.length - MAX_ERROR_LENGTH} characters truncated] ...\n\n${fullMessage.slice(-HALF_LENGTH)}`
 }
 
 function formatValidationPath(path: (string | number)[]): string {

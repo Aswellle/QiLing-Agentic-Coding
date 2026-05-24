@@ -5,6 +5,9 @@
 export const PRODUCT_URL = 'https://claude.com/claude-code'
 
 export const CLAUDE_AI_BASE_URL = 'https://claude.ai'
+// FROM CC: staging/local base URLs for remote session environment detection
+export const CLAUDE_AI_STAGING_BASE_URL = 'https://claude-ai.staging.ant.dev' // NAME: staging URL
+export const CLAUDE_AI_LOCAL_BASE_URL = 'http://localhost:4000'
 
 /**
  * Check if a session is in staging environment.
@@ -32,6 +35,13 @@ export function isRemoteSessionLocal(
   )
 }
 
+// FROM CC: getClaudeAiBaseUrl — resolves base URL by environment
+export function getClaudeAiBaseUrl(sessionId?: string, ingressUrl?: string): string {
+  if (isRemoteSessionLocal(sessionId, ingressUrl)) return CLAUDE_AI_LOCAL_BASE_URL
+  if (isRemoteSessionStaging(sessionId, ingressUrl)) return CLAUDE_AI_STAGING_BASE_URL
+  return CLAUDE_AI_BASE_URL
+}
+
 /**
  * Get the base URL for Claude AI remote sessions.
  */
@@ -39,6 +49,5 @@ export function getRemoteSessionUrl(
   sessionId?: string,
   ingressUrl?: string,
 ): string {
-  if (isRemoteSessionLocal(sessionId, ingressUrl)) return 'http://localhost:4000'
-  return CLAUDE_AI_BASE_URL
+  return getClaudeAiBaseUrl(sessionId, ingressUrl)
 }

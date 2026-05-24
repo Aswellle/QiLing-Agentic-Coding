@@ -64,3 +64,17 @@ export function isToolFromMcpServer(toolName: string, serverName: string): boole
 export function isMcpTool(tool: { name: string; isMcp?: boolean }): boolean {
   return tool.name?.startsWith('mcp__') || tool.isMcp === true
 }
+
+// FROM CC: getMcpDisplayName — strip server prefix from a fully-qualified MCP tool name
+export function getMcpDisplayName(fullName: string, serverName: string): string {
+  const prefix = `mcp__${normalizeNameForMCP(serverName)}__`
+  return fullName.replace(prefix, '')
+}
+
+// FROM CC: extractMcpToolDisplayName — strip server prefix and (MCP) suffix from user-facing name
+export function extractMcpToolDisplayName(userFacingName: string): string {
+  let withoutSuffix = userFacingName.replace(/\s*\(MCP\)\s*$/, '').trim()
+  const dashIndex = withoutSuffix.indexOf(' - ')
+  if (dashIndex !== -1) return withoutSuffix.substring(dashIndex + 3).trim()
+  return withoutSuffix
+}

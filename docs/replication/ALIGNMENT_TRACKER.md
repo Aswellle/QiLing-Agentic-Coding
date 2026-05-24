@@ -1,10 +1,10 @@
 # ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 → B (decisions locked)
-> **Last Updated:** 2026-05-25T01:00
+> **Last Updated:** 2026-05-24T12:00
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
-> **Verdict Distribution:** FULLY_ALIGNED 346 | PARTIAL 200 | DIVERGED 89 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
-> **Active Batch / Audit Task:** B-T6-01…B-T6-25 ✅ B-MISC-01 ✅ → all PARTIAL notes specific; next: copy-block work for PARTIAL adapt-complete files
+> **Verdict Distribution:** FULLY_ALIGNED 349 | PARTIAL 198 | DIVERGED 89 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
+> **Active Batch / Audit Task:** B-T-CODE-01 ✅ (5 copy-block, 1 confirmed FULLY_ALIGNED) → next: imageResizer/mcpOutputStorage/modelAllowlist/mtls/LSPDiagnosticRegistry/toolPool
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL ≈ 20% weighted
 
 ---
@@ -158,7 +158,7 @@
 | 114 | `constants/files.ts` | `constants/files.ts` | T7 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 115 | `constants/github-app.ts` | `constants/github-app.ts` | T7 | DIVERGED | high | KEPT | skip | overlap=32% |
 | 116 | `constants/messages.ts` | `constants/messages.ts` | T7 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 117 | `constants/product.ts` | `constants/product.ts` | T7 | PARTIAL | high | MAPPED | adapt-complete | missing CLAUDE_AI_STAGING_BASE_URL/CLAUDE_AI_LOCAL_BASE_URL/getClaudeAiBaseUrl; getRemoteSessionUrl diverges (CC uses sessionIdCompat/bridge; QiLing returns base URL only) |
+| 117 | `constants/product.ts` | `constants/product.ts` | T7 | PARTIAL | high | ALIGNED | adapt-complete | added CLAUDE_AI_STAGING_BASE_URL/CLAUDE_AI_LOCAL_BASE_URL/getClaudeAiBaseUrl; getRemoteSessionUrl still simplified (no bridge) |
 | 118 | `constants/spinnerVerbs.ts` | `constants/spinnerVerbs.ts` | T7 | DIVERGED | high | KEPT | skip | overlap=25% |
 | 119 | `constants/toolLimits.ts` | `constants/toolLimits.ts` | T7 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 120 | `constants/tools.ts` | `constants/tools.ts` | T7 | PARTIAL | medium | MAPPED | adapt-complete | overlap=43% |
@@ -310,7 +310,7 @@
 | 266 | `services/mcp/SdkControlTransport.ts` | `services/mcp/SdkControlTransport.ts` | T5 | DIVERGED | high | KEPT | skip | overlap=34% |
 | 267 | `services/mcp/client.ts` | `services/mcp/client.ts` | T5 | PARTIAL | high | MAPPED | adapt-complete | CC has OAuth/XAA/claude.ai-proxy/ws-ide transport + elicitation/analytics/prompts/roots/resources; QiLing removed those CC-specific systems |
 | 268 | `services/mcp/envExpansion.ts` | `services/mcp/envExpansion.ts` | T5 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
-| 269 | `services/mcp/mcpStringUtils.ts` | `services/mcp/mcpStringUtils.ts` | T5 | PARTIAL | high | MAPPED | adapt-complete | missing getMcpDisplayName/extractMcpToolDisplayName; getToolNameForPermissionCheck uses mcpInfo (CC) vs simple pass-through (QiLing); QiLing has extra isToolFromMcpServer/isMcpTool |
+| 269 | `services/mcp/mcpStringUtils.ts` | `services/mcp/mcpStringUtils.ts` | T5 | PARTIAL | high | ALIGNED | adapt-complete | added getMcpDisplayName/extractMcpToolDisplayName; getToolNameForPermissionCheck still simplified |
 | 270 | `services/mcp/normalization.ts` | `services/mcp/normalization.ts` | T5 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 271 | `services/mcp/oauthPort.ts` | `services/mcp/oauthPort.ts` | T5 | PARTIAL | medium | MAPPED | adapt-complete | overlap=55% |
 | 272 | `services/mcp/officialRegistry.ts` | `services/mcp/officialRegistry.ts` | T5 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -527,7 +527,7 @@
 | 483 | `utils/lockfile.ts` | `utils/lockfile.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-08: same 4 exports; IMPROVED: fallback simple lock when proper-lockfile absent |
 | 484 | `utils/log.ts` | `utils/log.ts` | T6 | DIVERGED | high | KEPT | copy-block | B-T6-09: added dateToFilename; ErrorLogSink/attachErrorLogSink (sink infra), loadErrorLogs/getErrorLogByIndex (CACHE_PATHS), captureAPIRequest (analytics) all DIVERGED; QiLing=direct console approach |
 | 485 | `utils/mailbox.ts` | `utils/mailbox.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 486 | `utils/managedEnvConstants.ts` | `utils/managedEnvConstants.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | SAFE_ENV_VARS missing ~35 CC entries; needs copy-block |
+| 486 | `utils/managedEnvConstants.ts` | `utils/managedEnvConstants.ts` | T6 | FULLY_ALIGNED | medium | ALIGNED | — | SAFE_ENV_VARS fully ported from CC (~80 entries) |
 | 487 | `utils/markdown.ts` | `utils/markdown.ts` | T6 | DIVERGED | high | KEPT | — | B-T6-08: QiLing=chalk-based renderer (renderMarkdown/renderDiff); CC=marked+token pipeline (configureMarked/applyMarkdown/formatToken/padAligned); different approach |
 | 488 | `utils/markdownConfigLoader.ts` | `utils/markdownConfigLoader.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=16% |
 | 489 | `utils/mcpOutputStorage.ts` | `utils/mcpOutputStorage.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | missing isBinaryContentType + persistBinaryContent; getBinaryBlobSavedMessage sig differs; extensionForMimeType missing ~15 MIME types |
@@ -588,7 +588,7 @@
 | 544 | `utils/ripgrep.ts` | `utils/ripgrep.ts` | T6 | DIVERGED | high | KEPT | skip | Bun-native rewrite; CC extras (embedded mode/EAGAIN/codesign/countFilesRoundedRg) are CC-infra-specific |
 | 545 | `utils/sandbox/sandbox-ui-utils.ts` | `utils/sandbox/sandbox-ui-utils.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical removeSandboxViolationTags |
 | 546 | `utils/sanitization.ts` | `utils/sanitization.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | Unicode literal chars vs hex escapes — functionally identical |
-| 547 | `utils/secureStorage/fallbackStorage.ts` | `utils/secureStorage/fallbackStorage.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | delete() short-circuits secondary when primary succeeds; CC explicitly deletes both |
+| 547 | `utils/secureStorage/fallbackStorage.ts` | `utils/secureStorage/fallbackStorage.ts` | T6 | FULLY_ALIGNED | medium | ALIGNED | — | delete() bug fixed: both primary+secondary always deleted |
 | 548 | `utils/secureStorage/index.ts` | `utils/secureStorage/index.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 549 | `utils/secureStorage/plainTextStorage.ts` | `utils/secureStorage/plainTextStorage.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 550 | `utils/semanticBoolean.ts` | `utils/semanticBoolean.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical logic; zod vs zod/v4 import only |
@@ -630,7 +630,7 @@
 | 586 | `utils/suggestions/directoryCompletion.ts` | `utils/suggestions/directoryCompletion.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | IMPROVED: direct fs.readdir vs getFsImplementation; SuggestionItem inlined; same exports + algorithm |
 | 587 | `utils/suggestions/shellHistoryCompletion.ts` | `utils/suggestions/shellHistoryCompletion.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | getShellHistoryCommands is stub returning empty; CC reads from getHistory() async iterator |
 | 588 | `utils/suggestions/skillUsageTracking.ts` | `utils/suggestions/skillUsageTracking.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | IMPROVED: standalone JSON file vs CC globalConfig storage; same 2 exports + 7-day decay algorithm |
-| 589 | `utils/swarm/constants.ts` | `utils/swarm/constants.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | missing TEAM_LEAD_NAME/SWARM_VIEW_WINDOW_NAME/TMUX_COMMAND/getSwarmSocketName/TEAMMATE_COLOR_ENV_VAR/PLAN_MODE_REQUIRED_ENV_VAR; existing values branded (// NAME:) |
+| 589 | `utils/swarm/constants.ts` | `utils/swarm/constants.ts` | T6 | FULLY_ALIGNED | medium | ALIGNED | — | all exports already present; values branded (// NAME:) |
 | 590 | `utils/swarm/leaderPermissionBridge.ts` | `utils/swarm/leaderPermissionBridge.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 6 typed exports (ToolUseConfirm/ToolPermissionContext); QiLing has 5 generic-typed exports with different naming convention |
 | 591 | `utils/swarm/teammateModel.ts` | `utils/swarm/teammateModel.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 592 | `utils/systemDirectories.ts` | `utils/systemDirectories.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=25% |
@@ -650,7 +650,7 @@
 | 606 | `utils/todo/types.ts` | `utils/todo/types.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 607 | `utils/tokenBudget.ts` | `utils/tokenBudget.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 608 | `utils/tokens.ts` | `utils/tokens.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | missing tokenCountFromLastAPIResponse/finalContextTokensFromLastResponse; QiLing has extra CNY cost functions; CC uses msg.type='assistant' vs QiLing msg.role |
-| 609 | `utils/toolErrors.ts` | `utils/toolErrors.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | missing getErrorParts; formatError lacks AbortError/ShellError/stderr-stdout handling; imports zod not zod/v4 |
+| 609 | `utils/toolErrors.ts` | `utils/toolErrors.ts` | T6 | PARTIAL | medium | ALIGNED | adapt-complete | added getErrorParts + fixed formatError (AbortError/ShellError); still zod not zod/v4 |
 | 610 | `utils/toolPool.ts` | `utils/toolPool.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | mergeAndFilterTools missing mode param; env check vs CC feature-flag + coordinatorModeModule.isCoordinatorMode(); lodash partition/uniqBy replaced with manual dedup |
 | 611 | `utils/toolResultStorage.ts` | `utils/toolResultStorage.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | missing getPersistenceThreshold/PERSIST_THRESHOLD_OVERRIDE_FLAG (GrowthBook); CC has analytics/sessionStorage/slowOperations deps |
 | 612 | `utils/toolSchemaCache.ts` | `utils/toolSchemaCache.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | all CC exports present; adds getCachedToolSchema helper (IMPROVED) |
