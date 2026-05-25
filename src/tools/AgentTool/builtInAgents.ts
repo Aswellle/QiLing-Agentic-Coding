@@ -1,10 +1,12 @@
 /**
  * Built-in agent definitions — ported from CC's AgentTool/built-in/
  *
- * Agents: Explore, Plan, general-purpose, worker, claude-code-guide, statusline-setup
+ * Agents: Explore, Plan, general-purpose, worker, claude-code-guide, statusline-setup, verification
  * Each entry defines: system prompt, tool restrictions, and when-to-use description
  * injected into the parent Agent tool's description so the AI knows when to use each.
  */
+
+import { VERIFICATION_SYSTEM_PROMPT } from './built-in/verificationAgent.js'
 
 export interface BuiltInAgent {
   agentType: string
@@ -265,6 +267,15 @@ export const BUILT_IN_AGENTS: BuiltInAgent[] = [
     disallowedTools: [],
     model: 'sonnet',
     color: 'orange',
+  },
+  {
+    agentType: 'verification',
+    whenToUse:
+      'Use this agent to verify that implementation work is correct before reporting completion. Invoke after non-trivial tasks (3+ file edits, backend/API changes, infrastructure changes). Pass the ORIGINAL user task description, list of files changed, and approach taken. The agent runs builds, tests, linters, and checks to produce a PASS/FAIL/PARTIAL verdict with evidence.',
+    systemPrompt: VERIFICATION_SYSTEM_PROMPT,
+    disallowedTools: ['Agent', 'ExitPlanMode', 'FileEdit', 'FileWrite', 'NotebookEdit'],
+    model: 'inherit',
+    color: 'red',
   },
   {
     agentType: 'worker',

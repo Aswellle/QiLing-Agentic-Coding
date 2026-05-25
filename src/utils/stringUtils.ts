@@ -141,3 +141,14 @@ export function truncateToLines(text: string, maxLines: number): string {
   if (lines.length <= maxLines) return text
   return lines.slice(0, maxLines).join('\n') + '…'
 }
+
+// FROM CC: components/shell/OutputLine.ts
+// Underline ANSI codes tend to leak out in terminal rendering.
+// Strip them specifically rather than all ANSI codes to preserve other formatting.
+// eslint-disable-next-line no-control-regex
+export function stripUnderlineAnsi(content: string): string {
+  return content.replace(
+    /\[([0-9]+;)*4(;[0-9]+)*m|\[4(;[0-9]+)*m|\[([0-9]+;)*4m/g,
+    '',
+  )
+}
