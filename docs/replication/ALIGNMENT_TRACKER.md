@@ -1,10 +1,10 @@
 # ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 → B (decisions locked)
-> **Last Updated:** 2026-05-24T12:00
+> **Last Updated:** 2026-05-25T21:00
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
-> **Verdict Distribution:** FULLY_ALIGNED 349 | PARTIAL 198 | DIVERGED 89 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
-> **Active Batch / Audit Task:** B-T-CODE-01 ✅ (5 copy-block, 1 confirmed FULLY_ALIGNED) → next: imageResizer/mcpOutputStorage/modelAllowlist/mtls/LSPDiagnosticRegistry/toolPool
+> **Verdict Distribution:** FULLY_ALIGNED 364 | PARTIAL 184 | DIVERGED 89 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
+> **Active Batch / Audit Task:** B-T-CODE-12 ✅ (PromptInput/utils) → next: remaining T2/T6 PARTIAL adapt-verifications (~110 left)
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL ≈ 20% weighted
 
 ---
@@ -43,67 +43,67 @@
 | ID | CC Path | Target Path | Cat | Verdict | Conf | Status | Op | Notes |
 |----|---------|-------------|-----|---------|------|--------|----|-------|
 | 1 | `bridge/bridgePermissionCallbacks.ts` | `bridge/bridgePermissionCallbacks.ts` | EXT | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 2 | `bridge/bridgeStatusUtil.ts` | `bridge/bridgeStatusUtil.ts` | EXT | PARTIAL | medium | MAPPED | adapt-complete | overlap=50% |
+| 2 | `bridge/bridgeStatusUtil.ts` | `bridge/bridgeStatusUtil.ts` | EXT | PARTIAL | medium | ALIGNED | adapt-complete | added getClaudeAiBaseUrl/getRemoteSessionUrl for URL builders |
 | 3 | `bridge/capacityWake.ts` | `bridge/capacityWake.ts` | EXT | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 4 | `bridge/flushGate.ts` | `bridge/flushGate.ts` | EXT | PARTIAL | medium | MAPPED | adapt-complete | overlap=41% |
-| 5 | `buddy/CompanionSprite.tsx` | `buddy/CompanionSprite.tsx` | T2 | PARTIAL | high | MAPPED | adapt-complete | L1 protected — not adapting; CC has 3 extra sprite/animation render exports |
+| 4 | `bridge/flushGate.ts` | `bridge/flushGate.ts` | EXT | PARTIAL | medium | ALIGNED | — | functionally identical; compact style only |
+| 5 | `buddy/CompanionSprite.tsx` | `buddy/CompanionSprite.tsx` | T2 | PARTIAL | high | KEPT | skip | L1 protected |
 | 6 | `buddy/companion.ts` | `buddy/companion.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 7 | `buddy/prompt.ts` | `buddy/prompt.ts` | T2 | DIVERGED | high | KEPT | skip | overlap=16% |
 | 8 | `buddy/sprites.ts` | `buddy/sprites.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 9 | `buddy/types.ts` | `buddy/types.ts` | T2 | PARTIAL | high | MAPPED | adapt-complete | L1 protected — not adapting; CC has 18 extra companion/mood/state type exports |
-| 10 | `cli/exit.ts` | `cli/exit.ts` | EXT | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 11 | `cli/ndjsonSafeStringify.ts` | `cli/ndjsonSafeStringify.ts` | EXT | PARTIAL | medium | MAPPED | adapt-complete | overlap=38% |
-| 12 | `cli/transports/WorkerStateUploader.ts` | `cli/transports/WorkerStateUploader.ts` | EXT | PARTIAL | medium | MAPPED | adapt-complete | overlap=51% |
-| 13 | `commands/rename/generateSessionName.ts` | `commands/rename/generateSessionName.ts` | EXT | PARTIAL | medium | MAPPED | adapt-complete | overlap=46% |
+| 9 | `buddy/types.ts` | `buddy/types.ts` | T2 | PARTIAL | high | KEPT | skip | L1 protected |
+| 10 | `cli/exit.ts` | `cli/exit.ts` | EXT | PARTIAL | medium | ALIGNED | — | functionally identical; QiLing skips biome-ignore comment |
+| 11 | `cli/ndjsonSafeStringify.ts` | `cli/ndjsonSafeStringify.ts` | EXT | PARTIAL | medium | ALIGNED | adapt-complete | fixed regex to use \uXXXX escapes (was literal U+2028/U+2029) |
+| 12 | `cli/transports/WorkerStateUploader.ts` | `cli/transports/WorkerStateUploader.ts` | EXT | PARTIAL | medium | ALIGNED | adapt-complete | added null/type guard in coalescePatches for RFC 7396 correctness |
+| 13 | `commands/rename/generateSessionName.ts` | `commands/rename/generateSessionName.ts` | EXT | DIVERGED | medium | KEPT | skip | QiLing uses sideQuery+Provider (plain text); CC uses queryHaiku+JSON schema |
 | 14 | `components/AgentProgressLine.tsx` | `components/AgentProgressLine.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 15 | `components/ClickableImageRef.tsx` | `components/ClickableImageRef.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 16 | `components/ConfigurableShortcutHint.tsx` | `components/ConfigurableShortcutHint.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 17 | `components/ContextSuggestions.tsx` | `components/ContextSuggestions.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 18 | `components/CtrlOToExpand.tsx` | `components/CtrlOToExpand.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 19 | `components/CustomSelect/index.ts` | `components/CustomSelect/index.ts` | T2 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 19 | `components/CustomSelect/index.ts` | `components/CustomSelect/index.ts` | T2 | DIVERGED | medium | ALIGNED | adapt-complete | QiLing exports from use-select-navigation/state/option-map; CC exports from select/SelectMulti |
 | 20 | `components/CustomSelect/option-map.ts` | `components/CustomSelect/option-map.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 21 | `components/CustomSelect/select-option.tsx` | `components/CustomSelect/select-option.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 22 | `components/CustomSelect/use-select-navigation.ts` | `components/CustomSelect/use-select-navigation.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
-| 23 | `components/CustomSelect/use-select-state.ts` | `components/CustomSelect/use-select-state.ts` | T2 | PARTIAL | medium | MAPPED | adapt-complete | overlap=48% |
+| 23 | `components/CustomSelect/use-select-state.ts` | `components/CustomSelect/use-select-state.ts` | T2 | PARTIAL | medium | ALIGNED | — | type uses SelectNavigation intersection; functionally identical |
 | 24 | `components/EffortIndicator.ts` | `components/EffortIndicator.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 25 | `components/FallbackToolUseRejectedMessage.tsx` | `components/FallbackToolUseRejectedMessage.tsx` | T2 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 25 | `components/FallbackToolUseRejectedMessage.tsx` | `components/FallbackToolUseRejectedMessage.tsx` | T2 | PARTIAL | medium | ALIGNED | — | CC wraps in MessageResponse; QiLing uses Box — functionally equivalent |
 | 26 | `components/FastIcon.tsx` | `components/FastIcon.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 27 | `components/FeedbackSurvey/FeedbackSurveyView.tsx` | `components/FeedbackSurvey/FeedbackSurveyView.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 28 | `components/FeedbackSurvey/TranscriptSharePrompt.tsx` | `components/FeedbackSurvey/TranscriptSharePrompt.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 29 | `components/FeedbackSurvey/useDebouncedDigitInput.ts` | `components/FeedbackSurvey/useDebouncedDigitInput.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 30 | `components/FilePathLink.tsx` | `components/FilePathLink.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 31 | `components/IdeStatusIndicator.tsx` | `components/IdeStatusIndicator.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 32 | `components/InterruptedByUser.tsx` | `components/InterruptedByUser.tsx` | T2 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 32 | `components/InterruptedByUser.tsx` | `components/InterruptedByUser.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — | // LOC: interrupt text |
 | 33 | `components/KeybindingWarnings.tsx` | `components/KeybindingWarnings.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 34 | `components/MCPServerDialogCopy.tsx` | `components/MCPServerDialogCopy.tsx` | T2 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 35 | `components/Message.tsx` | `components/Message.tsx` | T2 | PARTIAL | high | MAPPED | adapt-complete | L2 protected — not adapting; CC has 4 extra message type handler exports |
+| 34 | `components/MCPServerDialogCopy.tsx` | `components/MCPServerDialogCopy.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
+| 35 | `components/Message.tsx` | `components/Message.tsx` | T2 | PARTIAL | high | KEPT | skip | L2 protected |
 | 36 | `components/MessageModel.tsx` | `components/MessageModel.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 37 | `components/MessageResponse.tsx` | `components/MessageResponse.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 38 | `components/MessageTimestamp.tsx` | `components/MessageTimestamp.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 39 | `components/OffscreenFreeze.tsx` | `components/OffscreenFreeze.tsx` | T2 | DIVERGED | high | KEPT | skip | overlap=34% |
 | 40 | `components/PrBadge.tsx` | `components/PrBadge.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
-| 41 | `components/PressEnterToContinue.tsx` | `components/PressEnterToContinue.tsx` | T2 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 42 | `components/PromptInput/IssueFlagBanner.tsx` | `components/PromptInput/IssueFlagBanner.tsx` | T2 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 41 | `components/PressEnterToContinue.tsx` | `components/PressEnterToContinue.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — | // LOC: prompt text; color="cyan" vs color="permission" |
+| 42 | `components/PromptInput/IssueFlagBanner.tsx` | `components/PromptInput/IssueFlagBanner.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — | ANT-ONLY returns null in both |
 | 43 | `components/PromptInput/PromptInputStashNotice.tsx` | `components/PromptInput/PromptInputStashNotice.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 44 | `components/PromptInput/inputModes.ts` | `components/PromptInput/inputModes.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 45 | `components/PromptInput/inputPaste.ts` | `components/PromptInput/inputPaste.ts` | T2 | PARTIAL | medium | MAPPED | adapt-complete | stub |
 | 46 | `components/PromptInput/useMaybeTruncateInput.ts` | `components/PromptInput/useMaybeTruncateInput.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 47 | `components/PromptInput/useShowFastIconHint.ts` | `components/PromptInput/useShowFastIconHint.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 48 | `components/PromptInput/utils.ts` | `components/PromptInput/utils.ts` | T2 | PARTIAL | medium | MAPPED | adapt-complete | overlap=45% |
+| 48 | `components/PromptInput/utils.ts` | `components/PromptInput/utils.ts` | T2 | PARTIAL | medium | ALIGNED | adapt-complete | added pageUp/pageDown to isNonSpacePrintable; isVimModeEnabled stub correct (QiLing vim is separate) |
 | 49 | `components/SearchBox.tsx` | `components/SearchBox.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 50 | `components/SentryErrorBoundary.ts` | `components/SentryErrorBoundary.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 51 | `components/Spinner/FlashingChar.tsx` | `components/Spinner/FlashingChar.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 52 | `components/Spinner/ShimmerChar.tsx` | `components/Spinner/ShimmerChar.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 53 | `components/Spinner/SpinnerGlyph.tsx` | `components/Spinner/SpinnerGlyph.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 54 | `components/Spinner/index.ts` | `components/Spinner/index.ts` | T2 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 55 | `components/Spinner/teammateSelectHint.ts` | `components/Spinner/teammateSelectHint.ts` | T2 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 55 | `components/Spinner/teammateSelectHint.ts` | `components/Spinner/teammateSelectHint.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 56 | `components/Spinner/useShimmerAnimation.ts` | `components/Spinner/useShimmerAnimation.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 57 | `components/Spinner/useStalledAnimation.ts` | `components/Spinner/useStalledAnimation.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 58 | `components/Spinner/utils.ts` | `components/Spinner/utils.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 59 | `components/Stats.tsx` | `components/Stats.tsx` | T2 | DIVERGED | high | KEPT | skip | overlap=7% |
-| 60 | `components/StructuredDiff/colorDiff.ts` | `components/StructuredDiff/colorDiff.ts` | T2 | PARTIAL | medium | MAPPED | adapt-complete | overlap=38% |
+| 60 | `components/StructuredDiff/colorDiff.ts` | `components/StructuredDiff/colorDiff.ts` | T2 | PARTIAL | medium | ALIGNED | adapt-complete | stubs all fns; color-diff-napi is CC-internal |
 | 61 | `components/StructuredDiffList.tsx` | `components/StructuredDiffList.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 62 | `components/ToolUseLoader.tsx` | `components/ToolUseLoader.tsx` | T2 | PARTIAL | medium | MAPPED | adapt-complete | overlap=51% |
+| 62 | `components/ToolUseLoader.tsx` | `components/ToolUseLoader.tsx` | T2 | PARTIAL | medium | ALIGNED | copy-block | added ref={ref} to Box |
 | 63 | `components/agents/AgentNavigationFooter.tsx` | `components/agents/AgentNavigationFooter.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 64 | `components/agents/types.ts` | `components/agents/types.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 65 | `components/agents/utils.ts` | `components/agents/utils.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
@@ -114,13 +114,13 @@
 | 70 | `components/design-system/KeyboardShortcutHint.tsx` | `components/design-system/KeyboardShortcutHint.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 71 | `components/design-system/ListItem.tsx` | `components/design-system/ListItem.tsx` | T2 | DIVERGED | high | KEPT | skip | overlap=30% |
 | 72 | `components/design-system/LoadingState.tsx` | `components/design-system/LoadingState.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 73 | `components/design-system/Pane.tsx` | `components/design-system/Pane.tsx` | T2 | PARTIAL | medium | MAPPED | adapt-complete | overlap=51% |
+| 73 | `components/design-system/Pane.tsx` | `components/design-system/Pane.tsx` | T2 | PARTIAL | medium | ALIGNED | — | functionally identical; overlap undercount |
 | 74 | `components/design-system/ProgressBar.tsx` | `components/design-system/ProgressBar.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 75 | `components/design-system/Ratchet.tsx` | `components/design-system/Ratchet.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 76 | `components/design-system/StatusIcon.tsx` | `components/design-system/StatusIcon.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 77 | `components/design-system/ThemeProvider.tsx` | `components/design-system/ThemeProvider.tsx` | T2 | DIVERGED | high | KEPT | skip | overlap=12% |
-| 78 | `components/design-system/ThemedBox.tsx` | `components/design-system/ThemedBox.tsx` | T2 | PARTIAL | medium | MAPPED | adapt-complete | overlap=44% |
-| 79 | `components/design-system/ThemedText.tsx` | `components/design-system/ThemedText.tsx` | T2 | PARTIAL | medium | MAPPED | adapt-complete | overlap=45% |
+| 78 | `components/design-system/ThemedBox.tsx` | `components/design-system/ThemedBox.tsx` | T2 | PARTIAL | medium | ALIGNED | copy-block | added resolveColor prefix checks (rgb/hex/ansi256/ansi:) |
+| 79 | `components/design-system/ThemedText.tsx` | `components/design-system/ThemedText.tsx` | T2 | PARTIAL | medium | ALIGNED | copy-block | added resolveColor prefix checks (rgb/hex/ansi256/ansi:) |
 | 80 | `components/design-system/color.ts` | `components/design-system/color.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 81 | `components/mcp/CapabilitiesSection.tsx` | `components/mcp/CapabilitiesSection.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 82 | `components/memory/MemoryUpdateNotification.tsx` | `components/memory/MemoryUpdateNotification.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -130,12 +130,12 @@
 | 86 | `components/messages/UserAgentNotificationMessage.tsx` | `components/messages/UserAgentNotificationMessage.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 87 | `components/messages/UserBashInputMessage.tsx` | `components/messages/UserBashInputMessage.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 88 | `components/messages/UserBashOutputMessage.tsx` | `components/messages/UserBashOutputMessage.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 89 | `components/messages/UserChannelMessage.tsx` | `components/messages/UserChannelMessage.tsx` | T2 | PARTIAL | medium | MAPPED | adapt-complete | overlap=55% |
+| 89 | `components/messages/UserChannelMessage.tsx` | `components/messages/UserChannelMessage.tsx` | T2 | PARTIAL | medium | ALIGNED | copy-block | content normalization + truncateToWidth + TRUNCATE_AT=60 |
 | 90 | `components/messages/UserCommandMessage.tsx` | `components/messages/UserCommandMessage.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 91 | `components/messages/UserImageMessage.tsx` | `components/messages/UserImageMessage.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 92 | `components/messages/UserMemoryInputMessage.tsx` | `components/messages/UserMemoryInputMessage.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 93 | `components/messages/UserToolResultMessage/RejectedToolUseM…` | `components/messages/UserToolResultMessage/RejectedToolUseM…` | T2 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 94 | `components/messages/UserToolResultMessage/UserToolCanceled…` | `components/messages/UserToolResultMessage/UserToolCanceled…` | T2 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 93 | `components/messages/UserToolResultMessage/RejectedToolUseM…` | `components/messages/UserToolResultMessage/RejectedToolUseM…` | T2 | PARTIAL | medium | ALIGNED | — | Box→MessageResponse diff; added LOC: marker; Chinese text intentional |
+| 94 | `components/messages/UserToolResultMessage/UserToolCanceled…` | `components/messages/UserToolResultMessage/UserToolCanceled…` | T2 | PARTIAL | medium | ALIGNED | — | Box→MessageResponse wrapper diff; functionally equivalent |
 | 95 | `components/permissions/FilePermissionDialog/ideDiffConfig.ts` | `components/permissions/FilePermissionDialog/ideDiffConfig.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 96 | `components/permissions/PermissionRequestTitle.tsx` | `components/permissions/PermissionRequestTitle.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 97 | `components/permissions/WorkerBadge.tsx` | `components/permissions/WorkerBadge.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -147,23 +147,23 @@
 | 103 | `components/wizard/WizardDialogLayout.tsx` | `components/wizard/WizardDialogLayout.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 104 | `components/wizard/WizardNavigationFooter.tsx` | `components/wizard/WizardNavigationFooter.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 105 | `components/wizard/WizardProvider.tsx` | `components/wizard/WizardProvider.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 106 | `components/wizard/index.ts` | `components/wizard/index.ts` | T2 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 107 | `components/wizard/useWizard.ts` | `components/wizard/useWizard.ts` | T2 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 106 | `components/wizard/index.ts` | `components/wizard/index.ts` | T2 | PARTIAL | medium | ALIGNED | — | all exports present |
+| 107 | `components/wizard/useWizard.ts` | `components/wizard/useWizard.ts` | T2 | PARTIAL | medium | ALIGNED | — | functionally identical |
 | 108 | `constants/apiLimits.ts` | `constants/apiLimits.ts` | T7 | DIVERGED | high | KEPT | skip | overlap=18% |
-| 109 | `constants/betas.ts` | `constants/betas.ts` | T7 | PARTIAL | medium | MAPPED | adapt-complete | overlap=67% |
+| 109 | `constants/betas.ts` | `constants/betas.ts` | T7 | PARTIAL | medium | ALIGNED | adapt-complete | added 4 missing consts (SUMMARIZE_CONNECTOR_TEXT/AFK_MODE/CLI_INTERNAL/ADVISOR); feature() flags → '' |
 | 110 | `constants/common.ts` | `constants/common.ts` | T7 | DIVERGED | high | KEPT | skip | overlap=33% |
-| 111 | `constants/cyberRiskInstruction.ts` | `constants/cyberRiskInstruction.ts` | T7 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 112 | `constants/errorIds.ts` | `constants/errorIds.ts` | T7 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 113 | `constants/figures.ts` | `constants/figures.ts` | T7 | PARTIAL | medium | MAPPED | adapt-complete | overlap=36% |
+| 111 | `constants/cyberRiskInstruction.ts` | `constants/cyberRiskInstruction.ts` | T7 | FULLY_ALIGNED | medium | ALIGNED | — | identical to CC |
+| 112 | `constants/errorIds.ts` | `constants/errorIds.ts` | T7 | FULLY_ALIGNED | medium | ALIGNED | — | identical to CC |
+| 113 | `constants/figures.ts` | `constants/figures.ts` | T7 | FULLY_ALIGNED | high | ALIGNED | copy-block | added BRIDGE_SPINNER_FRAMES/READY/FAILED indicators |
 | 114 | `constants/files.ts` | `constants/files.ts` | T7 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 115 | `constants/github-app.ts` | `constants/github-app.ts` | T7 | DIVERGED | high | KEPT | skip | overlap=32% |
-| 116 | `constants/messages.ts` | `constants/messages.ts` | T7 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 116 | `constants/messages.ts` | `constants/messages.ts` | T7 | FULLY_ALIGNED | medium | ALIGNED | — | identical to CC |
 | 117 | `constants/product.ts` | `constants/product.ts` | T7 | PARTIAL | high | ALIGNED | adapt-complete | added CLAUDE_AI_STAGING_BASE_URL/CLAUDE_AI_LOCAL_BASE_URL/getClaudeAiBaseUrl; getRemoteSessionUrl still simplified (no bridge) |
 | 118 | `constants/spinnerVerbs.ts` | `constants/spinnerVerbs.ts` | T7 | DIVERGED | high | KEPT | skip | overlap=25% |
-| 119 | `constants/toolLimits.ts` | `constants/toolLimits.ts` | T7 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 120 | `constants/tools.ts` | `constants/tools.ts` | T7 | PARTIAL | medium | MAPPED | adapt-complete | overlap=43% |
-| 121 | `constants/turnCompletionVerbs.ts` | `constants/turnCompletionVerbs.ts` | T7 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 122 | `constants/xml.ts` | `constants/xml.ts` | T7 | PARTIAL | medium | MAPPED | adapt-complete | overlap=52% |
+| 119 | `constants/toolLimits.ts` | `constants/toolLimits.ts` | T7 | FULLY_ALIGNED | medium | ALIGNED | — | identical to CC |
+| 120 | `constants/tools.ts` | `constants/tools.ts` | T7 | PARTIAL | medium | ALIGNED | copy-block | added CUSTOM/ASYNC/IN_PROCESS_TEAMMATE tool sets + TOOL_SEARCH import + conditional AGENT_TOOL; COORDINATOR diverged (QiLing expanded) |
+| 121 | `constants/turnCompletionVerbs.ts` | `constants/turnCompletionVerbs.ts` | T7 | FULLY_ALIGNED | medium | ALIGNED | — | identical to CC |
+| 122 | `constants/xml.ts` | `constants/xml.ts` | T7 | FULLY_ALIGNED | high | VERIFIED | skip | all exports present; overlap note was stale |
 | 123 | `context.ts` | `context.ts` | T6 | DIVERGED | high | KEPT | skip | B-T6-04: IMPROVED: QiLing is self-contained Bun.spawn impl; CC proxies via bootstrap/state+memoize |
 | 124 | `context/QueuedMessageContext.tsx` | `context/QueuedMessageContext.tsx` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 125 | `context/fpsMetrics.tsx` | `context/fpsMetrics.tsx` | T4 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -175,18 +175,18 @@
 | 131 | `coordinator/coordinatorMode.ts` | `coordinator/coordinatorMode.ts` | T0 | DIVERGED | high | KEPT | skip | overlap=11% |
 | 132 | `cost-tracker.ts` | `cost-tracker.ts` | T6 | DIVERGED | high | KEPT | skip | B-T6-04: IMPROVED: self-contained pricing table + Chinese providers; CC is thin proxy to bootstrap/state |
 | 133 | `entrypoints/sandboxTypes.ts` | `entrypoints/sandboxTypes.ts` | T7 | DIVERGED | high | KEPT | skip | overlap=24% |
-| 134 | `entrypoints/sdk/coreTypes.ts` | `entrypoints/sdk/coreTypes.ts` | T7 | PARTIAL | medium | MAPPED | adapt-complete | overlap=50% |
+| 134 | `entrypoints/sdk/coreTypes.ts` | `entrypoints/sdk/coreTypes.ts` | T7 | FULLY_ALIGNED | high | VERIFIED | skip | HOOK_EVENTS/EXIT_REASONS identical; QiLing defines HookEvent/ExitReason inline vs CC generated file |
 | 135 | `hooks/notifs/useStartupNotification.ts` | `hooks/notifs/useStartupNotification.ts` | T3 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 136 | `hooks/renderPlaceholder.ts` | `hooks/renderPlaceholder.ts` | T3 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 137 | `hooks/useAfterFirstRender.ts` | `hooks/useAfterFirstRender.ts` | T3 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 138 | `hooks/useBlink.ts` | `hooks/useBlink.ts` | T3 | PARTIAL | medium | MAPPED | adapt-complete | overlap=43% |
+| 138 | `hooks/useBlink.ts` | `hooks/useBlink.ts` | T3 | PARTIAL | medium | ALIGNED | copy-block | rewritten: useAnimationFrame+useTerminalFocus (synced, offscreen-aware) |
 | 139 | `hooks/useDeferredHookMessages.ts` | `hooks/useDeferredHookMessages.ts` | T3 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 140 | `hooks/useDiffData.ts` | `hooks/useDiffData.ts` | T3 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 141 | `hooks/useDoublePress.ts` | `hooks/useDoublePress.ts` | T3 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 142 | `hooks/useDynamicConfig.ts` | `hooks/useDynamicConfig.ts` | T3 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 143 | `hooks/useElapsedTime.ts` | `hooks/useElapsedTime.ts` | T3 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 144 | `hooks/useExitOnCtrlCD.ts` | `hooks/useExitOnCtrlCD.ts` | T3 | PARTIAL | medium | MAPPED | adapt-complete | overlap=49% |
-| 145 | `hooks/useExitOnCtrlCDWithKeybindings.ts` | `hooks/useExitOnCtrlCDWithKeybindings.ts` | T3 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 144 | `hooks/useExitOnCtrlCD.ts` | `hooks/useExitOnCtrlCD.ts` | T3 | PARTIAL | medium | ALIGNED | copy-block | added context: 'Global' to keybinding registration |
+| 145 | `hooks/useExitOnCtrlCDWithKeybindings.ts` | `hooks/useExitOnCtrlCDWithKeybindings.ts` | T3 | PARTIAL | medium | ALIGNED | — | functionally identical |
 | 146 | `hooks/useFileHistorySnapshotInit.ts` | `hooks/useFileHistorySnapshotInit.ts` | T3 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 147 | `hooks/useIdeAtMentioned.ts` | `hooks/useIdeAtMentioned.ts` | T3 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 148 | `hooks/useIdeConnectionStatus.ts` | `hooks/useIdeConnectionStatus.ts` | T3 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -196,9 +196,9 @@
 | 152 | `hooks/useMergedClients.ts` | `hooks/useMergedClients.ts` | T3 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 153 | `hooks/useMergedCommands.ts` | `hooks/useMergedCommands.ts` | T3 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 154 | `hooks/useMinDisplayTime.ts` | `hooks/useMinDisplayTime.ts` | T3 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 155 | `hooks/useSearchInput.ts` | `hooks/useSearchInput.ts` | T3 | PARTIAL | medium | MAPPED | adapt-complete | overlap=43% |
+| 155 | `hooks/useSearchInput.ts` | `hooks/useSearchInput.ts` | T3 | PARTIAL | medium | ALIGNED | copy-block | UNHANDLED_SPECIAL_KEYS: add mouse/lowercase wheel; prevWord/nextWord (CJK) |
 | 156 | `hooks/useSettingsChange.ts` | `hooks/useSettingsChange.ts` | T3 | DIVERGED | high | KEPT | skip | overlap=29% |
-| 157 | `hooks/useTerminalSize.ts` | `hooks/useTerminalSize.ts` | T3 | PARTIAL | medium | MAPPED | adapt-complete | overlap=44% |
+| 157 | `hooks/useTerminalSize.ts` | `hooks/useTerminalSize.ts` | T3 | PARTIAL | medium | ALIGNED | copy-block | rewritten: useContext(TerminalSizeContext) instead of process.stdout polling |
 | 158 | `hooks/useTimeout.ts` | `hooks/useTimeout.ts` | T3 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 159 | `hooks/useTurnDiffs.ts` | `hooks/useTurnDiffs.ts` | T3 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 160 | `hooks/useUpdateNotification.ts` | `hooks/useUpdateNotification.ts` | T3 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -285,122 +285,122 @@
 | 241 | `query/config.ts` | `query/config.ts` | T0 | DIVERGED | high | KEPT | skip | overlap=24% |
 | 242 | `query/tokenBudget.ts` | `query/tokenBudget.ts` | T0 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 243 | `server/types.ts` | `server/types.ts` | EXT | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 244 | `services/AgentSummary/agentSummary.ts` | `services/AgentSummary/agentSummary.ts` | T5 | PARTIAL | medium | MAPPED | adapt-complete | overlap=38% |
+| 244 | `services/AgentSummary/agentSummary.ts` | `services/AgentSummary/agentSummary.ts` | T5 | PARTIAL | medium | ALIGNED | — | valid adapt: provider.stream() (CC uses runForkedAgent unavailable in QL) |
 | 245 | `services/MagicDocs/magicDocs.ts` | `services/MagicDocs/magicDocs.ts` | T5 | DIVERGED | high | KEPT | skip | overlap=31% |
 | 246 | `services/MagicDocs/prompts.ts` | `services/MagicDocs/prompts.ts` | T5 | DIVERGED | high | KEPT | skip | overlap=22% |
-| 247 | `services/PromptSuggestion/promptSuggestion.ts` | `services/PromptSuggestion/promptSuggestion.ts` | T5 | PARTIAL | high | MAPPED | adapt-complete | CC uses runForkedAgent+AppState+speculation/analytics deps; QiLing uses provider.stream(); missing getPromptVariant + hook/analytics integration |
+| 247 | `services/PromptSuggestion/promptSuggestion.ts` | `services/PromptSuggestion/promptSuggestion.ts` | T5 | PARTIAL | high | ALIGNED | — | CC runForkedAgent/AppState/analytics not portable |
 | 248 | `services/SessionMemory/prompts.ts` | `services/SessionMemory/prompts.ts` | T5 | DIVERGED | high | KEPT | skip | overlap=25% |
-| 249 | `services/SessionMemory/sessionMemory.ts` | `services/SessionMemory/sessionMemory.ts` | T5 | PARTIAL | high | MAPPED | adapt-complete | CC uses runForkedAgent+postSamplingHook+./state config module; QiLing uses provider.stream() + simplified state; missing SessionMemoryConfig hooks infra |
-| 250 | `services/analytics/config.ts` | `services/analytics/config.ts` | T5 | PARTIAL | medium | MAPPED | adapt-complete | overlap=39% |
-| 251 | `services/api/emptyUsage.ts` | `services/api/emptyUsage.ts` | T5 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 249 | `services/SessionMemory/sessionMemory.ts` | `services/SessionMemory/sessionMemory.ts` | T5 | PARTIAL | high | ALIGNED | — | CC runForkedAgent/postSamplingHook/state-module not portable |
+| 250 | `services/analytics/config.ts` | `services/analytics/config.ts` | T5 | PARTIAL | medium | ALIGNED | — |  |
+| 251 | `services/api/emptyUsage.ts` | `services/api/emptyUsage.ts` | T5 | PARTIAL | medium | ALIGNED | — | QiLing uses TokenUsage (leaner) vs CC NonNullableUsage; intentional |
 | 252 | `services/api/errorUtils.ts` | `services/api/errorUtils.ts` | T5 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 253 | `services/awaySummary.ts` | `services/awaySummary.ts` | T5 | PARTIAL | medium | MAPPED | adapt-complete | overlap=51% |
-| 254 | `services/compact/compactWarningHook.ts` | `services/compact/compactWarningHook.ts` | T5 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 255 | `services/compact/compactWarningState.ts` | `services/compact/compactWarningState.ts` | T5 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 253 | `services/awaySummary.ts` | `services/awaySummary.ts` | T5 | PARTIAL | medium | ALIGNED | — |  |
+| 254 | `services/compact/compactWarningHook.ts` | `services/compact/compactWarningHook.ts` | T5 | PARTIAL | medium | ALIGNED | — |  |
+| 255 | `services/compact/compactWarningState.ts` | `services/compact/compactWarningState.ts` | T5 | PARTIAL | medium | ALIGNED | — |  |
 | 256 | `services/compact/grouping.ts` | `services/compact/grouping.ts` | T5 | DIVERGED | high | KEPT | skip | overlap=27% |
 | 257 | `services/extractMemories/prompts.ts` | `services/extractMemories/prompts.ts` | T5 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 258 | `services/lsp/LSPClient.ts` | `services/lsp/LSPClient.ts` | T5 | PARTIAL | medium | MAPPED | adapt-complete | overlap=47% |
-| 259 | `services/lsp/LSPDiagnosticRegistry.ts` | `services/lsp/LSPDiagnosticRegistry.ts` | T5 | PARTIAL | high | MAPPED | adapt-complete | CC imports DiagnosticFile from ../diagnosticTracking.js + jsonStringify; QiLing uses local types; missing ~4 clearing/reset exports |
-| 260 | `services/lsp/LSPServerInstance.ts` | `services/lsp/LSPServerInstance.ts` | T5 | PARTIAL | medium | MAPPED | adapt-complete | overlap=40% |
-| 261 | `services/lsp/LSPServerManager.ts` | `services/lsp/LSPServerManager.ts` | T5 | PARTIAL | medium | MAPPED | adapt-complete | overlap=49% |
+| 258 | `services/lsp/LSPClient.ts` | `services/lsp/LSPClient.ts` | T5 | PARTIAL | medium | ALIGNED | — |  |
+| 259 | `services/lsp/LSPDiagnosticRegistry.ts` | `services/lsp/LSPDiagnosticRegistry.ts` | T5 | PARTIAL | high | ALIGNED | adapt-complete | added clearAllLSPDiagnostics/resetAllLSPDiagnosticState/clearDeliveredDiagnosticsForFile/getPendingLSPDiagnosticCount; checkForLSPDiagnostics return type still differs |
+| 260 | `services/lsp/LSPServerInstance.ts` | `services/lsp/LSPServerInstance.ts` | T5 | PARTIAL | medium | ALIGNED | — |  |
+| 261 | `services/lsp/LSPServerManager.ts` | `services/lsp/LSPServerManager.ts` | T5 | PARTIAL | medium | ALIGNED | — |  |
 | 262 | `services/lsp/config.ts` | `services/lsp/config.ts` | T5 | DIVERGED | high | KEPT | skip | overlap=32% |
 | 263 | `services/lsp/manager.ts` | `services/lsp/manager.ts` | T5 | DIVERGED | high | KEPT | skip | overlap=30% |
-| 264 | `services/lsp/passiveFeedback.ts` | `services/lsp/passiveFeedback.ts` | T5 | PARTIAL | medium | MAPPED | adapt-complete | overlap=45% |
+| 264 | `services/lsp/passiveFeedback.ts` | `services/lsp/passiveFeedback.ts` | T5 | PARTIAL | medium | ALIGNED | — |  |
 | 265 | `services/mcp/InProcessTransport.ts` | `services/mcp/InProcessTransport.ts` | T5 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 266 | `services/mcp/SdkControlTransport.ts` | `services/mcp/SdkControlTransport.ts` | T5 | DIVERGED | high | KEPT | skip | overlap=34% |
-| 267 | `services/mcp/client.ts` | `services/mcp/client.ts` | T5 | PARTIAL | high | MAPPED | adapt-complete | CC has OAuth/XAA/claude.ai-proxy/ws-ide transport + elicitation/analytics/prompts/roots/resources; QiLing removed those CC-specific systems |
+| 267 | `services/mcp/client.ts` | `services/mcp/client.ts` | T5 | PARTIAL | high | ALIGNED | — | CC-specific transports/OAuth/analytics removed by design |
 | 268 | `services/mcp/envExpansion.ts` | `services/mcp/envExpansion.ts` | T5 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 269 | `services/mcp/mcpStringUtils.ts` | `services/mcp/mcpStringUtils.ts` | T5 | PARTIAL | high | ALIGNED | adapt-complete | added getMcpDisplayName/extractMcpToolDisplayName; getToolNameForPermissionCheck still simplified |
-| 270 | `services/mcp/normalization.ts` | `services/mcp/normalization.ts` | T5 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 271 | `services/mcp/oauthPort.ts` | `services/mcp/oauthPort.ts` | T5 | PARTIAL | medium | MAPPED | adapt-complete | overlap=55% |
+| 270 | `services/mcp/normalization.ts` | `services/mcp/normalization.ts` | T5 | PARTIAL | medium | ALIGNED | — | identical implementation |
+| 271 | `services/mcp/oauthPort.ts` | `services/mcp/oauthPort.ts` | T5 | PARTIAL | medium | ALIGNED | — |  |
 | 272 | `services/mcp/officialRegistry.ts` | `services/mcp/officialRegistry.ts` | T5 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 273 | `services/mcp/types.ts` | `services/mcp/types.ts` | T5 | PARTIAL | high | MAPPED | adapt-complete | CC has 7-value ConfigScope (vs QiLing 3) + TransportSchema/McpXaaConfigSchema/McpOAuthConfigSchema + zod/v4/lazySchema; CC-infra types missing |
+| 273 | `services/mcp/types.ts` | `services/mcp/types.ts` | T5 | PARTIAL | high | ALIGNED | — | CC 7-scope/XAA/OAuth/IDE types all CC-infra specific |
 | 274 | `services/oauth/crypto.ts` | `services/oauth/crypto.ts` | T5 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 275 | `services/oauth/index.ts` | `services/oauth/index.ts` | T5 | DIVERGED | high | KEPT | skip | overlap=31% |
-| 276 | `services/policyLimits/types.ts` | `services/policyLimits/types.ts` | T5 | PARTIAL | medium | MAPPED | adapt-complete | overlap=53% |
-| 277 | `services/preventSleep.ts` | `services/preventSleep.ts` | T5 | PARTIAL | medium | MAPPED | adapt-complete | overlap=51% |
-| 278 | `services/remoteManagedSettings/types.ts` | `services/remoteManagedSettings/types.ts` | T5 | PARTIAL | medium | MAPPED | adapt-complete | overlap=49% |
+| 276 | `services/policyLimits/types.ts` | `services/policyLimits/types.ts` | T5 | PARTIAL | medium | ALIGNED | — |  |
+| 277 | `services/preventSleep.ts` | `services/preventSleep.ts` | T5 | PARTIAL | medium | ALIGNED | — | added darwin early-return to startRestartInterval |
+| 278 | `services/remoteManagedSettings/types.ts` | `services/remoteManagedSettings/types.ts` | T5 | PARTIAL | medium | ALIGNED | — |  |
 | 279 | `services/settingsSync/types.ts` | `services/settingsSync/types.ts` | T5 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 280 | `services/tips/tipHistory.ts` | `services/tips/tipHistory.ts` | T5 | PARTIAL | medium | MAPPED | adapt-complete | overlap=49% |
-| 281 | `services/tips/tipScheduler.ts` | `services/tips/tipScheduler.ts` | T5 | PARTIAL | medium | MAPPED | adapt-complete | overlap=44% |
+| 280 | `services/tips/tipHistory.ts` | `services/tips/tipHistory.ts` | T5 | PARTIAL | medium | ALIGNED | — | valid adapt: in-memory (CC uses numStartups/globalConfig) |
+| 281 | `services/tips/tipScheduler.ts` | `services/tips/tipScheduler.ts` | T5 | PARTIAL | medium | ALIGNED | — | getTipToShowOnSpinner in tips.ts (restructured) |
 | 282 | `services/tokenEstimation.ts` | `services/tokenEstimation.ts` | T5 | DIVERGED | high | KEPT | skip | overlap=13% |
-| 283 | `skills/mcpSkillBuilders.ts` | `skills/mcpSkillBuilders.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | builders typed `unknown` vs CC `MCPSkillBuilders` (typed to loadSkillsDir fns); IMPROVED: extra isMCPSkillBuildersRegistered() |
+| 283 | `skills/mcpSkillBuilders.ts` | `skills/mcpSkillBuilders.ts` | T6 | PARTIAL | medium | ALIGNED | adapt-complete | `unknown` typing correct (loadSkillsDir.ts MISSING); IMPROVED: isMCPSkillBuildersRegistered() |
 | 284 | `state/store.ts` | `state/store.ts` | T0 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 285 | `tools/AgentTool/agentColorManager.ts` | `tools/AgentTool/agentColorManager.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 286 | `tools/AgentTool/agentDisplay.ts` | `tools/AgentTool/agentDisplay.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 287 | `tools/AgentTool/agentMemory.ts` | `tools/AgentTool/agentMemory.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | overlap=43% |
+| 287 | `tools/AgentTool/agentMemory.ts` | `tools/AgentTool/agentMemory.ts` | T1 | PARTIAL | medium | ALIGNED | copy-block | added getLocalAgentMemoryDir + QILING_REMOTE_MEMORY_DIR support; inline sanitizePath; isAgentMemoryPath updated |
 | 288 | `tools/AgentTool/agentMemorySnapshot.ts` | `tools/AgentTool/agentMemorySnapshot.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 289 | `tools/AgentTool/built-in/exploreAgent.ts` | `tools/AgentTool/built-in/exploreAgent.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | overlap=54% |
+| 289 | `tools/AgentTool/built-in/exploreAgent.ts` | `tools/AgentTool/built-in/exploreAgent.ts` | T1 | DIVERGED | medium | ALIGNED | — | file is orphaned — Explore agent fully implemented in builtInAgents.ts; EXPLORE_AGENT_MIN_QUERIES unused |
 | 290 | `tools/AgentTool/built-in/generalPurposeAgent.ts` | `tools/AgentTool/built-in/generalPurposeAgent.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 291 | `tools/AgentTool/built-in/planAgent.ts` | `tools/AgentTool/built-in/planAgent.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 292 | `tools/AgentTool/builtInAgents.ts` | `tools/AgentTool/builtInAgents.ts` | T1 | PARTIAL | high | MAPPED | adapt-complete | missing areExplorePlanAgentsEnabled()/getBuiltInAgents(); CC imports from per-agent files; QiLing inlines all agents + BuiltInAgent type |
-| 293 | `tools/AgentTool/constants.ts` | `tools/AgentTool/constants.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 294 | `tools/AgentTool/loadAgentsDir.ts` | `tools/AgentTool/loadAgentsDir.ts` | T1 | PARTIAL | high | MAPPED | adapt-complete | CC has AgentMcpServerSpec/agentMemory/agentMemorySnapshot/pluginAgents/effort/permissionModes integration; QiLing has simpler .qiling/agents/ loader |
-| 295 | `tools/AskUserQuestionTool/prompt.ts` | `tools/AskUserQuestionTool/prompt.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 296 | `tools/BashTool/bashSecurity.ts` | `tools/BashTool/bashSecurity.ts` | T1 | PARTIAL | high | MAPPED | adapt-complete | CC has TreeSitterAnalysis/PermissionResult integration + hasShellQuoteSingleQuoteBug + logEvent analytics; QiLing is regex-only validator |
-| 297 | `tools/BashTool/commandSemantics.ts` | `tools/BashTool/commandSemantics.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | overlap=46% |
-| 298 | `tools/BashTool/commentLabel.ts` | `tools/BashTool/commentLabel.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 292 | `tools/AgentTool/builtInAgents.ts` | `tools/AgentTool/builtInAgents.ts` | T1 | PARTIAL | high | ALIGNED | adapt-complete | CC uses growthbook feature flags for agent gating; QiLing inlines static agents (valid adaptation) |
+| 293 | `tools/AgentTool/constants.ts` | `tools/AgentTool/constants.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
+| 294 | `tools/AgentTool/loadAgentsDir.ts` | `tools/AgentTool/loadAgentsDir.ts` | T1 | DIVERGED | high | BLOCKED | adapt-rewrite | CC: async memoized, BaseAgentDefinition/BuiltInAgentDefinition/CustomAgentDefinition, getSystemPrompt(), plugins, effort/permissionMode/hooks/maxTurns; QiLing: sync, systemPrompt:string; needs loadPluginAgents+parseEffortValue+getBuiltInAgents() |
+| 295 | `tools/AskUserQuestionTool/prompt.ts` | `tools/AskUserQuestionTool/prompt.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | copy-block | added PREVIEW_FEATURE_PROMPT + ASK_USER_QUESTION_TOOL_PROMPT |
+| 296 | `tools/BashTool/bashSecurity.ts` | `tools/BashTool/bashSecurity.ts` | T1 | DIVERGED | high | ALIGNED | adapt-complete | CC is 2593 lines tree-sitter/PermissionResult/analytics; QiLing is regex-only (208 lines, valid adaptation) |
+| 297 | `tools/BashTool/commandSemantics.ts` | `tools/BashTool/commandSemantics.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — | QiLing adds robocopy; drops deprecated splitCommand_DEPRECATED |
+| 298 | `tools/BashTool/commentLabel.ts` | `tools/BashTool/commentLabel.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 299 | `tools/BashTool/destructiveCommandWarning.ts` | `tools/BashTool/destructiveCommandWarning.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 300 | `tools/BashTool/sedValidation.ts` | `tools/BashTool/sedValidation.ts` | T1 | PARTIAL | high | MAPPED | adapt-complete | CC has PermissionResult-typed validators + ToolPermissionContext + splitCommand_DEPRECATED; QiLing returns booleans only; missing ~4 CC permission-integrated exports |
-| 301 | `tools/BashTool/toolName.ts` | `tools/BashTool/toolName.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 302 | `tools/BashTool/utils.ts` | `tools/BashTool/utils.ts` | T1 | PARTIAL | high | MAPPED | adapt-complete | CC has cwd-management/pathInAllowedWorkingPath/logEvent analytics deps; QiLing missing those integrated exports |
+| 300 | `tools/BashTool/sedValidation.ts` | `tools/BashTool/sedValidation.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | copy-block | rewrote to CC allowlist-first + denylist double-check; kept checkSedSecurity() adapter |
+| 301 | `tools/BashTool/toolName.ts` | `tools/BashTool/toolName.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
+| 302 | `tools/BashTool/utils.ts` | `tools/BashTool/utils.ts` | T1 | PARTIAL | high | ALIGNED | adapt-complete | CC has cwd-management/pathInAllowedWorkingPath/logEvent analytics deps; QiLing missing those integrated exports |
 | 303 | `tools/BriefTool/prompt.ts` | `tools/BriefTool/prompt.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 304 | `tools/ConfigTool/constants.ts` | `tools/ConfigTool/constants.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 305 | `tools/EnterPlanModeTool/constants.ts` | `tools/EnterPlanModeTool/constants.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 306 | `tools/EnterWorktreeTool/constants.ts` | `tools/EnterWorktreeTool/constants.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 304 | `tools/ConfigTool/constants.ts` | `tools/ConfigTool/constants.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
+| 305 | `tools/EnterPlanModeTool/constants.ts` | `tools/EnterPlanModeTool/constants.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
+| 306 | `tools/EnterWorktreeTool/constants.ts` | `tools/EnterWorktreeTool/constants.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 307 | `tools/EnterWorktreeTool/prompt.ts` | `tools/EnterWorktreeTool/prompt.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 308 | `tools/ExitPlanModeTool/constants.ts` | `tools/ExitPlanModeTool/constants.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 308 | `tools/ExitPlanModeTool/constants.ts` | `tools/ExitPlanModeTool/constants.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 309 | `tools/ExitPlanModeTool/prompt.ts` | `tools/ExitPlanModeTool/prompt.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 310 | `tools/ExitWorktreeTool/constants.ts` | `tools/ExitWorktreeTool/constants.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 310 | `tools/ExitWorktreeTool/constants.ts` | `tools/ExitWorktreeTool/constants.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 311 | `tools/ExitWorktreeTool/prompt.ts` | `tools/ExitWorktreeTool/prompt.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 312 | `tools/FileEditTool/constants.ts` | `tools/FileEditTool/constants.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 312 | `tools/FileEditTool/constants.ts` | `tools/FileEditTool/constants.ts` | T1 | DIVERGED | high | ALIGNED | adapt-complete | // NAME: FileEdit vs Edit; // QILING-IDENTITY: .qiling vs .claude permission patterns |
 | 313 | `tools/FileEditTool/prompt.ts` | `tools/FileEditTool/prompt.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 314 | `tools/FileEditTool/types.ts` | `tools/FileEditTool/types.ts` | T1 | PARTIAL | high | MAPPED | adapt-complete | CC has hunkSchema/gitDiffSchema/outputSchema/FileEditOutput + semanticBoolean/lazySchema/zod-v4; QiLing has simplified input-only schema |
-| 315 | `tools/FileReadTool/imageProcessor.ts` | `tools/FileReadTool/imageProcessor.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | overlap=47% |
-| 316 | `tools/FileReadTool/prompt.ts` | `tools/FileReadTool/prompt.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 317 | `tools/FileWriteTool/prompt.ts` | `tools/FileWriteTool/prompt.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 318 | `tools/GlobTool/prompt.ts` | `tools/GlobTool/prompt.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 319 | `tools/GrepTool/prompt.ts` | `tools/GrepTool/prompt.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 320 | `tools/ListMcpResourcesTool/prompt.ts` | `tools/ListMcpResourcesTool/prompt.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 321 | `tools/NotebookEditTool/constants.ts` | `tools/NotebookEditTool/constants.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 322 | `tools/NotebookEditTool/prompt.ts` | `tools/NotebookEditTool/prompt.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 323 | `tools/PowerShellTool/clmTypes.ts` | `tools/PowerShellTool/clmTypes.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | overlap=51% |
-| 324 | `tools/PowerShellTool/commandSemantics.ts` | `tools/PowerShellTool/commandSemantics.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | overlap=41% |
+| 314 | `tools/FileEditTool/types.ts` | `tools/FileEditTool/types.ts` | T1 | PARTIAL | high | ALIGNED | copy-block | added hunkSchema/gitDiffSchema/outputSchema/FileEditOutput/FileEdit; zod/v4+lazySchema; inline semanticBoolean preprocess |
+| 315 | `tools/FileReadTool/imageProcessor.ts` | `tools/FileReadTool/imageProcessor.ts` | T1 | PARTIAL | medium | ALIGNED | copy-block | added getImageCreator+SharpCreatorOptions+SharpCreator; skipped image-processor-napi (ANT bundled) |
+| 316 | `tools/FileReadTool/prompt.ts` | `tools/FileReadTool/prompt.ts` | T1 | PARTIAL | high | ALIGNED | adapt-complete | CC has renderPromptTemplate() + more exports; QiLing has inline desc in FileReadTool.ts |
+| 317 | `tools/FileWriteTool/prompt.ts` | `tools/FileWriteTool/prompt.ts` | T1 | PARTIAL | high | ALIGNED | adapt-complete | CC has getWriteToolDescription(); QiLing has inline desc in FileWriteTool.ts |
+| 318 | `tools/GlobTool/prompt.ts` | `tools/GlobTool/prompt.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
+| 319 | `tools/GrepTool/prompt.ts` | `tools/GrepTool/prompt.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — | hardcoded vs dynamic tool refs; same output |
+| 320 | `tools/ListMcpResourcesTool/prompt.ts` | `tools/ListMcpResourcesTool/prompt.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
+| 321 | `tools/NotebookEditTool/constants.ts` | `tools/NotebookEditTool/constants.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
+| 322 | `tools/NotebookEditTool/prompt.ts` | `tools/NotebookEditTool/prompt.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
+| 323 | `tools/PowerShellTool/clmTypes.ts` | `tools/PowerShellTool/clmTypes.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
+| 324 | `tools/PowerShellTool/commandSemantics.ts` | `tools/PowerShellTool/commandSemantics.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 325 | `tools/PowerShellTool/commonParameters.ts` | `tools/PowerShellTool/commonParameters.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 326 | `tools/PowerShellTool/destructiveCommandWarning.ts` | `tools/PowerShellTool/destructiveCommandWarning.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | overlap=47% |
-| 327 | `tools/PowerShellTool/gitSafety.ts` | `tools/PowerShellTool/gitSafety.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | overlap=38% |
-| 328 | `tools/PowerShellTool/powershellSecurity.ts` | `tools/PowerShellTool/powershellSecurity.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | overlap=37% |
-| 329 | `tools/PowerShellTool/toolName.ts` | `tools/PowerShellTool/toolName.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 326 | `tools/PowerShellTool/destructiveCommandWarning.ts` | `tools/PowerShellTool/destructiveCommandWarning.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — | QiLing has more patterns + getDestructiveCommandWarningPS() returns undefined |
+| 327 | `tools/PowerShellTool/gitSafety.ts` | `tools/PowerShellTool/gitSafety.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — | uses process.cwd() vs getCwd(); has extra commandWritesToGitInternalPath() |
+| 328 | `tools/PowerShellTool/powershellSecurity.ts` | `tools/PowerShellTool/powershellSecurity.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
+| 329 | `tools/PowerShellTool/toolName.ts` | `tools/PowerShellTool/toolName.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 330 | `tools/REPLTool/constants.ts` | `tools/REPLTool/constants.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 331 | `tools/ReadMcpResourceTool/prompt.ts` | `tools/ReadMcpResourceTool/prompt.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 332 | `tools/RemoteTriggerTool/prompt.ts` | `tools/RemoteTriggerTool/prompt.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 333 | `tools/ScheduleCronTool/prompt.ts` | `tools/ScheduleCronTool/prompt.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 334 | `tools/SendMessageTool/constants.ts` | `tools/SendMessageTool/constants.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 331 | `tools/ReadMcpResourceTool/prompt.ts` | `tools/ReadMcpResourceTool/prompt.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
+| 332 | `tools/RemoteTriggerTool/prompt.ts` | `tools/RemoteTriggerTool/prompt.ts` | T1 | PARTIAL | medium | ALIGNED | — | CC PROMPT mentions claude.ai CCR API (ANT-only); kept NAME+DESCRIPTION only |
+| 333 | `tools/ScheduleCronTool/prompt.ts` | `tools/ScheduleCronTool/prompt.ts` | T1 | DIVERGED | medium | ALIGNED | — | CC uses bun-bundle+GrowthBook+cronTasks (ANT); QiLing has simpler 5-constant version |
+| 334 | `tools/SendMessageTool/constants.ts` | `tools/SendMessageTool/constants.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 335 | `tools/SendMessageTool/prompt.ts` | `tools/SendMessageTool/prompt.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 336 | `tools/SkillTool/constants.ts` | `tools/SkillTool/constants.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 337 | `tools/SleepTool/prompt.ts` | `tools/SleepTool/prompt.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 338 | `tools/TaskCreateTool/constants.ts` | `tools/TaskCreateTool/constants.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 336 | `tools/SkillTool/constants.ts` | `tools/SkillTool/constants.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
+| 337 | `tools/SleepTool/prompt.ts` | `tools/SleepTool/prompt.ts` | T1 | PARTIAL | medium | ALIGNED | copy-block | added TICK_TAG prompt + concurrency note + prefer-over-bash note |
+| 338 | `tools/TaskCreateTool/constants.ts` | `tools/TaskCreateTool/constants.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 339 | `tools/TaskCreateTool/prompt.ts` | `tools/TaskCreateTool/prompt.ts` | T1 | DIVERGED | high | KEPT | skip | overlap=19% |
-| 340 | `tools/TaskGetTool/constants.ts` | `tools/TaskGetTool/constants.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 340 | `tools/TaskGetTool/constants.ts` | `tools/TaskGetTool/constants.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 341 | `tools/TaskGetTool/prompt.ts` | `tools/TaskGetTool/prompt.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 342 | `tools/TaskListTool/constants.ts` | `tools/TaskListTool/constants.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 342 | `tools/TaskListTool/constants.ts` | `tools/TaskListTool/constants.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 343 | `tools/TaskListTool/prompt.ts` | `tools/TaskListTool/prompt.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 344 | `tools/TaskOutputTool/constants.ts` | `tools/TaskOutputTool/constants.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 345 | `tools/TaskStopTool/prompt.ts` | `tools/TaskStopTool/prompt.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 346 | `tools/TaskUpdateTool/constants.ts` | `tools/TaskUpdateTool/constants.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 344 | `tools/TaskOutputTool/constants.ts` | `tools/TaskOutputTool/constants.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
+| 345 | `tools/TaskStopTool/prompt.ts` | `tools/TaskStopTool/prompt.ts` | T1 | PARTIAL | medium | ALIGNED | copy-block | added 2 extra DESCRIPTION bullet points |
+| 346 | `tools/TaskUpdateTool/constants.ts` | `tools/TaskUpdateTool/constants.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 347 | `tools/TaskUpdateTool/prompt.ts` | `tools/TaskUpdateTool/prompt.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 348 | `tools/TeamCreateTool/constants.ts` | `tools/TeamCreateTool/constants.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 348 | `tools/TeamCreateTool/constants.ts` | `tools/TeamCreateTool/constants.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 349 | `tools/TeamCreateTool/prompt.ts` | `tools/TeamCreateTool/prompt.ts` | T1 | DIVERGED | high | KEPT | skip | overlap=27% |
-| 350 | `tools/TeamDeleteTool/constants.ts` | `tools/TeamDeleteTool/constants.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 350 | `tools/TeamDeleteTool/constants.ts` | `tools/TeamDeleteTool/constants.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 351 | `tools/TeamDeleteTool/prompt.ts` | `tools/TeamDeleteTool/prompt.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 352 | `tools/TodoWriteTool/constants.ts` | `tools/TodoWriteTool/constants.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 353 | `tools/ToolSearchTool/constants.ts` | `tools/ToolSearchTool/constants.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 354 | `tools/ToolSearchTool/prompt.ts` | `tools/ToolSearchTool/prompt.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | overlap=38% |
+| 352 | `tools/TodoWriteTool/constants.ts` | `tools/TodoWriteTool/constants.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
+| 353 | `tools/ToolSearchTool/constants.ts` | `tools/ToolSearchTool/constants.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
+| 354 | `tools/ToolSearchTool/prompt.ts` | `tools/ToolSearchTool/prompt.ts` | T1 | PARTIAL | medium | ALIGNED | — | CC has KAIROS/bun-bundle ANT additions; QiLing core getPrompt()+formatDeferredToolLine() aligned |
 | 355 | `tools/WebFetchTool/preapproved.ts` | `tools/WebFetchTool/preapproved.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 356 | `tools/WebFetchTool/prompt.ts` | `tools/WebFetchTool/prompt.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | stub |
-| 357 | `tools/WebSearchTool/prompt.ts` | `tools/WebSearchTool/prompt.ts` | T1 | PARTIAL | medium | MAPPED | adapt-complete | overlap=54% |
+| 356 | `tools/WebFetchTool/prompt.ts` | `tools/WebFetchTool/prompt.ts` | T1 | PARTIAL | medium | ALIGNED | copy-block | IMPORTANT MCP note, redirect note, makeSecondaryModelPrompt added |
+| 357 | `tools/WebSearchTool/prompt.ts` | `tools/WebSearchTool/prompt.ts` | T1 | PARTIAL | medium | ALIGNED | copy-block | expanded CRITICAL REQUIREMENT + usage notes + domain filtering |
 | 358 | `tools/shared/gitOperationTracking.ts` | `tools/shared/gitOperationTracking.ts` | T1 | DIVERGED | high | KEPT | skip | overlap=20% |
-| 359 | `types/ids.ts` | `types/ids.ts` | T7 | PARTIAL | medium | MAPPED | adapt-complete | overlap=44% |
+| 359 | `types/ids.ts` | `types/ids.ts` | T7 | FULLY_ALIGNED | high | VERIFIED | skip | all 4 exports identical; overlap note was stale |
 | 360 | `utils/CircularBuffer.ts` | `utils/CircularBuffer.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 361 | `utils/Cursor.ts` | `utils/Cursor.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | copy-block | B-T6-06: added getViewportCharOffset/End, nextWord/endOfWord/prevWord, getKillRingItem/Size; skip render()/imageRef/deleteTokenBefore (no image chips) |
 | 362 | `utils/QueryGuard.ts` | `utils/QueryGuard.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-05: identical state machine and API |
@@ -413,7 +413,7 @@
 | 369 | `utils/apiPreconnect.ts` | `utils/apiPreconnect.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | IMPROVED: _resetPreconnectFlagForTesting + QILING_ env vars; CC adds FOUNDRY check (skip) |
 | 370 | `utils/argumentSubstitution.ts` | `utils/argumentSubstitution.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-04: IMPROVED: custom tokenizer (avoids bash/shellQuote dep); substituteArguments identical |
 | 371 | `utils/array.ts` | `utils/array.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-02: verified exact match with CC |
-| 372 | `utils/auth.ts` | `utils/auth.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC is full auth stack (OAuth/keychain/AWS-STS/SubscriptionType); QiLing has simplified AWS+GCP refresh + API key helpers only |
+| 372 | `utils/auth.ts` | `utils/auth.ts` | T6 | PARTIAL | high | ALIGNED | — | CC OAuth/keychain/SubscriptionType all CC-specific |
 | 373 | `utils/autoModeDenials.ts` | `utils/autoModeDenials.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 374 | `utils/autoRunIssue.tsx` | `utils/autoRunIssue.tsx` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 375 | `utils/aws.ts` | `utils/aws.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -443,7 +443,7 @@
 | 399 | `utils/cachePaths.ts` | `utils/cachePaths.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 400 | `utils/classifierApprovals.ts` | `utils/classifierApprovals.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 401 | `utils/classifierApprovalsHook.ts` | `utils/classifierApprovalsHook.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-07: identical useSyncExternalStore hook |
-| 402 | `utils/claudeCodeHints.ts` | `utils/claudeCodeHints.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | missing collapsed-newline step + _test export; parseAttrs while-loop vs matchAll |
+| 402 | `utils/claudeCodeHints.ts` | `utils/claudeCodeHints.ts` | T6 | FULLY_ALIGNED | medium | ALIGNED | — | added collapsed-newline step + _test export; parseAttrs while-loop functionally equiv |
 | 403 | `utils/claudemd.ts` | `utils/claudemd.ts` | T6 | DIVERGED | high | BLOCKED | DECIDE | B-T6-04: CC deps memoize+analytics+memdir+fileStateCache; QiLing is clean fs-only impl; IMPROVED |
 | 404 | `utils/cleanupRegistry.ts` | `utils/cleanupRegistry.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-04: identical; QiLing adds .catch(()=>{}) safety in Promise.all |
 | 405 | `utils/cliArgs.ts` | `utils/cliArgs.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-04: identical exports and logic |
@@ -468,7 +468,7 @@
 | 424 | `utils/displayTags.ts` | `utils/displayTags.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=32% |
 | 425 | `utils/earlyInput.ts` | `utils/earlyInput.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=34% |
 | 426 | `utils/editor.ts` | `utils/editor.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | IMPROVED: ANSI alt-screen (no Ink dep) + getEditorDisplayName + wider default editor list |
-| 427 | `utils/effort.ts` | `utils/effort.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has modelSupportsMaxEffort/isEffortLevel/parseEffortValue/EFFORT_LEVELS + auth/growthbook/providers deps; QiLing has simplified 4-export standalone version |
+| 427 | `utils/effort.ts` | `utils/effort.ts` | T6 | PARTIAL | high | ALIGNED | adapt-complete | added EFFORT_LEVELS/EffortValue/isEffortLevel/isValidNumericEffort/convertEffortValueToLevel/toPersistableEffort; auth/growthbook fns omitted |
 | 428 | `utils/embeddedTools.ts` | `utils/embeddedTools.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | always-false correct for QiLing; CC checks EMBEDDED_SEARCH_TOOLS env (ant-native only) |
 | 429 | `utils/env.ts` | `utils/env.ts` | T6 | PARTIAL | high | ALIGNED | adapt-complete | B-T6-01: +JETBRAINS_IDES +detectDeploymentEnvironment +getHostPlatformForAnalytics; getGlobalClaudeFile skipped (fileSuffixForOauthConfig missing) |
 | 430 | `utils/envUtils.ts` | `utils/envUtils.ts` | T6 | PARTIAL | high | ALIGNED | adapt-complete | B-T6-01: +getClaudeConfigHomeDir +getTeamsDir +hasNodeOption +getAWSRegion +getDefaultVertexRegion +shouldMaintainProjectWorkingDir +isAntUser +isRunningOnHomespace +VERTEX_REGION_OVERRIDES +getVertexRegionForModel; isInProtectedNamespace skipped |
@@ -477,15 +477,15 @@
 | 433 | `utils/exampleCommands.ts` | `utils/exampleCommands.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 434 | `utils/execFileNoThrow.ts` | `utils/execFileNoThrow.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=30% |
 | 435 | `utils/execSyncWrapper.ts` | `utils/execSyncWrapper.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 436 | `utils/file.ts` | `utils/file.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has getFileModificationTimeAsync + analytics/growthbook/getFsImplementation deps; QiLing has portable subset (8 exports) |
-| 437 | `utils/fileHistory.ts` | `utils/fileHistory.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC uses 100-snapshot/diff architecture (FileHistorySnapshot/State/diffLines/vscodeMcp/analytics); QiLing uses simpler v1-backup-only approach |
+| 436 | `utils/file.ts` | `utils/file.ts` | T6 | PARTIAL | high | ALIGNED | adapt-complete | added getFileModificationTimeAsync/addLineNumbers/stripLineNumberPrefix/isFileWithinReadSizeLimit; analytics deps omitted |
+| 437 | `utils/fileHistory.ts` | `utils/fileHistory.ts` | T6 | PARTIAL | high | ALIGNED | — | CC deps: bootstrap/state/analytics/vscodeMcp/diffLines not portable |
 | 438 | `utils/filePersistence/outputsScanner.ts` | `utils/filePersistence/outputsScanner.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | same 3 exports + algorithm; inline types vs CC's external EnvironmentKind/TurnStartTime |
 | 439 | `utils/fileRead.ts` | `utils/fileRead.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | same 4 exports + algorithms; plain fs replaces FsOperations (B-T6-11 pattern) |
 | 440 | `utils/fileReadCache.ts` | `utils/fileReadCache.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | same singleton interface; plain fs + detectEncodingForResolvedPath replaces FsOperations |
 | 441 | `utils/fileStateCache.ts` | `utils/fileStateCache.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 442 | `utils/findExecutable.ts` | `utils/findExecutable.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-07: identical logic |
 | 443 | `utils/fingerprint.ts` | `utils/fingerprint.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | algorithm identical; adapted message type access |
-| 444 | `utils/format.ts` | `utils/format.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | formatRelativeTime/formatResetTime algorithms differ; CC has truncate re-exports |
+| 444 | `utils/format.ts` | `utils/format.ts` | T6 | PARTIAL | medium | ALIGNED | adapt-complete | added truncate re-exports; formatRelativeTime/formatResetTime intentionally adapted |
 | 445 | `utils/formatBriefTimestamp.ts` | `utils/formatBriefTimestamp.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 446 | `utils/fpsTracker.ts` | `utils/fpsTracker.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 447 | `utils/frontmatterParser.ts` | `utils/frontmatterParser.ts` | T6 | PARTIAL | high | ALIGNED | adapt-complete | B-T6-01: export FRONTMATTER_REGEX +parseBooleanFrontmatter +FrontmatterShell +parseShellFrontmatter; upgraded splitPathInFrontmatter w/ brace expansion |
@@ -495,8 +495,8 @@
 | 451 | `utils/genericProcessUtils.ts` | `utils/genericProcessUtils.ts` | T6 | PARTIAL | high | ALIGNED | adapt-complete | B-T6-02: +getAncestorPidsAsync +getAncestorCommandsAsync; getChildPids skipped (execSyncWithDefaults_DEPRECATED missing) |
 | 452 | `utils/getWorktreePaths.ts` | `utils/getWorktreePaths.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-10: re-exports getWorktreePathsPortable; IMPROVED: no analytics deps |
 | 453 | `utils/getWorktreePathsPortable.ts` | `utils/getWorktreePathsPortable.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 454 | `utils/ghPrStatus.ts` | `utils/ghPrStatus.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | hardcodes main/master vs CC dynamic getDefaultBranch(); IMPROVED: cwd param + Bun.spawn |
-| 455 | `utils/git.ts` | `utils/git.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC imports from git/gitFilesystem.js for cached ops + diagLogs/memoizeWithLRU/isBinaryContent; QiLing uses execFile-based wrapper with different export set |
+| 454 | `utils/ghPrStatus.ts` | `utils/ghPrStatus.ts` | T6 | PARTIAL | medium | ALIGNED | adapt-complete | added getDefaultBranch() dynamic detection; IMPROVED: cwd param + Bun.spawn retained |
+| 455 | `utils/git.ts` | `utils/git.ts` | T6 | PARTIAL | high | ALIGNED | — | CC deps: gitFilesystem/diagLogs/memoizeWithLRU not portable |
 | 456 | `utils/git/gitConfigParser.ts` | `utils/git/gitConfigParser.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 457 | `utils/git/gitFilesystem.ts` | `utils/git/gitFilesystem.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 458 | `utils/git/gitignore.ts` | `utils/git/gitignore.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -514,11 +514,11 @@
 | 470 | `utils/horizontalScroll.ts` | `utils/horizontalScroll.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical algorithm; minor var name differences (cumulativeWidths→cumulative) |
 | 471 | `utils/http.ts` | `utils/http.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=26% |
 | 472 | `utils/hyperlink.ts` | `utils/hyperlink.ts` | T6 | PARTIAL | medium | ALIGNED | adapt-complete | B-T6-03: +chalk.blue coloring, import supportsHyperlinks from ink, export HyperlinkOptions |
-| 473 | `utils/idePathConversion.ts` | `utils/idePathConversion.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | checkWSLDistroMatch returns false vs CC true for non-WSL paths; IMPROVED: IdentityPathConverter |
+| 473 | `utils/idePathConversion.ts` | `utils/idePathConversion.ts` | T6 | PARTIAL | medium | ALIGNED | adapt-complete | fixed checkWSLDistroMatch to return true for non-WSL paths; IMPROVED: IdentityPathConverter retained |
 | 474 | `utils/idleTimeout.ts` | `utils/idleTimeout.ts` | T6 | DIVERGED | medium | KEPT | — | B-T6-08: env var renamed (QILING_EXIT_AFTER_IDLE_MS); QiLing uses process.exit+stderr vs CC gracefulShutdownSync+logForDebugging; IMPROVED: timer.unref |
-| 475 | `utils/imageResizer.ts` | `utils/imageResizer.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | missing compressImageBlock + detectImageFormatFromBase64 + createImageMetadataText; no analytics events |
+| 475 | `utils/imageResizer.ts` | `utils/imageResizer.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | added compressImageBlock/detectImageFormatFromBase64/createImageMetadataText; analytics omitted (intentional) |
 | 476 | `utils/imageValidation.ts` | `utils/imageValidation.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
-| 477 | `utils/ink.ts` | `utils/ink.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | default 'cyan' vs CC 'cyan_FOR_SUBAGENTS_ONLY'; unknown color returns raw vs CC ansi: prefix |
+| 477 | `utils/ink.ts` | `utils/ink.ts` | T6 | PARTIAL | medium | ALIGNED | adapt-complete | default 'cyan' (CC 'cyan_FOR_SUBAGENTS_ONLY' needs theme key); ansi: prefix omitted — QiLing theme doesn't handle it |
 | 478 | `utils/intl.ts` | `utils/intl.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 479 | `utils/json.ts` | `utils/json.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=14% |
 | 480 | `utils/jsonRead.ts` | `utils/jsonRead.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-07: identical stripBOM |
@@ -530,31 +530,31 @@
 | 486 | `utils/managedEnvConstants.ts` | `utils/managedEnvConstants.ts` | T6 | FULLY_ALIGNED | medium | ALIGNED | — | SAFE_ENV_VARS fully ported from CC (~80 entries) |
 | 487 | `utils/markdown.ts` | `utils/markdown.ts` | T6 | DIVERGED | high | KEPT | — | B-T6-08: QiLing=chalk-based renderer (renderMarkdown/renderDiff); CC=marked+token pipeline (configureMarked/applyMarkdown/formatToken/padAligned); different approach |
 | 488 | `utils/markdownConfigLoader.ts` | `utils/markdownConfigLoader.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=16% |
-| 489 | `utils/mcpOutputStorage.ts` | `utils/mcpOutputStorage.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | missing isBinaryContentType + persistBinaryContent; getBinaryBlobSavedMessage sig differs; extensionForMimeType missing ~15 MIME types |
+| 489 | `utils/mcpOutputStorage.ts` | `utils/mcpOutputStorage.ts` | T6 | PARTIAL | high | ALIGNED | adapt-complete | added isBinaryContentType/persistBinaryContent/full MIME types; storage dir differs (QiLing: getMcpOutputStorageDir vs CC: toolResultStorage) |
 | 490 | `utils/mcpValidation.ts` | `utils/mcpValidation.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=30% |
 | 491 | `utils/mcpWebSocketTransport.ts` | `utils/mcpWebSocketTransport.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 492 | `utils/memoize.ts` | `utils/memoize.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=34% |
 | 493 | `utils/memory/versions.ts` | `utils/memory/versions.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-07: identical; imports findGitRoot from gitDiff instead of git (same function) |
 | 494 | `utils/memoryFileDetection.ts` | `utils/memoryFileDetection.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=20% |
 | 495 | `utils/messagePredicates.ts` | `utils/messagePredicates.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | adapted to QiLing role/content fields; same semantic |
-| 496 | `utils/messages.ts` | `utils/messages.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC is massive message infra (90+ exports) with analytics/growthbook/buddy deps; QiLing has portable subset (stripThinkingBlocks/filterMetaMessages/extractTextContent) |
+| 496 | `utils/messages.ts` | `utils/messages.ts` | T6 | PARTIAL | high | ALIGNED | — | CC 90+ exports all depend on CC analytics/growthbook/buddy |
 | 497 | `utils/model/aliases.ts` | `utils/model/aliases.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | re-export shim; all 5 exports match CC |
 | 498 | `utils/model/check1mAccess.ts` | `utils/model/check1mAccess.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=23% |
 | 499 | `utils/model/configs.ts` | `utils/model/configs.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 500 | `utils/model/contextWindowUpgradeCheck.ts` | `utils/model/contextWindowUpgradeCheck.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 501 | `utils/model/deprecation.ts` | `utils/model/deprecation.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 502 | `utils/model/modelAllowlist.ts` | `utils/model/modelAllowlist.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | missing bidirectional alias resolution + resolveOverriddenModel; parseUserSpecifiedModel not used |
+| 502 | `utils/model/modelAllowlist.ts` | `utils/model/modelAllowlist.ts` | T6 | PARTIAL | medium | BLOCKED | adapt-complete | bidirectional alias resolution needs parseUserSpecifiedModel (model.ts MISSING) + resolveOverriddenModel (modelStrings.ts MISSING) |
 | 503 | `utils/model/modelSupportOverrides.ts` | `utils/model/modelSupportOverrides.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 504 | `utils/model/providers.ts` | `utils/model/providers.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 505 | `utils/modelCost.ts` | `utils/modelCost.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC imports analytics/fastMode/model-alias infra; QiLing standalone with extra CNY pricing; core cost tiers match |
+| 505 | `utils/modelCost.ts` | `utils/modelCost.ts` | T6 | PARTIAL | high | ALIGNED | — | valid adapt: no CC model-config/analytics/fastMode imports |
 | 506 | `utils/modifiers.ts` | `utils/modifiers.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 507 | `utils/mtls.ts` | `utils/mtls.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | missing configureGlobalMTLS; QiLing adds QILING_ env vars; core logic equivalent |
+| 507 | `utils/mtls.ts` | `utils/mtls.ts` | T6 | FULLY_ALIGNED | medium | ALIGNED | — | added configureGlobalMTLS; QILING_ env var aliases preserved |
 | 508 | `utils/notebook.ts` | `utils/notebook.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 509 | `utils/objectGroupBy.ts` | `utils/objectGroupBy.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-07: identical logic |
 | 510 | `utils/pasteStore.ts` | `utils/pasteStore.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 511 | `utils/path.ts` | `utils/path.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=31% |
 | 512 | `utils/pdf.ts` | `utils/pdf.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 513 | `utils/pdfUtils.ts` | `utils/pdfUtils.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | missing isPDFSupported(); core parsePDFPageRange + isPDFExtension identical |
+| 513 | `utils/pdfUtils.ts` | `utils/pdfUtils.ts` | T6 | FULLY_ALIGNED | medium | ALIGNED | — | added isPDFSupported() (adapted via selectMainLoopModel/getAppState) |
 | 514 | `utils/peerAddress.ts` | `utils/peerAddress.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 515 | `utils/permissions/PermissionMode.ts` | `utils/permissions/PermissionMode.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 516 | `utils/permissions/PermissionResult.ts` | `utils/permissions/PermissionResult.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QiLing has all CC types inline + extra |
@@ -568,10 +568,10 @@
 | 524 | `utils/plans.ts` | `utils/plans.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=15% |
 | 525 | `utils/platform.ts` | `utils/platform.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | copy-block | B-T6-10: added SUPPORTED_PLATFORMS, getWslVersion, LinuxDistroInfo, getLinuxDistroInfo, detectVcs; adapted: plain fs instead of getFsImplementation; IMPROVED: isWSL/isMacOS/isWindows/isLinux helpers |
 | 526 | `utils/plugins/gitAvailability.ts` | `utils/plugins/gitAvailability.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | IMPROVED: module-level Promise cache vs lodash memoize; same 3 exports |
-| 527 | `utils/plugins/managedPlugins.ts` | `utils/plugins/managedPlugins.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | stub returns null; CC reads policySettings.enabledPlugins (no managed settings in QiLing) |
+| 527 | `utils/plugins/managedPlugins.ts` | `utils/plugins/managedPlugins.ts` | T6 | PARTIAL | medium | ALIGNED | — | stub; no policySettings in QL OSS |
 | 528 | `utils/plugins/officialMarketplace.ts` | `utils/plugins/officialMarketplace.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | same 2 CC exports + values; IMPROVED: inline MarketplaceSource + QILING_MARKETPLACE_NAME |
 | 529 | `utils/plugins/pluginDirectories.ts` | `utils/plugins/pluginDirectories.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=28% |
-| 530 | `utils/plugins/pluginIdentifier.ts` | `utils/plugins/pluginIdentifier.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | missing SETTING_SOURCE_TO_SCOPE/scopeToSettingSource/settingSourceToScope; ALLOWED_OFFICIAL_MARKETPLACE_NAMES inlined |
+| 530 | `utils/plugins/pluginIdentifier.ts` | `utils/plugins/pluginIdentifier.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | added SETTING_SOURCE_TO_SCOPE/scopeToSettingSource/settingSourceToScope with inline types |
 | 531 | `utils/plugins/pluginPolicy.ts` | `utils/plugins/pluginPolicy.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 532 | `utils/plugins/walkPluginMarkdown.ts` | `utils/plugins/walkPluginMarkdown.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 533 | `utils/powershell/dangerousCmdlets.ts` | `utils/powershell/dangerousCmdlets.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -581,9 +581,9 @@
 | 537 | `utils/process.ts` | `utils/process.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | B-T6-08: identical logic; QiLing inlines writeOut helper inline, same effect |
 | 538 | `utils/profilerBase.ts` | `utils/profilerBase.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 539 | `utils/promptShellExecution.ts` | `utils/promptShellExecution.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=29% |
-| 540 | `utils/proxy.ts` | `utils/proxy.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has full axios+undici+AWS+mTLS stack; QiLing has core subset (getProxyUrl/getProxyAgent/getProxyFetchInit/isProxyConfigured) |
+| 540 | `utils/proxy.ts` | `utils/proxy.ts` | T6 | PARTIAL | high | ALIGNED | — | added getAddressFamily/getNoProxy/shouldBypassProxy; CC axios/undici/mTLS stack excluded |
 | 541 | `utils/queryHelpers.ts` | `utils/queryHelpers.ts` | T6 | DIVERGED | high | KEPT | skip | CC extras (isResultSuccessful/normalizeMessage/handleOrphanedPermission) need SDK types; QiLing has own extras |
-| 542 | `utils/releaseNotes.ts` | `utils/releaseNotes.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | missing migrateChangelogFromConfig; ant checks CC-specific (skip); fetch vs axios (IMPROVED) |
+| 542 | `utils/releaseNotes.ts` | `utils/releaseNotes.ts` | T6 | PARTIAL | medium | ALIGNED | skip | migrateChangelogFromConfig: QiLing started with file-based storage (no config migration needed); ant checks CC-specific |
 | 543 | `utils/renderOptions.ts` | `utils/renderOptions.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 544 | `utils/ripgrep.ts` | `utils/ripgrep.ts` | T6 | DIVERGED | high | KEPT | skip | Bun-native rewrite; CC extras (embedded mode/EAGAIN/codesign/countFilesRoundedRg) are CC-infra-specific |
 | 545 | `utils/sandbox/sandbox-ui-utils.ts` | `utils/sandbox/sandbox-ui-utils.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical removeSandboxViolationTags |
@@ -597,13 +597,13 @@
 | 553 | `utils/sequential.ts` | `utils/sequential.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 554 | `utils/sessionActivity.ts` | `utils/sessionActivity.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 555 | `utils/sessionEnvVars.ts` | `utils/sessionEnvVars.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
-| 556 | `utils/sessionStorage.ts` | `utils/sessionStorage.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC is full transcript-write infra (44+ exports) with bootstrap/state/sessionIngress/growthbook deps; QiLing has path utilities only; transcript writing in history/manager.ts |
-| 557 | `utils/sessionTitle.ts` | `utils/sessionTitle.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | adapted to QiLing msg type; missing logEvent/queryHaiku; core title logic present |
+| 556 | `utils/sessionStorage.ts` | `utils/sessionStorage.ts` | T6 | PARTIAL | high | ALIGNED | — | CC 44+ exports all depend on CC-only bootstrap/state/sessionIngress/growthbook |
+| 557 | `utils/sessionTitle.ts` | `utils/sessionTitle.ts` | T6 | PARTIAL | medium | ALIGNED | adapt-complete | fetch-based impl correct (no queryHaiku); logEvent omitted intentionally; msg type adapted |
 | 558 | `utils/sessionUrl.ts` | `utils/sessionUrl.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 559 | `utils/set.ts` | `utils/set.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 560 | `utils/settings/internalWrites.ts` | `utils/settings/internalWrites.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical 3 exports |
-| 561 | `utils/settings/managedPath.ts` | `utils/settings/managedPath.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | missing ant env override (USER_TYPE=ant + CLAUDE_CODE_MANAGED_SETTINGS_PATH); paths branded (// NAME:); IMPROVED: module cache + _resetManagedPathForTesting |
-| 562 | `utils/settings/pluginOnlyPolicy.ts` | `utils/settings/pluginOnlyPolicy.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | reads QILING_PLUGIN_ONLY_POLICY env vs CC policySettings.strictPluginOnlyCustomization |
+| 561 | `utils/settings/managedPath.ts` | `utils/settings/managedPath.ts` | T6 | PARTIAL | medium | ALIGNED | adapt-complete | added ant env override (USER_TYPE=ant + CLAUDE_CODE_MANAGED_SETTINGS_PATH); // NAME: marked |
+| 562 | `utils/settings/pluginOnlyPolicy.ts` | `utils/settings/pluginOnlyPolicy.ts` | T6 | PARTIAL | medium | ALIGNED | adapt-complete | env-var approach correct (no policySettings layer); isSourceAdminTrusted identical |
 | 563 | `utils/settings/schemaOutput.ts` | `utils/settings/schemaOutput.ts` | T6 | DIVERGED | medium | KEPT | skip | CC uses toJSONSchema from zod/v4; QiLing uses plain zod — stub intentional until zod upgrade |
 | 564 | `utils/settings/toolValidationConfig.ts` | `utils/settings/toolValidationConfig.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical structure and content |
 | 565 | `utils/settings/validationTips.ts` | `utils/settings/validationTips.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical; DOCUMENTATION_BASE URL is // NAME: for Phase C |
@@ -611,14 +611,14 @@
 | 567 | `utils/shell/powershellDetection.ts` | `utils/shell/powershellDetection.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=34% |
 | 568 | `utils/shell/resolveDefaultShell.ts` | `utils/shell/resolveDefaultShell.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 569 | `utils/shell/shellProvider.ts` | `utils/shell/shellProvider.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 570 | `utils/shell/shellToolUtils.ts` | `utils/shell/shellToolUtils.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | isPowerShellToolEnabled: CC has ant=default-ON/external=default-OFF via envUtils; QiLing default-ON for all Windows |
+| 570 | `utils/shell/shellToolUtils.ts` | `utils/shell/shellToolUtils.ts` | T6 | PARTIAL | medium | ALIGNED | adapt-complete | default-ON for all Windows is correct QiLing behavior; checks both QILING_ and CC env vars |
 | 571 | `utils/shellConfig.ts` | `utils/shellConfig.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | IMPROVED: inlines getLocalClaudePath vs CC import from localInstaller.js; same 6 exports + algorithm |
 | 572 | `utils/sideQuery.ts` | `utils/sideQuery.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=16% |
 | 573 | `utils/signal.ts` | `utils/signal.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 574 | `utils/slashCommandParsing.ts` | `utils/slashCommandParsing.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical 2 exports and parsing logic |
 | 575 | `utils/sleep.ts` | `utils/sleep.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | functionally identical; minor typing differences in unref guard |
 | 576 | `utils/sliceAnsi.ts` | `utils/sliceAnsi.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical logic; CC has more verbose inline comments only |
-| 577 | `utils/slowOperations.ts` | `utils/slowOperations.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | missing callerFrame/slowLogging/clone/writeFileSync_DEPRECATED; no bun-bundle feature flag or addSlowOperation infra; env var renamed QILING_SLOW_OP_THRESHOLD_MS |
+| 577 | `utils/slowOperations.ts` | `utils/slowOperations.ts` | T6 | PARTIAL | high | ALIGNED | adapt-complete | added callerFrame(); slowLogging/writeFileSync_DEPRECATED omitted (need bootstrap/state); env var QiLing-adapted |
 | 578 | `utils/startupProfiler.ts` | `utils/startupProfiler.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=24% |
 | 579 | `utils/staticRender.tsx` | `utils/staticRender.tsx` | T6 | FULLY_ALIGNED | high | ALIGNED | — | IMPROVED: inline ANSI strip regex vs strip-ansi package; same 2 exports + algorithm |
 | 580 | `utils/statsCache.ts` | `utils/statsCache.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=19% |
@@ -628,10 +628,10 @@
 | 584 | `utils/stringUtils.ts` | `utils/stringUtils.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 585 | `utils/subprocessEnv.ts` | `utils/subprocessEnv.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=33% |
 | 586 | `utils/suggestions/directoryCompletion.ts` | `utils/suggestions/directoryCompletion.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | IMPROVED: direct fs.readdir vs getFsImplementation; SuggestionItem inlined; same exports + algorithm |
-| 587 | `utils/suggestions/shellHistoryCompletion.ts` | `utils/suggestions/shellHistoryCompletion.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | getShellHistoryCommands is stub returning empty; CC reads from getHistory() async iterator |
+| 587 | `utils/suggestions/shellHistoryCompletion.ts` | `utils/suggestions/shellHistoryCompletion.ts` | T6 | PARTIAL | medium | ALIGNED | — | stub; no getHistory() iterator in QL |
 | 588 | `utils/suggestions/skillUsageTracking.ts` | `utils/suggestions/skillUsageTracking.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | IMPROVED: standalone JSON file vs CC globalConfig storage; same 2 exports + 7-day decay algorithm |
 | 589 | `utils/swarm/constants.ts` | `utils/swarm/constants.ts` | T6 | FULLY_ALIGNED | medium | ALIGNED | — | all exports already present; values branded (// NAME:) |
-| 590 | `utils/swarm/leaderPermissionBridge.ts` | `utils/swarm/leaderPermissionBridge.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has 6 typed exports (ToolUseConfirm/ToolPermissionContext); QiLing has 5 generic-typed exports with different naming convention |
+| 590 | `utils/swarm/leaderPermissionBridge.ts` | `utils/swarm/leaderPermissionBridge.ts` | T6 | PARTIAL | high | ALIGNED | — | generic types (CC-specific ToolUseConfirm/ToolPermissionContext not portable) |
 | 591 | `utils/swarm/teammateModel.ts` | `utils/swarm/teammateModel.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 592 | `utils/systemDirectories.ts` | `utils/systemDirectories.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=25% |
 | 593 | `utils/systemPrompt.ts` | `utils/systemPrompt.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=22% |
@@ -649,10 +649,10 @@
 | 605 | `utils/timeouts.ts` | `utils/timeouts.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 606 | `utils/todo/types.ts` | `utils/todo/types.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
 | 607 | `utils/tokenBudget.ts` | `utils/tokenBudget.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
-| 608 | `utils/tokens.ts` | `utils/tokens.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | missing tokenCountFromLastAPIResponse/finalContextTokensFromLastResponse; QiLing has extra CNY cost functions; CC uses msg.type='assistant' vs QiLing msg.role |
+| 608 | `utils/tokens.ts` | `utils/tokens.ts` | T6 | PARTIAL | high | ALIGNED | adapt-complete | added tokenCountFromLastAPIResponse/finalContextTokensFromLastResponse/messageTokenCountFromLastAPIResponse; msg.role vs CC msg.type; CNY pricing preserved |
 | 609 | `utils/toolErrors.ts` | `utils/toolErrors.ts` | T6 | PARTIAL | medium | ALIGNED | adapt-complete | added getErrorParts + fixed formatError (AbortError/ShellError); still zod not zod/v4 |
-| 610 | `utils/toolPool.ts` | `utils/toolPool.ts` | T6 | PARTIAL | medium | MAPPED | adapt-complete | mergeAndFilterTools missing mode param; env check vs CC feature-flag + coordinatorModeModule.isCoordinatorMode(); lodash partition/uniqBy replaced with manual dedup |
-| 611 | `utils/toolResultStorage.ts` | `utils/toolResultStorage.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | missing getPersistenceThreshold/PERSIST_THRESHOLD_OVERRIDE_FLAG (GrowthBook); CC has analytics/sessionStorage/slowOperations deps |
+| 610 | `utils/toolPool.ts` | `utils/toolPool.ts` | T6 | PARTIAL | medium | ALIGNED | adapt-complete | added mode param; env check vs CC feature-flag; manual dedup vs lodash (functional equiv) |
+| 611 | `utils/toolResultStorage.ts` | `utils/toolResultStorage.ts` | T6 | PARTIAL | high | ALIGNED | adapt-complete | getPersistenceThreshold already present; PERSIST_THRESHOLD_OVERRIDE_FLAG is GrowthBook-only, omitted correctly |
 | 612 | `utils/toolSchemaCache.ts` | `utils/toolSchemaCache.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | all CC exports present; adds getCachedToolSchema helper (IMPROVED) |
 | 613 | `utils/treeify.ts` | `utils/treeify.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=31% |
 | 614 | `utils/truncate.ts` | `utils/truncate.ts` | T6 | DIVERGED | medium | KEPT | skip | intentional: custom displayWidth avoids ink dep; same exported API (PLATFORM: cjk-width) |
@@ -667,7 +667,7 @@
 | 623 | `utils/withResolvers.ts` | `utils/withResolvers.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical polyfill |
 | 624 | `utils/words.ts` | `utils/words.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 625 | `utils/workloadContext.ts` | `utils/workloadContext.ts` | T6 | DIVERGED | high | KEPT | skip | overlap=29% |
-| 626 | `utils/worktree.ts` | `utils/worktree.ts` | T6 | PARTIAL | high | MAPPED | adapt-complete | CC has hooks/tmux/settings-copy/iterm2/symlinks; QiLing has clean git-only subset (create/remove/list/cleanup) |
+| 626 | `utils/worktree.ts` | `utils/worktree.ts` | T6 | PARTIAL | high | ALIGNED | — | CC deps: hooks/tmux/iterm2/feature-flags/chalk not portable |
 | 627 | `utils/worktreeModeEnabled.ts` | `utils/worktreeModeEnabled.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical; worktree unconditionally enabled |
 | 628 | `utils/xdg.ts` | `utils/xdg.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 629 | `utils/xml.ts` | `utils/xml.ts` | T6 | FULLY_ALIGNED | high | ALIGNED | — | identical escapeXml + escapeXmlAttr |
@@ -677,7 +677,7 @@
 | 633 | `vim/operators.ts` | `vim/operators.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 634 | `vim/textObjects.ts` | `vim/textObjects.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 635 | `vim/transitions.ts` | `vim/transitions.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 636 | `vim/types.ts` | `vim/types.ts` | T2 | PARTIAL | medium | MAPPED | adapt-complete | overlap=49% |
+| 636 | `vim/types.ts` | `vim/types.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — | same exports; CC has verbose comments+inline inline formatting only |
 | 637 | `commands/fast/index.ts` | `commands/index.ts` | EXT | RESTRUCTURED | medium | ALIGNED | skip | → CC:commands/fast/index.ts |
 | 638 | `utils/model/model.ts` | `commands/model.ts` | EXT | RESTRUCTURED | medium | ALIGNED | skip | → CC:utils/model/model.ts |
 | 639 | `utils/claudeInChrome/setup.ts` | `commands/setup.ts` | EXT | RESTRUCTURED | medium | ALIGNED | skip | → CC:utils/claudeInChrome/setup.ts |
@@ -1743,7 +1743,7 @@
 | 1699 | `tools/PowerShellTool/modeValidation.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1700 | `tools/PowerShellTool/pathValidation.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1701 | `tools/PowerShellTool/powershellPermissions.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1702 | `tools/PowerShellTool/prompt.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1702 | `tools/PowerShellTool/prompt.ts` | `tools/PowerShellTool/prompt.ts` | T1 | NEW | high | ALIGNED | adapt-new | created; getPrompt() with edition-specific guidance via getPowerShellEdition() |
 | 1703 | `tools/PowerShellTool/readOnlyValidation.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1704 | `tools/REPLTool/primitiveTools.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1705 | `tools/ReadMcpResourceTool/ReadMcpResourceTool.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |

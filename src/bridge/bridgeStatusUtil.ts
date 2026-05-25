@@ -5,6 +5,7 @@
  * shimmer animation, URL building, status labels, footer text.
  */
 
+import { getClaudeAiBaseUrl, getRemoteSessionUrl } from '../constants/product.js'
 import { stringWidth } from '../ink/stringWidth.js'
 import { formatDuration } from '../utils/format.js'
 import { truncateToWidth } from '../utils/truncate.js'
@@ -28,12 +29,12 @@ export function abbreviateActivity(summary: string): string {
 }
 
 export function buildBridgeConnectUrl(environmentId: string, ingressUrl?: string): string {
-  const base = ingressUrl ?? 'https://claude.ai'
-  return `${base}/code?bridge=${environmentId}`
+  const baseUrl = getClaudeAiBaseUrl(undefined, ingressUrl)
+  return `${baseUrl}/code?bridge=${environmentId}`
 }
 
 export function buildBridgeSessionUrl(sessionId: string, environmentId: string, ingressUrl?: string): string {
-  const base = ingressUrl ?? 'https://claude.ai'
+  const base = getRemoteSessionUrl(sessionId, ingressUrl)
   return `${base}/session/${sessionId}?bridge=${environmentId}`
 }
 

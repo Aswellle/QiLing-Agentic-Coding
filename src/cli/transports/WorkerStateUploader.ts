@@ -64,18 +64,27 @@ export class WorkerStateUploader {
   }
 }
 
-function coalescePatches(base: Record<string, unknown>, patch: Record<string, unknown>): Record<string, unknown> {
-  const result = { ...base }
-  for (const [key, value] of Object.entries(patch)) {
-    if (key === 'external_metadata' || key === 'internal_metadata') {
-      result[key] = mergeMeta(result[key] as Record<string, unknown> | undefined, value as Record<string, unknown>)
+function coalescePatches(
+  base: Record<string, unknown>,
+  overlay: Record<string, unknown>,
+): Record<string, unknown> {
+  const merged = { ...base }
+  for (const [key, value] of Object.entries(overlay)) {
+    if (
+      (key === 'external_metadata' || key === 'internal_metadata') &&
+      merged[key] &&
+      typeof merged[key] === 'object' &&
+      typeof value === 'object' &&
+      value !== null
+    ) {
+      // RFC 7396 merge — overlay keys win, nulls preserved for server-side delete
+      merged[key] = {
+        ...(merged[key] as Record<string, unknown>),
+        ...(value as Record<string, unknown>),
+      }
     } else {
-      result[key] = value
+      merged[key] = value
     }
   }
-  return result
-}
-
-function mergeMeta(base: Record<string, unknown> | undefined, patch: Record<string, unknown>): Record<string, unknown> {
-  return { ...(base ?? {}), ...patch }
+  return merged
 }
