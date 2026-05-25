@@ -28,6 +28,10 @@ export type Props = {
 
 function resolveColor(color: string | undefined, theme: Theme): string | undefined {
   if (!color) return undefined
+  // FROM CC: detect raw color values before theme key lookup
+  if (color.startsWith('rgb(') || color.startsWith('#') || color.startsWith('ansi256(') || color.startsWith('ansi:')) {
+    return color
+  }
   if (color in theme) return theme[color as keyof Theme]
   return color
 }

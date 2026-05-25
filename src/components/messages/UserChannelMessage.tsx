@@ -9,6 +9,7 @@ import React from 'react'
 import { Box, Text } from 'ink'
 import { CHANNEL_ARROW } from '../../constants/figures.js'
 import { CHANNEL_TAG } from '../../constants/xml.js'
+import { truncateToWidth } from '../../utils/format.js'
 
 type Props = {
   addMargin: boolean
@@ -25,26 +26,27 @@ function displayServerName(name: string): string {
   return i === -1 ? name : name.slice(i + 1)
 }
 
-const TRUNCATE_AT = 80
+// FROM CC: reduced from 80 to 60 to match CC's terminal width budget
+const TRUNCATE_AT = 60
 
 export function UserChannelMessage({ addMargin, text }: Props): React.ReactNode {
   const m = CHANNEL_RE.exec(text)
   if (!m) return null
 
   const [, source, attrs, content] = m
-  const userMatch = USER_ATTR_RE.exec(attrs ?? '')
-  const user = userMatch?.[1]
+  const user = USER_ATTR_RE.exec(attrs ?? '')?.[1]
   const displaySource = displayServerName(source ?? '')
-  const truncatedContent = (content ?? '').slice(0, TRUNCATE_AT)
-  const isTruncated = (content ?? '').length > TRUNCATE_AT
+  // FROM CC: normalize whitespace before truncating
+  const body = (content ?? '').trim().replace(/\s+/g, ' ')
+  const truncated = truncateToWidth(body, TRUNCATE_AT)
 
   return (
     <Box marginTop={addMargin ? 1 : 0} flexDirection="row" gap={1}>
-      <Text color="cyan">{CHANNEL_ARROW}</Text>
+      <Text color="cyan">{CHANNEL_ARROW}</Text>{/* QILING-IDENTITY: theme key 'suggestion' → 'cyan' */}
       <Text dimColor>{displaySource}</Text>
       {user && <Text dimColor>@{user}</Text>}
       <Text dimColor>:</Text>
-      <Text>{truncatedContent}{isTruncated ? '…' : ''}</Text>
+      <Text>{truncated}</Text>
     </Box>
   )
 }

@@ -9,33 +9,22 @@
  * return <Box ref={ref}>{isVisible ? '●' : ' '}</Box>
  */
 
-import { useState, useEffect, useRef } from 'react'
+// FROM CC: rewritten to use useAnimationFrame + useTerminalFocus for synced, offscreen-aware blinking
+import { useAnimationFrame } from '../ink/hooks/use-animation-frame.js'
+import { useTerminalFocus } from '../ink/hooks/use-terminal-focus.js'
 
 const BLINK_INTERVAL_MS = 600
 
-type BlinkRef = (element: unknown) => void
-
 export function useBlink(
   enabled: boolean,
-  intervalMs = BLINK_INTERVAL_MS,
-): [ref: BlinkRef, isVisible: boolean] {
-  const [isVisible, setIsVisible] = useState(true)
-  const timerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined)
-  const refCallback: BlinkRef = (_element) => { /* element tracking */ }
+  intervalMs: number = BLINK_INTERVAL_MS,
+) {
+  const focused = useTerminalFocus()
+  const [ref, time] = useAnimationFrame(enabled && focused ? intervalMs : null)
 
-  useEffect(() => {
-    if (!enabled) {
-      setIsVisible(true)
-      return
-    }
-    let tick = 0
-    timerRef.current = setInterval(() => {
-      tick++
-      setIsVisible(tick % 2 === 0)
-    }, intervalMs)
-    timerRef.current.unref?.()
-    return () => clearInterval(timerRef.current)
-  }, [enabled, intervalMs])
+  if (!enabled || !focused) return [ref, true] as const
 
-  return [refCallback, isVisible]
+  // Derive blink state from time - all instances see the same time so they sync
+  const isVisible = Math.floor(time / intervalMs) % 2 === 0
+  return [ref, isVisible] as const
 }

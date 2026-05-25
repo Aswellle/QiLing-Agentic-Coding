@@ -38,8 +38,9 @@ type Return = {
   cursorOffset: number
 }
 
+// FROM CC: lowercase wheel names, added 'mouse'
 const UNHANDLED_SPECIAL_KEYS = new Set([
-  'pageup', 'pagedown', 'insert', 'wheelUp', 'wheelDown',
+  'pageup', 'pagedown', 'insert', 'wheelup', 'wheeldown', 'mouse',
   'f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'f7', 'f8', 'f9', 'f10', 'f11', 'f12',
 ])
 
@@ -117,8 +118,9 @@ export function useSearchInput({
       }
 
       // Arrows with modifiers = word jump
-      if (key.leftArrow && (key.ctrl || key.meta)) { setCursorOffset(cursor.prevWORD().offset); return }
-      if (key.rightArrow && (key.ctrl || key.meta)) { setCursorOffset(cursor.nextWORD().offset); return }
+      // FROM CC: prevWord/nextWord use Intl.Segmenter (CJK-aware) instead of Vim WORD
+      if (key.leftArrow && (key.ctrl || key.meta)) { setCursorOffset(cursor.prevWord().offset); return }
+      if (key.rightArrow && (key.ctrl || key.meta)) { setCursorOffset(cursor.nextWord().offset); return }
       if (key.leftArrow) { setCursorOffset(cursor.left().offset); return }
       if (key.rightArrow) { setCursorOffset(cursor.right().offset); return }
       // home/end keys (key.home/key.end not in Ink's Key type, fall back to ctrl+a/e)
@@ -174,8 +176,8 @@ export function useSearchInput({
       // Meta bindings
       if (key.meta) {
         switch (input.toLowerCase()) {
-          case 'b': setCursorOffset(cursor.prevWORD().offset); return
-          case 'f': setCursorOffset(cursor.nextWORD().offset); return
+          case 'b': setCursorOffset(cursor.prevWord().offset); return
+          case 'f': setCursorOffset(cursor.nextWord().offset); return
           case 'd': { const nc = cursor.deleteWordAfter(); setQueryState(nc.text); setCursorOffset(nc.offset); return }
           case 'y': {
             const pop = yankPop()

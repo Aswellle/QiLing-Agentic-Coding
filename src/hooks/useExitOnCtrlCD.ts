@@ -61,7 +61,8 @@ export function useExitOnCtrlCD(
     [handleInterrupt, handleExit],
   )
 
-  useKeybindingsHook(handlers, { isActive })
+  // FROM CC: context: 'Global' scopes these keybindings to the top-level context
+  useKeybindingsHook(handlers, { context: 'Global', isActive })
 
   return exitState
 }

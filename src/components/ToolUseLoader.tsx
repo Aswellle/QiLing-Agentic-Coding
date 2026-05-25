@@ -24,7 +24,7 @@ export function ToolUseLoader({ isError, isUnresolved, shouldAnimate }: Props): 
   // WARNING: dim→bold adjacency can cause rendering artifacts in chalk
   // where </dim> and </bold> both use \x1b[22m. Keep dimColor and bold separate.
   return (
-    <Box minWidth={2}>
+    <Box ref={ref} minWidth={2}>
       <Text color={color} dimColor={isUnresolved}>
         {!shouldAnimate || isBlinking || isError || !isUnresolved
           ? BLACK_CIRCLE

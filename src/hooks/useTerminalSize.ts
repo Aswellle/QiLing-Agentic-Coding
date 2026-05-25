@@ -1,28 +1,22 @@
 /**
  * Terminal size hook — adapted from CC's hooks/useTerminalSize.ts
  *
- * Returns current terminal dimensions, updated on SIGWINCH.
+ * Returns current terminal dimensions from TerminalSizeContext (set by App).
+ * Throws if used outside an Ink App component.
  */
 
-import { useEffect, useState } from 'react'
+// FROM CC: use TerminalSizeContext (provided by App) instead of direct process.stdout polling
+import { useContext } from 'react'
+import { type TerminalSize, TerminalSizeContext } from '../ink/components/TerminalSizeContext.js'
 
-export type TerminalSize = { rows: number; columns: number }
-
-function getSize(): TerminalSize {
-  return {
-    rows: process.stdout.rows ?? 24,
-    columns: process.stdout.columns ?? 80,
-  }
-}
+export type { TerminalSize }
 
 export function useTerminalSize(): TerminalSize {
-  const [size, setSize] = useState<TerminalSize>(getSize)
+  const size = useContext(TerminalSizeContext)
 
-  useEffect(() => {
-    const handler = () => setSize(getSize())
-    process.stdout.on('resize', handler)
-    return () => { process.stdout.off('resize', handler) }
-  }, [])
+  if (!size) {
+    throw new Error('useTerminalSize must be used within an Ink App component')
+  }
 
   return size
 }
