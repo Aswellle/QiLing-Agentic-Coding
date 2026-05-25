@@ -11,7 +11,7 @@
   | |__| | | |___ | | | | | (_| |
    \___\_\_|_____|_|_| |_|\__, |
                              __/ |
-  ❀  v0.3.0  ·  AI Coding Agent  |___/  ❀
+  ❀  v0.4.3  ·  AI Coding Agent  |___/  ❀
 ```
 
 **启灵 (QiLing)** — 面向中国开发者的开源终端 AI 编程代理
@@ -374,11 +374,12 @@ bun run build:all        # 全平台
 
 ## 贡献
 
-欢迎 PR！请先阅读：
-- [`docs/04-ARCHITECTURE.md`](docs/04-ARCHITECTURE.md) — 技术架构设计
-- [`docs/06-SECURITY-MODEL.md`](docs/06-SECURITY-MODEL.md) — 安全模型
-- [`docs/07-TESTING-STRATEGY.md`](docs/07-TESTING-STRATEGY.md) — 测试策略
-- [`CLAUDE.md`](CLAUDE.md) — 项目开发规范
+欢迎 PR！请参考：
+- [架构概览](#架构概览) — 核心模块说明
+- [Issues](https://github.com/Aswellle/QiLing-Agentic-Coding/issues) — 功能请求 / Bug 反馈
+- [Discussions](https://github.com/Aswellle/QiLing-Agentic-Coding/discussions) — 设计讨论
+
+代码规范：Biome lint + TypeScript strict；测试使用 `bun:test`（非 Jest）。
 
 ---
 
