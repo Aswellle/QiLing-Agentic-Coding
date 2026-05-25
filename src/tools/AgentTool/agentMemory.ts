@@ -11,6 +11,8 @@
 import { join, normalize, sep } from 'path'
 import { homedir } from 'os'
 import { existsSync, mkdirSync, readFileSync } from 'fs'
+import { getCwd } from '../../utils/cwd.js'
+import { getProjectRoot } from '../../bootstrap/state.js'
 
 const MEMORY_DIR = 'agent-memory'
 const MEMORY_LOCAL_DIR = 'agent-memory-local'
@@ -23,12 +25,30 @@ function sanitizeAgentTypeForPath(agentType: string): string {
   return agentType.replace(/:/g, '-')
 }
 
+// FROM CC: sanitizePath — replaces non-alphanumeric chars for safe dir names
+function sanitizePath(name: string): string {
+  return name.replace(/[^a-zA-Z0-9]/g, '-')
+}
+
 function getGlobalQilingDir(): string {
   return join(homedir(), '.qiling')
 }
 
-function getCwd(): string {
-  return process.cwd()
+// FROM CC: getLocalAgentMemoryDir — supports QILING_REMOTE_MEMORY_DIR for remote mounts
+function getLocalAgentMemoryDir(dirName: string): string {
+  // NAME: CLAUDE_CODE_REMOTE_MEMORY_DIR
+  if (process.env.QILING_REMOTE_MEMORY_DIR) {
+    return (
+      join(
+        process.env.QILING_REMOTE_MEMORY_DIR,
+        'projects',
+        sanitizePath(getProjectRoot()),
+        MEMORY_LOCAL_DIR,
+        dirName,
+      ) + sep
+    )
+  }
+  return join(getCwd(), '.qiling', MEMORY_LOCAL_DIR, dirName) + sep
 }
 
 /**
@@ -42,7 +62,7 @@ export function getAgentMemoryDir(agentType: string, scope: AgentMemoryScope): s
     case 'project':
       return join(getCwd(), '.qiling', MEMORY_DIR, dirName) + sep
     case 'local':
-      return join(getCwd(), '.qiling', MEMORY_LOCAL_DIR, dirName) + sep
+      return getLocalAgentMemoryDir(dirName)
   }
 }
 
@@ -57,13 +77,27 @@ export function getAgentMemoryEntrypoint(agentType: string, scope: AgentMemorySc
  * True if the given absolute path lives inside any agent memory directory.
  */
 export function isAgentMemoryPath(absolutePath: string): boolean {
+  // SECURITY: Normalize to prevent path traversal bypasses via .. segments
   const normalizedPath = normalize(absolutePath)
   const globalBase = getGlobalQilingDir()
-  const cwd = getCwd()
 
   if (normalizedPath.startsWith(join(globalBase, MEMORY_DIR) + sep)) return true
-  if (normalizedPath.startsWith(join(cwd, '.qiling', MEMORY_DIR) + sep)) return true
-  if (normalizedPath.startsWith(join(cwd, '.qiling', MEMORY_LOCAL_DIR) + sep)) return true
+  if (normalizedPath.startsWith(join(getCwd(), '.qiling', MEMORY_DIR) + sep)) return true
+
+  // FROM CC: check remote memory dir for local scope
+  // NAME: QILING_REMOTE_MEMORY_DIR
+  if (process.env.QILING_REMOTE_MEMORY_DIR) {
+    if (
+      normalizedPath.includes(sep + MEMORY_LOCAL_DIR + sep) &&
+      normalizedPath.startsWith(
+        join(process.env.QILING_REMOTE_MEMORY_DIR, 'projects') + sep,
+      )
+    ) {
+      return true
+    }
+  } else if (normalizedPath.startsWith(join(getCwd(), '.qiling', MEMORY_LOCAL_DIR) + sep)) {
+    return true
+  }
 
   return false
 }
@@ -72,7 +106,7 @@ export function getMemoryScopeDisplay(scope: AgentMemoryScope | undefined): stri
   switch (scope) {
     case 'user':    return `User (~/.qiling/${MEMORY_DIR}/)`
     case 'project': return 'Project (.qiling/agent-memory/)'
-    case 'local':   return 'Local (.qiling/agent-memory-local/)'
+    case 'local':   return `Local (${getLocalAgentMemoryDir('...')})`
     default:        return 'None'
   }
 }
