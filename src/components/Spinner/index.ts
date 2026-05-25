@@ -2,8 +2,9 @@
  * Spinner component exports — adapted from CC's components/Spinner/index.ts
  */
 
-// FROM CC: added missing re-exports for FlashingChar/SpinnerGlyph/useShimmerAnimation/useStalledAnimation
+// FROM CC: added missing re-exports for FlashingChar/SpinnerGlyph/GlimmerMessage/useShimmerAnimation/useStalledAnimation
 export { FlashingChar } from './FlashingChar.js'
+export { GlimmerMessage } from './GlimmerMessage.js'
 export { ShimmerChar } from './ShimmerChar.js'
 export { SpinnerGlyph } from './SpinnerGlyph.js'
 export type { SpinnerMode, RGBColor } from './types.js'
