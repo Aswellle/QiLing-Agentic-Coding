@@ -48,14 +48,17 @@ export function forceStopPreventSleep(): void {
 }
 
 function startRestartInterval(): void {
+  // FROM CC: skip on non-macOS (spawnCaffeinate is also no-op, but no need to create the interval)
+  if (process.platform !== 'darwin') return
   if (restartInterval !== null) return
   restartInterval = setInterval(() => {
     if (refCount > 0) {
+      logForDebugging('Restarting caffeinate to maintain sleep prevention')
       killCaffeinate()
       spawnCaffeinate()
     }
   }, RESTART_INTERVAL_MS)
-  restartInterval.unref?.()
+  restartInterval.unref()
 }
 
 function stopRestartInterval(): void {

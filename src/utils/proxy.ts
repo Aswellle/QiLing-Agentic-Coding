@@ -13,7 +13,55 @@
  *   bun add https-proxy-agent
  */
 
+import type { LookupOptions } from 'node:dns'
 import { logForDebugging } from './log.js'
+
+// FROM CC: EnvLike allows injecting env in tests
+type EnvLike = Record<string, string | undefined>
+
+// FROM CC: convert dns.LookupOptions.family to numeric address family
+export function getAddressFamily(options: LookupOptions): 0 | 4 | 6 {
+  switch (options.family) {
+    case 0: case 4: case 6: return options.family
+    case 'IPv6': return 6
+    case 'IPv4': case undefined: return 4
+    default: throw new Error(`Unsupported address family: ${options.family}`)
+  }
+}
+
+// FROM CC: get NO_PROXY env (lowercase preferred over uppercase)
+export function getNoProxy(env: EnvLike = process.env): string | undefined {
+  return env.no_proxy || env.NO_PROXY
+}
+
+// FROM CC: shouldBypassProxy — supports port-specific and comma+space splitting
+export function shouldBypassProxy(
+  urlString: string,
+  noProxy: string | undefined = getNoProxy(),
+): boolean {
+  if (!noProxy) return false
+  if (noProxy === '*') return true
+
+  try {
+    const url = new URL(urlString)
+    const hostname = url.hostname.toLowerCase()
+    const port = url.port || (url.protocol === 'https:' ? '443' : '80')
+    const hostWithPort = `${hostname}:${port}`
+
+    const noProxyList = noProxy.split(/[,\s]+/).filter(Boolean)
+    return noProxyList.some(pattern => {
+      pattern = pattern.toLowerCase().trim()
+      if (pattern.includes(':')) return hostWithPort === pattern
+      if (pattern.startsWith('.')) {
+        const suffix = pattern
+        return hostname === pattern.substring(1) || hostname.endsWith(suffix)
+      }
+      return hostname === pattern
+    })
+  } catch {
+    return false
+  }
+}
 
 let keepAliveDisabled = false
 
