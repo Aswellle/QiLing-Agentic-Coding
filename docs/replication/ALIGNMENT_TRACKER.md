@@ -1,7 +1,7 @@
 # ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 → B (decisions locked)
-> **Last Updated:** 2026-05-25T21:00
+> **Last Updated:** 2026-05-25T23:00
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
 > **Verdict Distribution:** FULLY_ALIGNED 364 | PARTIAL 184 | DIVERGED 89 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
 > **Active Batch / Audit Task:** B-T-CODE-12 ✅ (PromptInput/utils) → next: remaining T2/T6 PARTIAL adapt-verifications (~110 left)
@@ -86,7 +86,7 @@
 | 42 | `components/PromptInput/IssueFlagBanner.tsx` | `components/PromptInput/IssueFlagBanner.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — | ANT-ONLY returns null in both |
 | 43 | `components/PromptInput/PromptInputStashNotice.tsx` | `components/PromptInput/PromptInputStashNotice.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 44 | `components/PromptInput/inputModes.ts` | `components/PromptInput/inputModes.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — | QL extended |
-| 45 | `components/PromptInput/inputPaste.ts` | `components/PromptInput/inputPaste.ts` | T2 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 45 | `components/PromptInput/inputPaste.ts` | `components/PromptInput/inputPaste.ts` | T2 | PARTIAL | medium | ALIGNED | copy-block | added maybeTruncateMessageForInput + inlined getPastedTextRefNumLines |
 | 46 | `components/PromptInput/useMaybeTruncateInput.ts` | `components/PromptInput/useMaybeTruncateInput.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 47 | `components/PromptInput/useShowFastIconHint.ts` | `components/PromptInput/useShowFastIconHint.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 48 | `components/PromptInput/utils.ts` | `components/PromptInput/utils.ts` | T2 | PARTIAL | medium | ALIGNED | adapt-complete | added pageUp/pageDown to isNonSpacePrintable; isVimModeEnabled stub correct (QiLing vim is separate) |
@@ -95,7 +95,7 @@
 | 51 | `components/Spinner/FlashingChar.tsx` | `components/Spinner/FlashingChar.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 52 | `components/Spinner/ShimmerChar.tsx` | `components/Spinner/ShimmerChar.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 53 | `components/Spinner/SpinnerGlyph.tsx` | `components/Spinner/SpinnerGlyph.tsx` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
-| 54 | `components/Spinner/index.ts` | `components/Spinner/index.ts` | T2 | PARTIAL | medium | MAPPED | adapt-complete | stub |
+| 54 | `components/Spinner/index.ts` | `components/Spinner/index.ts` | T2 | PARTIAL | medium | ALIGNED | copy-block | added GlimmerMessage re-export |
 | 55 | `components/Spinner/teammateSelectHint.ts` | `components/Spinner/teammateSelectHint.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 56 | `components/Spinner/useShimmerAnimation.ts` | `components/Spinner/useShimmerAnimation.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
 | 57 | `components/Spinner/useStalledAnimation.ts` | `components/Spinner/useStalledAnimation.ts` | T2 | FULLY_ALIGNED | high | ALIGNED | — |  |
@@ -1198,7 +1198,7 @@
 | 1154 | `components/ShowInIDEPrompt.tsx` | `` | T2 | MISSING | high | UNTOUCHED | copy |  |
 | 1155 | `components/SkillImprovementSurvey.tsx` | `` | T2 | MISSING | high | UNTOUCHED | copy |  |
 | 1156 | `components/Spinner.tsx` | `` | T2 | MISSING | high | UNTOUCHED | copy |  |
-| 1157 | `components/Spinner/GlimmerMessage.tsx` | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1157 | `components/Spinner/GlimmerMessage.tsx` | `components/Spinner/GlimmerMessage.tsx` | T2 | MISSING | high | ALIGNED | adapt-new | clean uncompiled port; SpinnerMode+'tool-use' added to types.ts |
 | 1158 | `components/Spinner/SpinnerAnimationRow.tsx` | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1159 | `components/Spinner/TeammateSpinnerLine.tsx` | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1160 | `components/Spinner/TeammateSpinnerTree.tsx` | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
@@ -1713,7 +1713,7 @@
 | 1669 | `tools/ExitWorktreeTool/UI.tsx` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1670 | `tools/FileEditTool/FileEditTool.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1671 | `tools/FileEditTool/UI.tsx` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1672 | `tools/FileEditTool/utils.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1672 | `tools/FileEditTool/utils.ts` | `src/tools/FileEditTool/utils.ts` | T1 | MISSING | high | ALIGNED | adapt-new | readFileSyncCached→readFileSync('utf-8'); getPatchForDisplay sig adapted |
 | 1673 | `tools/FileReadTool/FileReadTool.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1674 | `tools/FileReadTool/UI.tsx` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1675 | `tools/FileReadTool/limits.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
