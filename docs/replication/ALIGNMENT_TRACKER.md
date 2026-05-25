@@ -1,10 +1,10 @@
 # ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 → B (decisions locked)
-> **Last Updated:** 2026-05-25T23:00
+> **Last Updated:** 2026-05-25T23:30
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
-> **Verdict Distribution:** FULLY_ALIGNED 364 | PARTIAL 184 | DIVERGED 89 | RESTRUCTURED 109 | NEW 52 | MISSING 1245  
-> **Active Batch / Audit Task:** B-T-CODE-12 ✅ (PromptInput/utils) → next: remaining T2/T6 PARTIAL adapt-verifications (~110 left)
+> **Verdict Distribution:** FULLY_ALIGNED 365 | PARTIAL 184 | DIVERGED 89 | RESTRUCTURED 109 | NEW 52 | MISSING 1244  
+> **Active Batch / Audit Task:** B-T1-TOOLS-01 🟡 — T1 tool subdirectory files (modeValidation ✅, sedEditParser fix ✅)
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL ≈ 20% weighted
 
 ---
@@ -1688,11 +1688,11 @@
 | 1644 | `tools/BashTool/UI.tsx` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1645 | `tools/BashTool/bashCommandHelpers.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1646 | `tools/BashTool/bashPermissions.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1647 | `tools/BashTool/modeValidation.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1647 | `tools/BashTool/modeValidation.ts` | `src/tools/BashTool/modeValidation.ts` | T1 | MISSING | high | ALIGNED | adapt-new | PermissionDecision\|null (null=passthrough); ToolPermissionContext from state/AppStateStore |
 | 1648 | `tools/BashTool/pathValidation.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1649 | `tools/BashTool/prompt.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1650 | `tools/BashTool/readOnlyValidation.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1651 | `tools/BashTool/sedEditParser.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1651 | `tools/BashTool/sedEditParser.ts` | `src/tools/BashTool/sedEditParser.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — | file exists; tracker had empty target path |
 | 1652 | `tools/BashTool/shouldUseSandbox.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1653 | `tools/BriefTool/BriefTool.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1654 | `tools/BriefTool/UI.tsx` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
