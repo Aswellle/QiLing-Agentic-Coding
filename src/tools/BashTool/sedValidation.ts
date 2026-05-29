@@ -10,6 +10,8 @@
  * and returns { allowed, reason } for BashTool.ts callers.
  */
 
+import type { ToolPermissionContext } from '../../Tool.js'
+import type { PermissionResult } from '../../utils/permissions/PermissionResult.js'
 import { tryParseShellCommand } from '../../utils/bash/shellQuote'
 
 // FROM CC: validateFlagsAgainstAllowlist — handles combined flags like -nE
@@ -352,4 +354,19 @@ export function checkSedSecurity(command: string): { allowed: boolean; reason?: 
     }
   }
   return { allowed: true }
+}
+
+// CC-compat: checkSedConstraints wrapper for bashPermissions.ts
+export function checkSedConstraints(
+  input: { command: string },
+  _context: ToolPermissionContext,
+): PermissionResult {
+  const result = checkSedSecurity(input.command)
+  if (!result.allowed) {
+    return {
+      behavior: 'ask',
+      message: result.reason ?? 'sed command requires approval',
+    }
+  }
+  return { behavior: 'passthrough', message: 'sed constraints ok' }
 }

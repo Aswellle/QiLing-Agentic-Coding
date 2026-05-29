@@ -1,14 +1,14 @@
-/**
- * Bash AST type stubs — compatibility layer for CC's bashSecurity.ts
- *
- * CC uses tree-sitter for full AST analysis. QiLing provides stub types
- * so bashSecurity.ts compiles cleanly; AST-based checks fall back to
- * regex/text-based analysis when no tree-sitter data is available.
- */
+// FROM CC: utils/bash/ast.ts (stub — CC uses tree-sitter WASM, QiLing has no AST)
+// Types updated to match CC's interface for bashPermissions.ts port.
+// All functions are no-ops / stubs; AST path never taken (parser.ts returns null).
 
 export type TreeSitterAnalysis = {
   valid: boolean
   ast?: unknown
+  compoundStructure?: {
+    hasSubshell: boolean
+    hasCommandGroup: boolean
+  }
 }
 
 export type Redirect = {
@@ -20,33 +20,31 @@ export type SimpleCommand = {
   name: string
   args: string[]
   redirects: Redirect[]
+  text: string  // CC-compat: source text span for each subcommand
+  envVars?: Array<{ name: string; value: string }>
 }
 
-export type ParseForSecurityResult = {
-  commands: SimpleCommand[]
-  redirects: Redirect[]
-}
+// CC-compat discriminated union
+export type ParseForSecurityResult =
+  | { kind: 'simple'; commands: SimpleCommand[] }
+  | { kind: 'too-complex'; reason: string; nodeType?: string }
+  | { kind: 'parse-unavailable' }
 
-/**
- * No-op AST analysis — always returns empty results.
- * Callers fall back to regex-based validation.
- */
 export function parseForSecurityFromAst(
-  _analysis: TreeSitterAnalysis | null | undefined,
+  _command: string,
+  _astRoot: unknown,
 ): ParseForSecurityResult {
-  return { commands: [], redirects: [] }
+  // Stub: tree-sitter unavailable — callers check kind !== 'parse-unavailable'
+  return { kind: 'parse-unavailable' }
 }
 
-/**
- * No-op semantics check — always passes.
- */
+// CC-compat: takes SimpleCommand[], returns { ok, reason }
 export function checkSemantics(
-  _analysis: TreeSitterAnalysis | null | undefined,
-): string | null {
-  return null
+  _commands: SimpleCommand[],
+): { ok: boolean; reason: string } {
+  return { ok: true, reason: '' }
 }
 
-/** Type guard helper */
 export function nodeTypeId(_node: unknown): string {
   return ''
 }

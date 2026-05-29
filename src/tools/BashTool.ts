@@ -301,6 +301,12 @@ IMPORTANT: Avoid using this tool to run \`find\`, \`grep\`, \`cat\`, \`head\`, \
     }
   },
 
+  // CC-compat: isReadOnly for bashPermissions.ts — returns true for commands that only read
+  // Stub: returns false (conservative). Full impl pending readOnlyValidation.ts port.
+  isReadOnly(_input: Input): boolean {
+    return false
+  },
+
   toDefinition(): ToolDefinition {
     return {
       name: this.name,

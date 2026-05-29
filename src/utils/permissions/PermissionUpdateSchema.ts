@@ -6,7 +6,7 @@
 
 import { z } from 'zod'
 import { lazySchema } from '../lazySchema.js'
-import { externalPermissionModeSchema } from './PermissionMode.js'
+import { externalPermissionModeSchema, type PermissionMode } from './PermissionMode.js'
 import { permissionBehaviorSchema, permissionRuleValueSchema } from './PermissionRule.js'
 
 export type PermissionUpdateDestination =
@@ -18,14 +18,14 @@ export type PermissionUpdateDestination =
 
 export type PermissionRuleValue = {
   toolName: string
-  ruleContent: string
+  ruleContent?: string
 }
 
 export type PermissionUpdate =
-  | { type: 'addRules'; rules: PermissionRuleValue[]; behavior: 'allow' | 'deny'; destination: PermissionUpdateDestination }
-  | { type: 'replaceRules'; rules: PermissionRuleValue[]; behavior: 'allow' | 'deny'; destination: PermissionUpdateDestination }
-  | { type: 'removeRules'; rules: PermissionRuleValue[]; behavior: 'allow' | 'deny'; destination: PermissionUpdateDestination }
-  | { type: 'setMode'; mode: string; destination: PermissionUpdateDestination }
+  | { type: 'addRules'; rules: PermissionRuleValue[]; behavior: 'allow' | 'deny' | 'ask'; destination: PermissionUpdateDestination }
+  | { type: 'replaceRules'; rules: PermissionRuleValue[]; behavior: 'allow' | 'deny' | 'ask'; destination: PermissionUpdateDestination }
+  | { type: 'removeRules'; rules: PermissionRuleValue[]; behavior: 'allow' | 'deny' | 'ask'; destination: PermissionUpdateDestination }
+  | { type: 'setMode'; mode: PermissionMode; destination: PermissionUpdateDestination }
   | { type: 'addDirectories'; directories: string[]; destination: PermissionUpdateDestination }
   | { type: 'removeDirectories'; directories: string[]; destination: PermissionUpdateDestination }
 

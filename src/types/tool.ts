@@ -117,6 +117,8 @@ export interface Tool<TInput = Record<string, unknown>> {
    * Mirrors CC's isConcurrencySafe() on Tool.
    */
   isConcurrencySafe?(input: TInput): boolean
+  /** CC-compat: returns true if the given input is read-only (no write operations). */
+  isReadOnly?(input: TInput): boolean
 
   /**
    * Maximum result size in characters before microcompact truncation.

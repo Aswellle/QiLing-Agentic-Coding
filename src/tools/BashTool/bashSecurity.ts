@@ -205,3 +205,25 @@ export function bashCommandIsSafe(command: string): BashSecurityResult {
 export function stripSafeHeredocSubstitutions(command: string): string {
   return extractHeredocs(command).processedCommand
 }
+
+// CC-compat: async wrapper + passthrough-based result type for bashPermissions.ts
+export type BashCommandIsSafeAsyncResult = {
+  behavior: 'passthrough' | 'ask'
+  message?: string
+  isBashSecurityCheckForMisparsing?: boolean
+}
+
+export async function bashCommandIsSafeAsync_DEPRECATED(
+  command: string,
+  _onDivergence?: () => void,
+): Promise<BashCommandIsSafeAsyncResult> {
+  const result = bashCommandIsSafe(command)
+  if (result.behavior === 'allow') {
+    return { behavior: 'passthrough' }
+  }
+  return {
+    behavior: 'ask',
+    message: result.message,
+    isBashSecurityCheckForMisparsing: true,
+  }
+}

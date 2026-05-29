@@ -1,10 +1,10 @@
 # ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 → B (decisions locked)
-> **Last Updated:** 2026-05-29T00:00
+> **Last Updated:** 2026-05-29T12:00
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
 > **Verdict Distribution:** FULLY_ALIGNED 366 | PARTIAL 194 | DIVERGED 89 | RESTRUCTURED 156 | NEW 52 | MISSING 1186  
-> **Active Batch / Audit Task:** B-T1-TOOLS-01 🟡 — T1 tool subdirectory files (session 3: BashTool/prompt.ts ✅; remaining BashTool logic files BLOCKED on bashPermissions.ts + T6 deps; next: port T6 utility layer to unblock T1)
+> **Active Batch / Audit Task:** B-T1-TOOLS-01 🟡 — session 4 done: bashPermissions.ts full port ✅; T6 stubs: parser/debug/permissions/PermissionUpdate/permissionRuleParser; BashTool stubs: pathValidation/shouldUseSandbox/bashCommandHelpers
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL ≈ 20% weighted
 
 ---
@@ -1686,14 +1686,14 @@
 | 1642 | `tools/BashTool/BashTool.tsx` | `tools/BashTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
 | 1643 | `tools/BashTool/BashToolResultMessage.tsx` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1644 | `tools/BashTool/UI.tsx` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1645 | `tools/BashTool/bashCommandHelpers.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1646 | `tools/BashTool/bashPermissions.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1645 | `tools/BashTool/bashCommandHelpers.ts` | `tools/BashTool/bashCommandHelpers.ts` | T1 | MISSING | high | ALIGNED | adapt-new | stub: passthrough; blocked on ParsedCommand.ts |
+| 1646 | `tools/BashTool/bashPermissions.ts` | `tools/BashTool/bashPermissions.ts` | T1 | MISSING | high | ALIGNED | adapt-new | full port; stripped bun-bundle/ANT analytics; type shims for ToolPermissionContext/PermissionResult |
 | 1647 | `tools/BashTool/modeValidation.ts` | `src/tools/BashTool/modeValidation.ts` | T1 | PARTIAL | high | ALIGNED | adapt-new | PermissionDecision\|null (null=passthrough); ToolPermissionContext from state/AppStateStore |
-| 1648 | `tools/BashTool/pathValidation.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1648 | `tools/BashTool/pathValidation.ts` | `tools/BashTool/pathValidation.ts` | T1 | MISSING | high | ALIGNED | adapt-new | stub: passthrough; blocked on filesystem.ts |
 | 1649 | `tools/BashTool/prompt.ts` | `tools/BashTool/prompt.ts` | T1 | MISSING | high | ALIGNED | adapt-new | stripped bun-bundle/ANT features; simplified sandbox section; prependBullets from constants/prompts |
 | 1650 | `tools/BashTool/readOnlyValidation.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1651 | `tools/BashTool/sedEditParser.ts` | `src/tools/BashTool/sedEditParser.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — | file exists; tracker had empty target path |
-| 1652 | `tools/BashTool/shouldUseSandbox.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1652 | `tools/BashTool/shouldUseSandbox.ts` | `tools/BashTool/shouldUseSandbox.ts` | T1 | MISSING | high | ALIGNED | adapt-new | simplified stub; full logic deferred |
 | 1653 | `tools/BriefTool/BriefTool.ts` | `tools/BriefTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
 | 1654 | `tools/BriefTool/UI.tsx` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1655 | `tools/BriefTool/attachments.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
@@ -1789,7 +1789,7 @@
 | 1745 | `types/generated/google/protobuf/timestamp.ts` | `` | T7 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1746 | `types/hooks.ts` | `` | T7 | MISSING | high | UNTOUCHED | copy |  |
 | 1747 | `types/logs.ts` | `` | T7 | MISSING | high | UNTOUCHED | copy |  |
-| 1748 | `types/permissions.ts` | `` | T7 | MISSING | high | UNTOUCHED | copy |  |
+| 1748 | `types/permissions.ts` | `types/permissions.ts` | T7 | MISSING | high | ALIGNED | copy | partial: PendingClassifierCheck + Working/AdditionalDirectory types |
 | 1749 | `types/plugin.ts` | `` | T7 | MISSING | high | UNTOUCHED | copy |  |
 | 1750 | `types/textInputTypes.ts` | `` | T7 | MISSING | high | UNTOUCHED | copy |  |
 | 1751 | `upstreamproxy/relay.ts` | `` | EXT | MISSING | high | UNTOUCHED | copy |  |
@@ -1814,7 +1814,7 @@
 | 1770 | `utils/bash/ShellSnapshot.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1771 | `utils/bash/bashParser.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1772 | `utils/bash/bashPipeCommand.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1773 | `utils/bash/parser.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1773 | `utils/bash/parser.ts` | `utils/bash/parser.ts` | T6 | MISSING | high | ALIGNED | adapt-new | stub: parseCommandRaw returns null (tree-sitter deferred) |
 | 1774 | `utils/bash/prefix.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1775 | `utils/bash/shellCompletion.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1776 | `utils/bash/treeSitterAnalysis.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
@@ -1858,7 +1858,7 @@
 | 1814 | `utils/cronTasks.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1815 | `utils/cronTasksLock.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1816 | `utils/crossProjectResume.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
-| 1817 | `utils/debug.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
+| 1817 | `utils/debug.ts` | `utils/debug.ts` | T6 | MISSING | high | ALIGNED | copy | stub re-export from utils/log.ts |
 | 1818 | `utils/deepLink/banner.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1819 | `utils/deepLink/parseDeepLink.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1820 | `utils/deepLink/protocolHandler.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
@@ -1942,7 +1942,7 @@
 | 1898 | `utils/permissions/permissionExplainer.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1899 | `utils/permissions/permissionRuleParser.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1900 | `utils/permissions/permissionSetup.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1901 | `utils/permissions/permissions.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1901 | `utils/permissions/permissions.ts` | `utils/permissions/permissions.ts` | T6 | MISSING | high | ALIGNED | adapt-new | stub: createPermissionRequestMessage + getRuleByContentsForTool |
 | 1902 | `utils/permissions/permissionsLoader.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1903 | `utils/permissions/shadowedRuleDetection.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1904 | `utils/permissions/yoloClassifier.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |

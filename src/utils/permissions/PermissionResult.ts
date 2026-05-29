@@ -1,26 +1,41 @@
-/**
- * Permission result types — adapted from CC's utils/permissions/PermissionResult.ts
- *
- * Re-exports permission types from the central permissions module
- * and provides a behavior description helper.
- */
+// FROM CC: utils/permissions/PermissionResult.ts + types/permissions.ts (merged)
+// Extended to match CC's full type system; backwards-compatible with QiLing's
+// original simplified types.
+
+import type { PendingClassifierCheck } from '../../types/permissions.js'
+import type { PermissionUpdate } from './PermissionUpdateSchema.js'
+import type { PermissionRule } from './PermissionRule.js'
 
 export type PermissionBehavior = 'allow' | 'deny' | 'ask'
 
-export type PermissionDecisionReason = {
-  type: 'tool_rule' | 'glob_rule' | 'classifier' | 'yolo' | 'readonly' | 'plan_mode' | 'other'
-  reason?: string
-  rule?: string
-}
+export type PermissionDecisionReason =
+  | {
+      type: 'tool_rule' | 'glob_rule' | 'classifier' | 'yolo' | 'readonly' | 'plan_mode' | 'other'
+      reason?: string
+      rule?: string
+    }
+  | {
+      type: 'rule'
+      rule: PermissionRule
+      reason?: string
+    }
+  | {
+      type: 'subcommandResults'
+      reasons: Map<string, PermissionResult>
+      reason?: string
+    }
 
 export type PermissionMetadata = {
   ruleContent?: string
 }
 
-export type PermissionAllowDecision = {
+export type PermissionAllowDecision<Input = unknown> = {
   behavior: 'allow'
+  updatedInput?: Input
+  userModified?: boolean
   decisionReason?: PermissionDecisionReason
   metadata?: PermissionMetadata
+  acceptFeedback?: string
 }
 
 export type PermissionDenyDecision = {
@@ -35,6 +50,15 @@ export type PermissionAskDecision = {
   message?: string
   decisionReason?: PermissionDecisionReason
   metadata?: PermissionMetadata
+  suggestions?: PermissionUpdate[]
+  pendingClassifierCheck?: PendingClassifierCheck
+}
+
+export type PermissionPassthroughDecision = {
+  behavior: 'passthrough'
+  message?: string
+  decisionReason?: PermissionDecisionReason
+  suggestions?: PermissionUpdate[]
 }
 
 export type PermissionDecision =
@@ -42,11 +66,12 @@ export type PermissionDecision =
   | PermissionDenyDecision
   | PermissionAskDecision
 
-export type PermissionResult = PermissionDecision
+export type PermissionResult =
+  | PermissionAllowDecision
+  | PermissionDenyDecision
+  | PermissionAskDecision
+  | PermissionPassthroughDecision
 
-/**
- * Get a prose description for a permission behavior.
- */
 export function getRuleBehaviorDescription(
   behavior: PermissionBehavior,
 ): string {

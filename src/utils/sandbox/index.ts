@@ -202,4 +202,9 @@ export const SandboxManager = {
 
   /** Get current sandbox config */
   getConfig,
+
+  /** Auto-allow bash commands when sandboxed (CC-compat stub — always false in QiLing) */
+  isAutoAllowBashIfSandboxedEnabled(): boolean {
+    return false
+  },
 }

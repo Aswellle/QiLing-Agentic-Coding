@@ -1,7 +1,10 @@
-// FROM CC: tools/BashTool/modeValidation.ts
-import type { ToolPermissionContext } from '../../state/AppStateStore.js'
+// FROM CC: tools/BashTool/modeValidation.ts (adapt-new, updated for CC type compat)
+// Changed ToolPermissionContext source to Tool.ts for CC-ported permission files.
+// Return type updated to PermissionResult (passthrough instead of null).
+
 import { splitCommand_DEPRECATED } from '../../utils/bash/commands.js'
-import type { PermissionDecision } from '../../types/tool.js'
+import type { ToolPermissionContext } from '../../Tool.js'
+import type { PermissionResult } from '../../utils/permissions/PermissionResult.js'
 
 const ACCEPT_EDITS_ALLOWED_COMMANDS = [
   'mkdir',
@@ -22,7 +25,7 @@ function isFilesystemCommand(command: string): command is FilesystemCommand {
 function validateCommandForMode(
   cmd: string,
   toolPermissionContext: ToolPermissionContext,
-): PermissionDecision | null {
+): PermissionResult | null {
   const trimmedCmd = cmd.trim()
   const [baseCmd] = trimmedCmd.split(/\s+/)
 
@@ -32,7 +35,7 @@ function validateCommandForMode(
     toolPermissionContext.mode === 'acceptEdits' &&
     isFilesystemCommand(baseCmd)
   ) {
-    return { type: 'allow' }
+    return { behavior: 'allow' }
   }
 
   return null
@@ -40,14 +43,18 @@ function validateCommandForMode(
 
 /**
  * Checks if commands should be handled differently based on the current permission mode.
- * Returns null if no mode-specific handling applies (equivalent to CC's 'passthrough').
+ * Returns passthrough if no mode-specific handling applies.
  */
 export function checkPermissionMode(
   input: { command: string },
   toolPermissionContext: ToolPermissionContext,
-): PermissionDecision | null {
-  if (toolPermissionContext.mode === 'bypassPermissions') return null
-  if (toolPermissionContext.mode === 'dontAsk') return null
+): PermissionResult {
+  if (toolPermissionContext.mode === 'bypassPermissions') {
+    return { behavior: 'passthrough', message: 'bypass permissions mode' }
+  }
+  if (toolPermissionContext.mode === 'dontAsk') {
+    return { behavior: 'passthrough', message: 'dontAsk mode' }
+  }
 
   const commands = splitCommand_DEPRECATED(input.command)
 
@@ -56,7 +63,7 @@ export function checkPermissionMode(
     if (result !== null) return result
   }
 
-  return null
+  return { behavior: 'passthrough', message: 'no mode-specific handling' }
 }
 
 export function getAutoAllowedCommands(
