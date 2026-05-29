@@ -1,7 +1,7 @@
 # ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 → B (decisions locked)
-> **Last Updated:** 2026-05-29T21:30
+> **Last Updated:** 2026-05-29T22:30
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
 > **Verdict Distribution:** FULLY_ALIGNED 366 | PARTIAL 194 | DIVERGED 89 | RESTRUCTURED 156 | NEW 52 | MISSING 1186  
 > **Active Batch / Audit Task:** B-T1-TOOLS-01 🟡 — session 6 done: treeSitterAnalysis/ParsedCommand/readOnlyCommandValidation(full)/bashCommandHelpers(complete)/readOnlyValidation(adapt-new) ✅
@@ -1742,7 +1742,7 @@
 | 1698 | `tools/PowerShellTool/UI.tsx` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1699 | `tools/PowerShellTool/modeValidation.ts` | `tools/PowerShellTool/modeValidation.ts` | T1 | MISSING | high | ALIGNED | copy-verbatim | decisionReason.type 'mode'→'other' |
 | 1700 | `tools/PowerShellTool/pathValidation.ts` | `tools/PowerShellTool/pathValidation.ts` | T1 | MISSING | high | ALIGNED | copy-verbatim | PermissionRule→PermissionRule.ts; safeResolvePath→safeResolvePathCC; blockedPath removed |
-| 1701 | `tools/PowerShellTool/powershellPermissions.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1701 | `tools/PowerShellTool/powershellPermissions.ts` | `tools/PowerShellTool/powershellPermissions.ts` | T1 | MISSING | high | ALIGNED | adapt-new | PermissionResult/PermissionDecisionReason from PermissionResult.ts; all 4 PS deps complete |
 | 1702 | `tools/PowerShellTool/prompt.ts` | `tools/PowerShellTool/prompt.ts` | T1 | NEW | high | ALIGNED | adapt-new | created; getPrompt() with edition-specific guidance via getPowerShellEdition() |
 | 1703 | `tools/PowerShellTool/readOnlyValidation.ts` | `tools/PowerShellTool/readOnlyValidation.ts` | T1 | MISSING | high | ALIGNED | adapt-new | drop isGhSafe ANT guard; GH_READ_ONLY_COMMANDS empty |
 | 1704 | `tools/REPLTool/primitiveTools.ts` | `tools/REPLTool/primitiveTools.ts` | T1 | PARTIAL | high | ALIGNED | adapt-new | flat QiLing imports; lazy getter preserved |
