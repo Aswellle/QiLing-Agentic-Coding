@@ -24,6 +24,11 @@ export type PermissionDecisionReason =
       reasons: Map<string, PermissionResult>
       reason?: string
     }
+  | {
+      type: 'safetyCheck'
+      reason: string
+      classifierApprovable: boolean
+    }
 
 export type PermissionMetadata = {
   ruleContent?: string

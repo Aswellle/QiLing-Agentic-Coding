@@ -1,7 +1,7 @@
 # ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 → B (decisions locked)
-> **Last Updated:** 2026-05-29T14:00
+> **Last Updated:** 2026-05-29T16:00
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
 > **Verdict Distribution:** FULLY_ALIGNED 366 | PARTIAL 194 | DIVERGED 89 | RESTRUCTURED 156 | NEW 52 | MISSING 1186  
 > **Active Batch / Audit Task:** B-T1-TOOLS-01 🟡 — session 4 done: bashPermissions.ts full port ✅; T6 stubs: parser/debug/permissions/PermissionUpdate/permissionRuleParser; BashTool stubs: pathValidation/shouldUseSandbox/bashCommandHelpers
@@ -1693,7 +1693,7 @@
 | 1649 | `tools/BashTool/prompt.ts` | `tools/BashTool/prompt.ts` | T1 | MISSING | high | ALIGNED | adapt-new | stripped bun-bundle/ANT features; simplified sandbox section; prependBullets from constants/prompts |
 | 1650 | `tools/BashTool/readOnlyValidation.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1651 | `tools/BashTool/sedEditParser.ts` | `src/tools/BashTool/sedEditParser.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — | file exists; tracker had empty target path |
-| 1652 | `tools/BashTool/shouldUseSandbox.ts` | `tools/BashTool/shouldUseSandbox.ts` | T1 | MISSING | high | ALIGNED | adapt-new | simplified stub; full logic deferred |
+| 1652 | `tools/BashTool/shouldUseSandbox.ts` | `tools/BashTool/shouldUseSandbox.ts` | T1 | MISSING | high | ALIGNED | adapt-new | full port; stripped ANT analytics; getSettings_DEPRECATED → empty stub |
 | 1653 | `tools/BriefTool/BriefTool.ts` | `tools/BriefTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
 | 1654 | `tools/BriefTool/UI.tsx` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1655 | `tools/BriefTool/attachments.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
@@ -1938,7 +1938,7 @@
 | 1894 | `utils/permissions/classifierDecision.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1895 | `utils/permissions/filesystem.ts` | `utils/permissions/filesystem.ts` | T6 | MISSING | high | ALIGNED | adapt-new | full port; inline stubs for memdir/agentMemory/settings/UNC; adapted getPlanSlug/getPlansDirectory; isScratchpadEnabled=false |
 | 1896 | `utils/permissions/getNextPermissionMode.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1897 | `utils/permissions/pathValidation.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1897 | `utils/permissions/pathValidation.ts` | `utils/permissions/pathValidation.ts` | T6 | MISSING | high | ALIGNED | adapt-new | full port; sandbox-adapter→index; safeResolvePathCC adapter |
 | 1898 | `utils/permissions/permissionExplainer.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1899 | `utils/permissions/permissionRuleParser.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1900 | `utils/permissions/permissionSetup.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
@@ -2025,7 +2025,7 @@
 | 1981 | `utils/shell/bashProvider.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1982 | `utils/shell/powershellProvider.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1983 | `utils/shell/prefix.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1984 | `utils/shell/readOnlyCommandValidation.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1984 | `utils/shell/readOnlyCommandValidation.ts` | `utils/shell/readOnlyCommandValidation.ts` | T6 | MISSING | high | ALIGNED | adapt-new | stub: containsVulnerableUncPath + CC-compat type exports |
 | 1985 | `utils/shell/specPrefix.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1986 | `utils/sideQuestion.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1987 | `utils/sinks.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |

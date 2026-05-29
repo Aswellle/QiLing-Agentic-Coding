@@ -179,3 +179,17 @@ export function getFsImplementation() {
       mkdir(path, { recursive: true, mode: opts?.mode }),
   }
 }
+
+// CC-compat: safeResolvePathCC(fs, absolutePath) → { resolvedPath, isCanonical }
+// CC version takes (fs, absolutePath); QiLing's safeResolvePath takes (path, root).
+export function safeResolvePathCC(
+  _fs: ReturnType<typeof getFsImplementation>,
+  absolutePath: string,
+): { resolvedPath: string; isCanonical: boolean } {
+  try {
+    const resolved = realpathSync(absolutePath)
+    return { resolvedPath: resolved, isCanonical: true }
+  } catch {
+    return { resolvedPath: absolutePath, isCanonical: false }
+  }
+}

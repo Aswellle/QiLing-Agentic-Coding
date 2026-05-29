@@ -207,4 +207,34 @@ export const SandboxManager = {
   isAutoAllowBashIfSandboxedEnabled(): boolean {
     return false
   },
+
+  /** Whether dangerouslyDisableSandbox is allowed by policy (CC-compat stub) */
+  areUnsandboxedCommandsAllowed(): boolean {
+    return true
+  },
+
+  /** Get filesystem write config for permission checking (CC-compat stub) */
+  getFsWriteConfig(): { allowOnly: string[]; denyWithinAllow: string[] } {
+    return { allowOnly: [], denyWithinAllow: [] }
+  },
+
+  /** Get filesystem read config (CC-compat stub) */
+  getFsReadConfig(): { denyOnly?: string[]; allowWithinDeny?: string[] } {
+    return {}
+  },
+
+  /** Get network restriction config (CC-compat stub) */
+  getNetworkRestrictionConfig(): { allowedHosts?: string[]; deniedHosts?: string[] } | null {
+    return null
+  },
+
+  /** Get allowed unix sockets (CC-compat stub) */
+  getAllowUnixSockets(): string[] | undefined {
+    return undefined
+  },
+
+  /** Get ignored violations config (CC-compat stub) */
+  getIgnoreViolations(): unknown {
+    return null
+  },
 }
