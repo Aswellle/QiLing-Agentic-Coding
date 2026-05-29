@@ -1414,13 +1414,13 @@
 | 1370 | `hooks/useApiKeyVerification.ts` | `` | T3 | MISSING | high | UNTOUCHED | copy |  |
 | 1371 | `hooks/useArrowKeyHistory.tsx` | `` | T3 | MISSING | high | UNTOUCHED | copy |  |
 | 1372 | `hooks/useAssistantHistory.ts` | `` | T3 | MISSING | high | UNTOUCHED | copy |  |
-| 1373 | `hooks/useAwaySummary.ts` | `` | T3 | MISSING | high | UNTOUCHED | copy |  |
+| 1373 | `hooks/useAwaySummary.ts` | `hooks/useAwaySummary.ts` | T3 | MISSING | high | ALIGNED | adapt-new | stub: feature('AWAY_SUMMARY') ANT-only, no-op until Phase D |
 | 1374 | `hooks/useBackgroundTaskNavigation.ts` | `` | T3 | MISSING | high | UNTOUCHED | copy |  |
 | 1375 | `hooks/useCanUseTool.tsx` | `` | T3 | MISSING | high | UNTOUCHED | copy |  |
 | 1376 | `hooks/useCancelRequest.ts` | `` | T3 | MISSING | high | UNTOUCHED | copy |  |
 | 1377 | `hooks/useChromeExtensionNotification.tsx` | `` | T3 | MISSING | high | UNTOUCHED | copy |  |
 | 1378 | `hooks/useClaudeCodeHintRecommendation.tsx` | `` | T3 | MISSING | high | UNTOUCHED | copy |  |
-| 1379 | `hooks/useClipboardImageHint.ts` | `` | T3 | MISSING | high | UNTOUCHED | copy |  |
+| 1379 | `hooks/useClipboardImageHint.ts` | `hooks/useClipboardImageHint.ts` | T3 | MISSING | high | ALIGNED | copy-verbatim | +utils/imagePaste.ts stub (osascript/darwin only) |
 | 1380 | `hooks/useCommandKeybindings.tsx` | `` | T3 | MISSING | high | UNTOUCHED | copy |  |
 | 1381 | `hooks/useCommandQueue.ts` | `` | T3 | MISSING | high | UNTOUCHED | copy |  |
 | 1382 | `hooks/useCopyOnSelect.ts` | `` | T3 | MISSING | high | UNTOUCHED | copy |  |
