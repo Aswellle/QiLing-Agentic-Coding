@@ -1,7 +1,7 @@
 # ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 → B (decisions locked)
-> **Last Updated:** 2026-05-29T22:30
+> **Last Updated:** 2026-05-29T23:30
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
 > **Verdict Distribution:** FULLY_ALIGNED 366 | PARTIAL 194 | DIVERGED 89 | RESTRUCTURED 156 | NEW 52 | MISSING 1186  
 > **Active Batch / Audit Task:** B-T1-TOOLS-01 🟡 — session 6 done: treeSitterAnalysis/ParsedCommand/readOnlyCommandValidation(full)/bashCommandHelpers(complete)/readOnlyValidation(adapt-new) ✅
@@ -1372,12 +1372,12 @@
 | 1328 | `components/teams/TeamStatus.tsx` | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1329 | `components/teams/TeamsDialog.tsx` | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1330 | `components/ui/TreeSelect.tsx` | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1331 | `constants/keys.ts` | `` | T7 | MISSING | high | UNTOUCHED | copy |  |
-| 1332 | `constants/oauth.ts` | `` | T7 | MISSING | high | UNTOUCHED | copy |  |
+| 1331 | `constants/keys.ts` | `constants/keys.ts` | T7 | MISSING | high | ALIGNED | adapt-new | stub: returns non-ANT GrowthBook key; ANT staging key removed |
+| 1332 | `constants/oauth.ts` | `constants/oauth.ts` | T7 | MISSING | high | ALIGNED | adapt-new | drop ANT staging/local configs; fixed import path; prod-only |
 | 1333 | `constants/outputStyles.ts` | `` | T7 | MISSING | high | UNTOUCHED | copy |  |
 | 1334 | `constants/prompts.ts` | `constants/prompts.ts` | T7 | PARTIAL | high | ALIGNED | copy | minimal stub: prependBullets only; full 914-line file deferred (deep T6+ deps) |
-| 1335 | `constants/system.ts` | `` | T7 | MISSING | high | UNTOUCHED | copy |  |
-| 1336 | `constants/systemPromptSections.ts` | `` | T7 | MISSING | high | UNTOUCHED | copy |  |
+| 1335 | `constants/system.ts` | `constants/system.ts` | T7 | MISSING | high | ALIGNED | adapt-new | NAME: Claude Code; drop bun:bundle/GrowthBook/cch attestation; MACRO.VERSION→npm_package_version |
+| 1336 | `constants/systemPromptSections.ts` | `constants/systemPromptSections.ts` | T7 | MISSING | high | ALIGNED | copy-verbatim | all deps in bootstrap/state.ts |
 | 1337 | `context/overlayContext.tsx` | `context/overlayContext.tsx` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | OverlayProvider+useOverlayRegistration; depth计数支持嵌套overlay |
 | 1338 | `context/voice.tsx` | `` | T4 | MISSING | high | ALIGNED | adapt-new | 语音状态Context; Phase D接入实际语音后端 |
 | 1339 | `costHook.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
