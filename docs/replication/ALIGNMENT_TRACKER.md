@@ -1,10 +1,10 @@
 # ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 → B (decisions locked)
-> **Last Updated:** 2026-05-25T18:30
+> **Last Updated:** 2026-05-29T00:00
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
 > **Verdict Distribution:** FULLY_ALIGNED 366 | PARTIAL 194 | DIVERGED 89 | RESTRUCTURED 156 | NEW 52 | MISSING 1186  
-> **Active Batch / Audit Task:** B-T1-TOOLS-01 🟡 — T1 tool subdirectory files (session 2: verificationAgent, ConfigTool/prompt+settings, REPLTool/primitiveTools, FallbackToolUseErrorMessage)
+> **Active Batch / Audit Task:** B-T1-TOOLS-01 🟡 — T1 tool subdirectory files (session 3: BashTool/prompt.ts ✅; remaining BashTool logic files BLOCKED on bashPermissions.ts + T6 deps; next: port T6 utility layer to unblock T1)
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL ≈ 20% weighted
 
 ---
@@ -1375,7 +1375,7 @@
 | 1331 | `constants/keys.ts` | `` | T7 | MISSING | high | UNTOUCHED | copy |  |
 | 1332 | `constants/oauth.ts` | `` | T7 | MISSING | high | UNTOUCHED | copy |  |
 | 1333 | `constants/outputStyles.ts` | `` | T7 | MISSING | high | UNTOUCHED | copy |  |
-| 1334 | `constants/prompts.ts` | `` | T7 | MISSING | high | UNTOUCHED | copy |  |
+| 1334 | `constants/prompts.ts` | `constants/prompts.ts` | T7 | PARTIAL | high | ALIGNED | copy | minimal stub: prependBullets only; full 914-line file deferred (deep T6+ deps) |
 | 1335 | `constants/system.ts` | `` | T7 | MISSING | high | UNTOUCHED | copy |  |
 | 1336 | `constants/systemPromptSections.ts` | `` | T7 | MISSING | high | UNTOUCHED | copy |  |
 | 1337 | `context/overlayContext.tsx` | `context/overlayContext.tsx` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | OverlayProvider+useOverlayRegistration; depth计数支持嵌套overlay |
@@ -1690,7 +1690,7 @@
 | 1646 | `tools/BashTool/bashPermissions.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1647 | `tools/BashTool/modeValidation.ts` | `src/tools/BashTool/modeValidation.ts` | T1 | PARTIAL | high | ALIGNED | adapt-new | PermissionDecision\|null (null=passthrough); ToolPermissionContext from state/AppStateStore |
 | 1648 | `tools/BashTool/pathValidation.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1649 | `tools/BashTool/prompt.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1649 | `tools/BashTool/prompt.ts` | `tools/BashTool/prompt.ts` | T1 | MISSING | high | ALIGNED | adapt-new | stripped bun-bundle/ANT features; simplified sandbox section; prependBullets from constants/prompts |
 | 1650 | `tools/BashTool/readOnlyValidation.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1651 | `tools/BashTool/sedEditParser.ts` | `src/tools/BashTool/sedEditParser.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — | file exists; tracker had empty target path |
 | 1652 | `tools/BashTool/shouldUseSandbox.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
