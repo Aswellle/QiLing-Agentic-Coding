@@ -246,3 +246,22 @@ export async function stashToCleanState(
  * Re-export from gitDiff for convenience
  */
 export { isGitRepo, findGitRoot, fetchGitDiff } from './gitDiff'
+
+// FROM CC: utils/git.ts — isCurrentDirectoryBareGitRepo
+// Checks if the cwd looks like a bare git repo (HEAD/hooks/objects exist without .git dir).
+// Used by readOnlyValidation.ts to prevent git hook injection attacks.
+import { existsSync } from 'fs'
+import { join } from 'path'
+import { getCwd } from './cwd.js'
+
+export function isCurrentDirectoryBareGitRepo(): boolean {
+  const cwd = getCwd()
+  // A bare repo has HEAD and objects/ and refs/ directly in the directory
+  // and no .git subdirectory (which would indicate a normal working tree)
+  const hasGitDir = existsSync(join(cwd, '.git'))
+  if (hasGitDir) return false
+  const hasHead = existsSync(join(cwd, 'HEAD'))
+  const hasObjects = existsSync(join(cwd, 'objects'))
+  const hasRefs = existsSync(join(cwd, 'refs'))
+  return hasHead && hasObjects && hasRefs
+}

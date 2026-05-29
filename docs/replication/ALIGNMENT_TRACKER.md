@@ -1,10 +1,10 @@
 # ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 → B (decisions locked)
-> **Last Updated:** 2026-05-29T16:00
+> **Last Updated:** 2026-05-29T18:30
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
 > **Verdict Distribution:** FULLY_ALIGNED 366 | PARTIAL 194 | DIVERGED 89 | RESTRUCTURED 156 | NEW 52 | MISSING 1186  
-> **Active Batch / Audit Task:** B-T1-TOOLS-01 🟡 — session 4 done: bashPermissions.ts full port ✅; T6 stubs: parser/debug/permissions/PermissionUpdate/permissionRuleParser; BashTool stubs: pathValidation/shouldUseSandbox/bashCommandHelpers
+> **Active Batch / Audit Task:** B-T1-TOOLS-01 🟡 — session 6 done: treeSitterAnalysis/ParsedCommand/readOnlyCommandValidation(full)/bashCommandHelpers(complete)/readOnlyValidation(adapt-new) ✅
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL ≈ 20% weighted
 
 ---
@@ -1686,12 +1686,12 @@
 | 1642 | `tools/BashTool/BashTool.tsx` | `tools/BashTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
 | 1643 | `tools/BashTool/BashToolResultMessage.tsx` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1644 | `tools/BashTool/UI.tsx` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1645 | `tools/BashTool/bashCommandHelpers.ts` | `tools/BashTool/bashCommandHelpers.ts` | T1 | MISSING | high | ALIGNED | adapt-new | stub: passthrough; blocked on ParsedCommand.ts |
+| 1645 | `tools/BashTool/bashCommandHelpers.ts` | `tools/BashTool/bashCommandHelpers.ts` | T1 | MISSING | high | ALIGNED | adapt-new | full port; ParsedCommand.ts ported; BashTool import ../BashTool.js |
 | 1646 | `tools/BashTool/bashPermissions.ts` | `tools/BashTool/bashPermissions.ts` | T1 | MISSING | high | ALIGNED | adapt-new | full port; stripped bun-bundle/ANT analytics; type shims for ToolPermissionContext/PermissionResult |
 | 1647 | `tools/BashTool/modeValidation.ts` | `src/tools/BashTool/modeValidation.ts` | T1 | PARTIAL | high | ALIGNED | adapt-new | PermissionDecision\|null (null=passthrough); ToolPermissionContext from state/AppStateStore |
 | 1648 | `tools/BashTool/pathValidation.ts` | `tools/BashTool/pathValidation.ts` | T1 | MISSING | high | ALIGNED | adapt-new | stub: passthrough; blocked on filesystem.ts |
 | 1649 | `tools/BashTool/prompt.ts` | `tools/BashTool/prompt.ts` | T1 | MISSING | high | ALIGNED | adapt-new | stripped bun-bundle/ANT features; simplified sandbox section; prependBullets from constants/prompts |
-| 1650 | `tools/BashTool/readOnlyValidation.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1650 | `tools/BashTool/readOnlyValidation.ts` | `tools/BashTool/readOnlyValidation.ts` | T1 | MISSING | high | ALIGNED | adapt-new | adapt-new; drop ANT_ONLY; bashCommandIsSafe_DEPRECATED→bashCommandIsSafe(.behavior!=='allow') |
 | 1651 | `tools/BashTool/sedEditParser.ts` | `src/tools/BashTool/sedEditParser.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | — | file exists; tracker had empty target path |
 | 1652 | `tools/BashTool/shouldUseSandbox.ts` | `tools/BashTool/shouldUseSandbox.ts` | T1 | MISSING | high | ALIGNED | adapt-new | full port; stripped ANT analytics; getSettings_DEPRECATED → empty stub |
 | 1653 | `tools/BriefTool/BriefTool.ts` | `tools/BriefTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
@@ -1810,14 +1810,14 @@
 | 1766 | `utils/autoUpdater.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1767 | `utils/background/remote/preconditions.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1768 | `utils/background/remote/remoteSession.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1769 | `utils/bash/ParsedCommand.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1769 | `utils/bash/ParsedCommand.ts` | `utils/bash/ParsedCommand.ts` | T6 | MISSING | high | ALIGNED | adapt-new | copy-with-refs; Node=unknown→BashNode cast; parseCommandRaw; getTreeSitterAvailable |
 | 1770 | `utils/bash/ShellSnapshot.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1771 | `utils/bash/bashParser.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1772 | `utils/bash/bashPipeCommand.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1773 | `utils/bash/parser.ts` | `utils/bash/parser.ts` | T6 | MISSING | high | ALIGNED | adapt-new | stub: parseCommandRaw returns null (tree-sitter deferred) |
 | 1774 | `utils/bash/prefix.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1775 | `utils/bash/shellCompletion.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1776 | `utils/bash/treeSitterAnalysis.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1776 | `utils/bash/treeSitterAnalysis.ts` | `utils/bash/treeSitterAnalysis.ts` | T6 | MISSING | high | ALIGNED | copy-verbatim | no external deps; self-contained AST analysis |
 | 1777 | `utils/betas.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1778 | `utils/billing.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1779 | `utils/claudeDesktop.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
@@ -2025,7 +2025,7 @@
 | 1981 | `utils/shell/bashProvider.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1982 | `utils/shell/powershellProvider.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1983 | `utils/shell/prefix.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1984 | `utils/shell/readOnlyCommandValidation.ts` | `utils/shell/readOnlyCommandValidation.ts` | T6 | MISSING | high | ALIGNED | adapt-new | stub: containsVulnerableUncPath + CC-compat type exports |
+| 1984 | `utils/shell/readOnlyCommandValidation.ts` | `utils/shell/readOnlyCommandValidation.ts` | T6 | MISSING | high | ALIGNED | adapt-new | full port; GH_READ_ONLY_COMMANDS→empty (ANT-only); all git/rg/docker/pyright maps + validateFlags |
 | 1985 | `utils/shell/specPrefix.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1986 | `utils/sideQuestion.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1987 | `utils/sinks.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
