@@ -58,3 +58,15 @@ export interface TokenUsage {
   cacheReadTokens: number
   cacheWriteTokens: number
 }
+
+// FROM CC: types/message.ts
+// Generic progress message emitted during tool execution. Each tool defines
+// its own progress data type P (must have a discriminant `type` field).
+export type ProgressMessage<P extends { type: string } = { type: string }> = {
+  type: 'progress'
+  data: P
+  toolUseID: string
+  parentToolUseID: string
+  uuid: string
+  timestamp: string
+}

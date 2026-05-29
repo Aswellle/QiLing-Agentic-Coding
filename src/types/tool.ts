@@ -1,5 +1,24 @@
 import type { ZodType, ZodTypeDef } from 'zod'
 import type React from 'react'
+import type { ProgressMessage } from './message.js'
+import type { ThemeName } from '../utils/theme.js'
+
+// FROM CC: Tool.ts — base type for tool execution progress data.
+// Each tool defines its own progress type (must have a `type` discriminant).
+export type ToolProgressData = {
+  type: string
+}
+
+// FROM CC: Tool.ts
+export type ToolProgress<P extends ToolProgressData = ToolProgressData> = {
+  toolUseID: string
+  data: P
+}
+
+// FROM CC: Tool.ts — callback passed to tool.call() for streaming progress
+export type ToolCallProgress<P extends ToolProgressData = ToolProgressData> = (
+  progress: ToolProgress<P>,
+) => void
 
 export type PermissionDecision =
   | { type: 'allow' }
@@ -63,6 +82,31 @@ export interface Tool<TInput = Record<string, unknown>> {
 
   renderToolUse?(input: TInput): React.ReactNode
   renderToolResult?(result: ToolResult, input: TInput): React.ReactNode
+
+  // FROM CC: Tool.ts — per-tool UI rendering hooks (used by tool UI.tsx modules)
+  renderToolResultMessage?(
+    content: unknown,
+    progressMessagesForMessage: ProgressMessage<ToolProgressData>[],
+    options: {
+      style?: 'condensed'
+      theme?: ThemeName
+      verbose?: boolean
+      tools?: readonly Tool<any>[]
+      isTranscriptMode?: boolean
+      isBriefOnly?: boolean
+      input?: unknown
+    },
+  ): React.ReactNode
+  renderToolUseProgressMessage?(
+    progressMessagesForMessage: ProgressMessage<ToolProgressData>[],
+    options: {
+      tools?: readonly Tool<any>[]
+      verbose?: boolean
+      terminalSize?: { columns: number; rows: number }
+      inProgressToolCallCount?: number
+      isTranscriptMode?: boolean
+    },
+  ): React.ReactNode
 
   toDefinition(): ToolDefinition
 
