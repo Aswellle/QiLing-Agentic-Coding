@@ -12,8 +12,8 @@
  * since QiLing doesn't need the pluggable fs layer.
  */
 
-import { createReadStream, existsSync, statSync } from 'node:fs'
-import { open, stat } from 'node:fs/promises'
+import { createReadStream, existsSync, statSync, realpathSync } from 'node:fs'
+import { open, stat, mkdir } from 'node:fs/promises'
 import { resolve, normalize, isAbsolute, join } from 'node:path'
 import { homedir } from 'node:os'
 
@@ -163,4 +163,19 @@ export function resolveDeepestExistingAncestorSync(filePath: string): string {
     current = resolve(current, '..')
   }
   return current
+}
+
+// CC-compat: getPathsForPermissionCheck — returns path(s) for permission checking.
+// QiLing stub: no symlink resolution; returns [path]. Full CC version resolves symlinks.
+export function getPathsForPermissionCheck(path: string): string[] {
+  return [path]
+}
+
+// CC-compat: getFsImplementation — returns a minimal fs implementation.
+export function getFsImplementation() {
+  return {
+    realpathSync,
+    mkdir: (path: string, opts?: { mode?: number }) =>
+      mkdir(path, { recursive: true, mode: opts?.mode }),
+  }
 }

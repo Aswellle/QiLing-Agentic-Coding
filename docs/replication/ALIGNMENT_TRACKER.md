@@ -1,7 +1,7 @@
 # ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 → B (decisions locked)
-> **Last Updated:** 2026-05-29T12:00
+> **Last Updated:** 2026-05-29T14:00
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
 > **Verdict Distribution:** FULLY_ALIGNED 366 | PARTIAL 194 | DIVERGED 89 | RESTRUCTURED 156 | NEW 52 | MISSING 1186  
 > **Active Batch / Audit Task:** B-T1-TOOLS-01 🟡 — session 4 done: bashPermissions.ts full port ✅; T6 stubs: parser/debug/permissions/PermissionUpdate/permissionRuleParser; BashTool stubs: pathValidation/shouldUseSandbox/bashCommandHelpers
@@ -1936,7 +1936,7 @@
 | 1892 | `utils/permissions/autoModeState.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1893 | `utils/permissions/bypassPermissionsKillswitch.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1894 | `utils/permissions/classifierDecision.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1895 | `utils/permissions/filesystem.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1895 | `utils/permissions/filesystem.ts` | `utils/permissions/filesystem.ts` | T6 | MISSING | high | ALIGNED | adapt-new | full port; inline stubs for memdir/agentMemory/settings/UNC; adapted getPlanSlug/getPlansDirectory; isScratchpadEnabled=false |
 | 1896 | `utils/permissions/getNextPermissionMode.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1897 | `utils/permissions/pathValidation.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1898 | `utils/permissions/permissionExplainer.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |

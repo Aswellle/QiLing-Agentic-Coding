@@ -77,3 +77,21 @@ export function getDirectoryForPath(filePath: string): string {
 export function normalizePathForConfigKey(filePath: string): string {
   return normalize(filePath).replace(/\\/g, '/')
 }
+
+// FROM CC: utils/sessionStoragePortable.ts via utils/path.ts
+// Converts a path into a filesystem-safe string for use as a directory name.
+const MAX_SANITIZED_LENGTH = 200
+function simpleHash(str: string): string {
+  let h = 0
+  for (let i = 0; i < str.length; i++) {
+    h = (Math.imul(31, h) + str.charCodeAt(i)) | 0
+  }
+  return Math.abs(h).toString(36)
+}
+export function sanitizePath(name: string): string {
+  const sanitized = name.replace(/[^a-zA-Z0-9]/g, '-')
+  if (sanitized.length <= MAX_SANITIZED_LENGTH) return sanitized
+  const hash =
+    typeof Bun !== 'undefined' ? Bun.hash(name).toString(36) : simpleHash(name)
+  return `${sanitized.slice(0, MAX_SANITIZED_LENGTH)}-${hash}`
+}
