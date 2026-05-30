@@ -1390,18 +1390,18 @@
 | 1346 | `entrypoints/sdk/coreSchemas.ts` | `` | T7 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1347 | `history.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1348 | `hooks/fileSuggestions.ts` | `` | T3 | MISSING | high | UNTOUCHED | copy |  |
-| 1349 | `hooks/notifs/useAutoModeUnavailableNotification.ts` | `` | T3 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1349 | `hooks/notifs/useAutoModeUnavailableNotification.ts` | `hooks/notifs/useAutoModeUnavailableNotification.ts` | T3 | MISSING | high | ALIGNED | adapt-new | stub: TRANSCRIPT_CLASSIFIER ANT-only, no-op |
 | 1350 | `hooks/notifs/useCanSwitchToExistingSubscription.tsx` | `` | T3 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1351 | `hooks/notifs/useDeprecationWarningNotification.tsx` | `` | T3 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1351 | `hooks/notifs/useDeprecationWarningNotification.tsx` | `hooks/notifs/useDeprecationWarningNotification.tsx` | T3 | MISSING | high | ALIGNED | adapt-new | fixed absolute imports; getModelDeprecationWarning |
 | 1352 | `hooks/notifs/useFastModeNotification.tsx` | `` | T3 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1353 | `hooks/notifs/useIDEStatusIndicator.tsx` | `` | T3 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1354 | `hooks/notifs/useInstallMessages.tsx` | `` | T3 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1355 | `hooks/notifs/useLspInitializationNotification.tsx` | `` | T3 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1356 | `hooks/notifs/useMcpConnectivityStatus.tsx` | `` | T3 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1357 | `hooks/notifs/useModelMigrationNotifications.tsx` | `` | T3 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1357 | `hooks/notifs/useModelMigrationNotifications.tsx` | `hooks/notifs/useModelMigrationNotifications.tsx` | T3 | MISSING | high | ALIGNED | adapt-new | sonnet46+opus migration notifs; uses getGlobalConfig |
 | 1358 | `hooks/notifs/useNpmDeprecationNotification.tsx` | `` | T3 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1359 | `hooks/notifs/usePluginAutoupdateNotification.tsx` | `` | T3 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1360 | `hooks/notifs/usePluginInstallationStatus.tsx` | `` | T3 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1360 | `hooks/notifs/usePluginInstallationStatus.tsx` | `hooks/notifs/usePluginInstallationStatus.tsx` | T3 | MISSING | high | ALIGNED | adapt-new | installationStatus not in QL AppState→safe no-op; ink→ink pkg |
 | 1361 | `hooks/notifs/useRateLimitWarningNotification.tsx` | `` | T3 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1362 | `hooks/notifs/useSettingsErrors.tsx` | `` | T3 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1363 | `hooks/notifs/useTeammateShutdownNotification.ts` | `` | T3 | MISSING | high | UNTOUCHED | adapt-new |  |
