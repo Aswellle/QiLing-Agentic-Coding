@@ -3,16 +3,26 @@ import * as React from 'react'
 import { KeyboardShortcutHint } from '../../components/design-system/KeyboardShortcutHint.js'
 import { FallbackToolUseErrorMessage } from '../../components/FallbackToolUseErrorMessage.js'
 import { MessageResponse } from '../../components/MessageResponse.js'
-import { OutputLine } from '../../components/shell/OutputLine.js'
 import { ShellProgressMessage } from '../../components/shell/ShellProgressMessage.js'
-import { ShellTimeDisplay } from '../../components/shell/ShellTimeDisplay.js'
 import { Box, Text } from 'ink'
+import { useKeybinding } from '../../keybindings/useKeybinding.js'
+import { useShortcutDisplay } from '../../keybindings/useShortcutDisplay.js'
+import { useAppStateStore, useSetAppState } from '../../state/AppState.js'
 import type { Tool } from '../../Tool.js'
 import type { ProgressMessage } from '../../types/message.js'
+import { isEnvTruthy } from '../../utils/envUtils.js'
+import { getDisplayPath } from '../../utils/file.js'
+import { isFullscreenEnvEnabled } from '../../utils/fullscreen.js'
 import type { ThemeName } from '../../utils/theme.js'
+import BashToolResultMessage from './BashToolResultMessage.js'
+import { extractBashCommentLabel } from './commentLabel.js'
+import { parseSedEditCommand } from './sedEditParser.js'
 
-type PowerShellToolInput = { command?: string }
-type PowerShellProgress = {
+// FROM CC: backgroundAll not yet ported (tasks/LocalShellTask pending)
+const backgroundAll = (_getState: () => unknown, _setState: unknown) => {}
+
+type BashToolInput = { command?: string }
+type BashProgress = {
   type: string
   fullOutput: string
   output: string
@@ -23,19 +33,55 @@ type PowerShellProgress = {
   taskId?: string
 }
 type Out = {
-  stdout: string
-  stderr: string
-  interrupted?: boolean
-  returnCodeInterpretation?: string
+  stdout?: string
+  stderr?: string
   isImage?: boolean
+  returnCodeInterpretation?: string
+  noOutputExpected?: boolean
   backgroundTaskId?: string
 }
 
 const MAX_COMMAND_DISPLAY_LINES = 2
 const MAX_COMMAND_DISPLAY_CHARS = 160
 
+export function BackgroundHint({
+  onBackground,
+}: {
+  onBackground?: () => void
+} = {}): React.ReactElement | null {
+  const store = useAppStateStore()
+  const setAppState = useSetAppState()
+
+  const handleBackground = React.useCallback(() => {
+    backgroundAll(() => store.getState(), setAppState)
+    onBackground?.()
+  }, [store, setAppState, onBackground])
+
+  useKeybinding('task:background', handleBackground, {
+    context: 'Task',
+  })
+
+  const shortcut = useShortcutDisplay('task:background', 'Task', 'ctrl+b')
+
+  if (isEnvTruthy(process.env.CLAUDE_CODE_DISABLE_BACKGROUND_TASKS)) {
+    return null
+  }
+
+  return (
+    <Box paddingLeft={5}>
+      <Text dimColor>
+        <KeyboardShortcutHint
+          shortcut={shortcut}
+          action="run in background"
+          parens
+        />
+      </Text>
+    </Box>
+  )
+}
+
 export function renderToolUseMessage(
-  input: Partial<PowerShellToolInput>,
+  input: Partial<BashToolInput>,
   { verbose, theme: _theme }: { verbose: boolean; theme: ThemeName },
 ): React.ReactNode {
   const { command } = input
@@ -43,16 +89,28 @@ export function renderToolUseMessage(
     return null
   }
 
-  const displayCommand = command
+  const sedInfo = parseSedEditCommand(command)
+  if (sedInfo) {
+    return verbose ? sedInfo.filePath : getDisplayPath(sedInfo.filePath)
+  }
 
   if (!verbose) {
-    const lines = displayCommand.split('\n')
+    const lines = command.split('\n')
+
+    if (isFullscreenEnvEnabled()) {
+      const label = extractBashCommentLabel(command)
+      if (label) {
+        return label.length > MAX_COMMAND_DISPLAY_CHARS
+          ? label.slice(0, MAX_COMMAND_DISPLAY_CHARS) + '…'
+          : label
+      }
+    }
+
     const needsLineTruncation = lines.length > MAX_COMMAND_DISPLAY_LINES
-    const needsCharTruncation =
-      displayCommand.length > MAX_COMMAND_DISPLAY_CHARS
+    const needsCharTruncation = command.length > MAX_COMMAND_DISPLAY_CHARS
 
     if (needsLineTruncation || needsCharTruncation) {
-      let truncated = displayCommand
+      let truncated = command
 
       if (needsLineTruncation) {
         truncated = lines.slice(0, MAX_COMMAND_DISPLAY_LINES).join('\n')
@@ -66,11 +124,11 @@ export function renderToolUseMessage(
     }
   }
 
-  return displayCommand
+  return command
 }
 
 export function renderToolUseProgressMessage(
-  progressMessagesForMessage: ProgressMessage<PowerShellProgress>[],
+  progressMessagesForMessage: ProgressMessage<BashProgress>[],
   {
     verbose,
     tools: _tools,
@@ -119,7 +177,7 @@ export function renderToolUseQueuedMessage(): React.ReactNode {
 
 export function renderToolResultMessage(
   content: Out,
-  progressMessagesForMessage: ProgressMessage<PowerShellProgress>[],
+  progressMessagesForMessage: ProgressMessage<BashProgress>[],
   {
     verbose,
     theme: _theme,
@@ -134,52 +192,12 @@ export function renderToolResultMessage(
 ): React.ReactNode {
   const lastProgress = progressMessagesForMessage.at(-1)
   const timeoutMs = lastProgress?.data?.timeoutMs
-  const {
-    stdout,
-    stderr,
-    interrupted,
-    returnCodeInterpretation,
-    isImage,
-    backgroundTaskId,
-  } = content
-
-  if (isImage) {
-    return (
-      <MessageResponse height={1}>
-        {/* // NAME: Claude - agent name in image detection message */}
-        <Text dimColor>[Image data detected and sent to Claude]</Text>
-      </MessageResponse>
-    )
-  }
-
   return (
-    <Box flexDirection="column">
-      {stdout !== '' ? <OutputLine content={stdout} verbose={verbose} /> : null}
-      {stderr.trim() !== '' ? (
-        <OutputLine content={stderr} verbose={verbose} isError />
-      ) : null}
-      {stdout === '' && stderr.trim() === '' ? (
-        <MessageResponse height={1}>
-          <Text dimColor>
-            {backgroundTaskId ? (
-              <>
-                Running in the background{' '}
-                <KeyboardShortcutHint shortcut="↓" action="manage" parens />
-              </>
-            ) : interrupted ? (
-              'Interrupted'
-            ) : (
-              returnCodeInterpretation || '(No output)'
-            )}
-          </Text>
-        </MessageResponse>
-      ) : null}
-      {timeoutMs ? (
-        <MessageResponse>
-          <ShellTimeDisplay timeoutMs={timeoutMs} />
-        </MessageResponse>
-      ) : null}
-    </Box>
+    <BashToolResultMessage
+      content={content}
+      verbose={verbose}
+      timeoutMs={timeoutMs}
+    />
   )
 }
 
@@ -191,7 +209,7 @@ export function renderToolUseErrorMessage(
     tools: _tools,
   }: {
     verbose: boolean
-    progressMessagesForMessage: ProgressMessage<PowerShellProgress>[]
+    progressMessagesForMessage: ProgressMessage<BashProgress>[]
     tools: Tool[]
   },
 ): React.ReactNode {

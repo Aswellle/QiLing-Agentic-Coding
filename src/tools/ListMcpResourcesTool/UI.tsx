@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { MessageResponse } from '../../components/MessageResponse.js'
-// FROM CC: OutputLine component not yet ported — waiting for components/shell/OutputLine
-// import { OutputLine } from '../../components/shell/OutputLine.js'
+import { OutputLine } from '../../components/shell/OutputLine.js'
 import { Text } from 'ink'
 import type { ToolProgressData } from '../../types/tool.js'
 import type { ProgressMessage } from '../../types/message.js'
@@ -31,10 +30,5 @@ export function renderToolResultMessage(
   }
 
   const formattedOutput = jsonStringify(output, null, 2)
-  // FROM CC: OutputLine not yet ported; fallback to plain text
-  return (
-    <MessageResponse>
-      <Text dimColor>{formattedOutput}</Text>
-    </MessageResponse>
-  )
+  return <OutputLine content={formattedOutput} verbose={_verbose} />
 }

@@ -39,7 +39,7 @@ export function AppStateProvider({ children, initialState, store }: ProviderProp
 
 // ─── Store accessor ───────────────────────────────────────────────────────────
 
-function useAppStateStore(): AppStateStore {
+export function useAppStateStore(): AppStateStore {
   const store = useContext(AppStateContext)
   if (!store) throw new Error('useAppState must be used within AppStateProvider')
   return store
