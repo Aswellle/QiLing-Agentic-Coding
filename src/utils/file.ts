@@ -89,3 +89,21 @@ export function stripLineNumberPrefix(line: string): string {
 export function isFileWithinReadSizeLimit(filePath: string, maxSizeBytes: number = MAX_OUTPUT_SIZE): boolean {
   try { return statSync(filePath).size <= maxSizeBytes } catch { return false }
 }
+
+// FROM CC: utils/file.ts writeFileSyncAndFlush_DEPRECATED
+// Writes file synchronously and flushes to disk (fsync).
+import { writeFileSync, openSync, fsyncSync, closeSync } from 'fs'
+
+export function writeFileSyncAndFlush_DEPRECATED(
+  filePath: string,
+  data: string,
+  options?: { encoding?: BufferEncoding; mode?: number },
+): void {
+  writeFileSync(filePath, data, options)
+  try {
+    const fd = openSync(filePath, 'r')
+    try { fsyncSync(fd) } finally { closeSync(fd) }
+  } catch {
+    // fsync may fail on some platforms/filesystems — best effort
+  }
+}

@@ -100,3 +100,17 @@ export function getHostPlatformForAnalytics(): 'win32' | 'darwin' | 'linux' {
   if (override === 'win32' || override === 'darwin' || override === 'linux') return override
   return env.platform
 }
+
+// FROM CC: utils/env.ts getGlobalClaudeFile
+import memoize from 'lodash-es/memoize.js'
+import { join } from 'path'
+import { getClaudeConfigHomeDir } from './envUtils.js'
+
+export const getGlobalClaudeFile = memoize((): string => {
+  // Legacy fallback: ~/.claude/.config.json
+  const legacyPath = join(getClaudeConfigHomeDir(), '.config.json')
+  if (existsSync(legacyPath)) {
+    return legacyPath
+  }
+  return join(getClaudeConfigHomeDir(), '.claude.json')
+})

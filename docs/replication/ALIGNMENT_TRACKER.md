@@ -1,7 +1,7 @@
 # ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 → B (decisions locked)
-> **Last Updated:** 2026-05-30T10:00
+> **Last Updated:** 2026-05-30T14:00
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
 > **Verdict Distribution:** FULLY_ALIGNED 366 | PARTIAL 194 | DIVERGED 89 | RESTRUCTURED 156 | NEW 52 | MISSING 1186  
 > **Active Batch / Audit Task:** B-T1-TOOLS-01 🟡 — session 6 done: treeSitterAnalysis/ParsedCommand/readOnlyCommandValidation(full)/bashCommandHelpers(complete)/readOnlyValidation(adapt-new) ✅
@@ -1510,7 +1510,7 @@
 | 1466 | `memdir/memoryAge.ts` | `memdir/memoryAge.ts` | T5 | MISSING | high | ALIGNED | copy-verbatim | zero external deps |
 | 1467 | `memdir/memoryScan.ts` | `` | T5 | MISSING | high | UNTOUCHED | copy |  |
 | 1468 | `memdir/memoryTypes.ts` | `memdir/memoryTypes.ts` | T5 | MISSING | high | ALIGNED | copy-verbatim | zero external deps; prompt constants + type taxonomy |
-| 1469 | `memdir/paths.ts` | `` | T5 | MISSING | high | UNTOUCHED | copy |  |
+| 1469 | `memdir/paths.ts` | `memdir/paths.ts` | T5 | MISSING | high | ALIGNED | adapt-new | stub: getAutoMemEntrypoint via settings/loader; growthbook+settings deps dropped |
 | 1470 | `memdir/teamMemPaths.ts` | `` | T5 | MISSING | high | UNTOUCHED | copy |  |
 | 1471 | `memdir/teamMemPrompts.ts` | `` | T5 | MISSING | high | UNTOUCHED | copy |  |
 | 1472 | `migrations/migrateAutoUpdatesToSettings.ts` | `` | T0 | MISSING | high | ALIGNED | — | no-op stub; QL schema differs |
@@ -1548,7 +1548,7 @@
 | 1504 | `services/analytics/firstPartyEventLogger.ts` | `` | T5 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1505 | `services/analytics/firstPartyEventLoggingExporter.ts` | `` | T5 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1506 | `services/analytics/growthbook.ts` | `` | T5 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1507 | `services/analytics/index.ts` | `` | T5 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1507 | `services/analytics/index.ts` | `services/analytics/index.ts` | T5 | MISSING | high | ALIGNED | copy-verbatim | zero external deps; event queue pattern |
 | 1508 | `services/analytics/metadata.ts` | `` | T5 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1509 | `services/analytics/sink.ts` | `` | T5 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1510 | `services/analytics/sinkKillswitch.ts` | `` | T5 | MISSING | high | UNTOUCHED | adapt-new |  |
@@ -1849,7 +1849,7 @@
 | 1805 | `utils/computerUse/toolRendering.tsx` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1806 | `utils/computerUse/wrapper.tsx` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1807 | `utils/concurrentSessions.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
-| 1808 | `utils/config.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
+| 1808 | `utils/config.ts` | `utils/config.ts` | T6 | MISSING | high | ALIGNED | adapt-new | getFsImplementation→nativeFs; TEAMMEM/CCR_AUTO_CONNECT removed; lockfilePath dropped |
 | 1809 | `utils/context.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1810 | `utils/contextAnalysis.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1811 | `utils/conversationRecovery.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
@@ -1914,7 +1914,7 @@
 | 1870 | `utils/mcp/dateTimeParser.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1871 | `utils/mcp/elicitationValidation.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1872 | `utils/mcpInstructionsDelta.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
-| 1873 | `utils/memory/types.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1873 | `utils/memory/types.ts` | `utils/memory/types.ts` | T6 | MISSING | high | ALIGNED | adapt-new | MEMORY_TYPE_VALUES=User/Project/Local/Managed/AutoMem; TeamMem removed |
 | 1874 | `utils/messageQueueManager.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1875 | `utils/messages/mappers.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1876 | `utils/messages/systemInit.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
@@ -1923,7 +1923,7 @@
 | 1879 | `utils/model/bedrock.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1880 | `utils/model/model.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1881 | `utils/model/modelCapabilities.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1882 | `utils/model/modelOptions.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1882 | `utils/model/modelOptions.ts` | `utils/model/modelOptions.ts` | T6 | MISSING | high | ALIGNED | adapt-new | stub: ModelOption type + defaults; full port blocked on circular dep (needs config.ts) |
 | 1883 | `utils/model/modelStrings.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1884 | `utils/model/validateModel.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1885 | `utils/nativeInstaller/download.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |

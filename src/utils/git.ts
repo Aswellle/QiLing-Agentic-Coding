@@ -247,6 +247,16 @@ export async function stashToCleanState(
  */
 export { isGitRepo, findGitRoot, fetchGitDiff } from './gitDiff'
 
+// FROM CC: utils/git.ts findCanonicalGitRoot (adapt-new)
+import { realpathSync } from 'fs'
+import { findGitRoot as _findGitRoot } from './gitDiff'
+
+export const findCanonicalGitRoot = (startPath: string): string | null => {
+  const root = _findGitRoot(startPath)
+  if (!root) return null
+  try { return realpathSync(root) } catch { return root }
+}
+
 // FROM CC: utils/git.ts — isCurrentDirectoryBareGitRepo
 // Checks if the cwd looks like a bare git repo (HEAD/hooks/objects exist without .git dir).
 // Used by readOnlyValidation.ts to prevent git hook injection attacks.
