@@ -1536,7 +1536,7 @@
 | 1492 | `remote/remotePermissionBridge.ts` | `` | EXT | MISSING | high | UNTOUCHED | copy |  |
 | 1493 | `remote/sdkMessageAdapter.ts` | `` | EXT | MISSING | high | UNTOUCHED | copy |  |
 | 1494 | `replLauncher.tsx` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
-| 1495 | `schemas/hooks.ts` | `` | T7 | MISSING | high | UNTOUCHED | copy |  |
+| 1495 | `schemas/hooks.ts` | `schemas/hooks.ts` | T7 | MISSING | high | ALIGNED | adapt-new | import HOOK_EVENTS from hooks/index.ts |
 | 1496 | `screens/Doctor.tsx` | `` | T2 | MISSING | high | UNTOUCHED | copy |  |
 | 1497 | `screens/REPL.tsx` | `` | T2 | MISSING | high | UNTOUCHED | copy |  |
 | 1498 | `screens/ResumeConversation.tsx` | `` | T2 | MISSING | high | UNTOUCHED | copy |  |
@@ -1616,7 +1616,7 @@
 | 1572 | `services/remoteManagedSettings/index.ts` | `` | T5 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1573 | `services/remoteManagedSettings/securityCheck.tsx` | `` | T5 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1574 | `services/remoteManagedSettings/syncCache.ts` | `` | T5 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1575 | `services/remoteManagedSettings/syncCacheState.ts` | `` | T5 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1575 | `services/remoteManagedSettings/syncCacheState.ts` | `services/remoteManagedSettings/syncCacheState.ts` | T5 | MISSING | high | ALIGNED | adapt-new | stub |
 | 1576 | `services/settingsSync/index.ts` | `` | T5 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1577 | `services/teamMemorySync/index.ts` | `` | T5 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1578 | `services/teamMemorySync/secretScanner.ts` | `` | T5 | MISSING | high | UNTOUCHED | adapt-new |  |
@@ -1980,7 +1980,7 @@
 | 1936 | `utils/plugins/pluginVersioning.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1937 | `utils/plugins/reconciler.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1938 | `utils/plugins/refresh.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1939 | `utils/plugins/schemas.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1939 | `utils/plugins/schemas.ts` | `utils/plugins/schemas.ts` | T6 | MISSING | high | ALIGNED | adapt-new | stub: MarketplaceSourceSchema |
 | 1940 | `utils/plugins/validatePlugin.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1941 | `utils/plugins/zipCache.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1942 | `utils/plugins/zipCacheAdapters.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
@@ -2012,16 +2012,16 @@
 | 1968 | `utils/settings/allErrors.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1969 | `utils/settings/applySettingsChange.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1970 | `utils/settings/changeDetector.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1971 | `utils/settings/constants.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1971 | `utils/settings/constants.ts` | `utils/settings/constants.ts` | T6 | MISSING | high | ALIGNED | copy-verbatim | SettingSource types + getEnabledSettingSources |
 | 1972 | `utils/settings/mdm/constants.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1973 | `utils/settings/mdm/rawRead.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1974 | `utils/settings/mdm/settings.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1975 | `utils/settings/permissionValidation.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1976 | `utils/settings/settings.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1977 | `utils/settings/settingsCache.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1978 | `utils/settings/types.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1974 | `utils/settings/mdm/settings.ts` | `utils/settings/mdm/settings.ts` | T6 | MISSING | high | ALIGNED | adapt-new | stub |
+| 1975 | `utils/settings/permissionValidation.ts` | `utils/settings/permissionValidation.ts` | T6 | MISSING | high | ALIGNED | adapt-new | stub |
+| 1976 | `utils/settings/settings.ts` | `utils/settings/settings.ts` | T6 | MISSING | high | ALIGNED | adapt-new | TRANSCRIPT_CLASSIFIER→false; getFsImpl→direct fs; 1013L |
+| 1977 | `utils/settings/settingsCache.ts` | `utils/settings/settingsCache.ts` | T6 | MISSING | high | ALIGNED | copy-verbatim | session/source/parseFile caches |
+| 1978 | `utils/settings/types.ts` | `utils/settings/types.ts` | T6 | MISSING | high | ALIGNED | adapt-new | full SettingsSchema; bun:bundle stripped |
 | 1979 | `utils/settings/validateEditTool.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1980 | `utils/settings/validation.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1980 | `utils/settings/validation.ts` | `utils/settings/validation.ts` | T6 | MISSING | high | ALIGNED | copy-verbatim | import path fixed |
 | 1981 | `utils/shell/bashProvider.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1982 | `utils/shell/powershellProvider.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1983 | `utils/shell/prefix.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
