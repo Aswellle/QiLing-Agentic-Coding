@@ -1507,9 +1507,9 @@
 | 1463 | `keybindings/loadUserBindings.ts` | `keybindings/loadUserBindings.ts` | T4 | FULLY_ALIGNED | high | DONE | adapt-new | async加载~/.qiling/keybindings.json; mergeBindings+默认回退 |
 | 1464 | `memdir/findRelevantMemories.ts` | `` | T5 | MISSING | high | UNTOUCHED | copy |  |
 | 1465 | `memdir/memdir.ts` | `` | T5 | MISSING | high | UNTOUCHED | copy |  |
-| 1466 | `memdir/memoryAge.ts` | `` | T5 | MISSING | high | UNTOUCHED | copy |  |
+| 1466 | `memdir/memoryAge.ts` | `memdir/memoryAge.ts` | T5 | MISSING | high | ALIGNED | copy-verbatim | zero external deps |
 | 1467 | `memdir/memoryScan.ts` | `` | T5 | MISSING | high | UNTOUCHED | copy |  |
-| 1468 | `memdir/memoryTypes.ts` | `` | T5 | MISSING | high | UNTOUCHED | copy |  |
+| 1468 | `memdir/memoryTypes.ts` | `memdir/memoryTypes.ts` | T5 | MISSING | high | ALIGNED | copy-verbatim | zero external deps; prompt constants + type taxonomy |
 | 1469 | `memdir/paths.ts` | `` | T5 | MISSING | high | UNTOUCHED | copy |  |
 | 1470 | `memdir/teamMemPaths.ts` | `` | T5 | MISSING | high | UNTOUCHED | copy |  |
 | 1471 | `memdir/teamMemPrompts.ts` | `` | T5 | MISSING | high | UNTOUCHED | copy |  |
@@ -1879,7 +1879,7 @@
 | 1835 | `utils/fileOperationAnalytics.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1836 | `utils/filePersistence/filePersistence.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1837 | `utils/forkedAgent.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
-| 1838 | `utils/fullscreen.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
+| 1838 | `utils/fullscreen.ts` | `utils/fullscreen.ts` | T6 | MISSING | high | ALIGNED | copy-verbatim | useCwd→omit; USER_TYPE=ant → false for QiLing (opt-in) |
 | 1839 | `utils/githubRepoPathMapping.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1840 | `utils/groupToolUses.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1841 | `utils/handlePromptSubmit.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
