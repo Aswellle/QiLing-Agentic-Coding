@@ -1,7 +1,7 @@
 # ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 → B (decisions locked)
-> **Last Updated:** 2026-05-29T23:30
+> **Last Updated:** 2026-05-30T10:00
 > **Audit Progress:** T0 ✅ | T1 ✅ | T2 ✅ | T3 ✅ | T4 ✅ | T5 ✅ | T6 ✅ | T7 ✅ | EXT ✅  
 > **Verdict Distribution:** FULLY_ALIGNED 366 | PARTIAL 194 | DIVERGED 89 | RESTRUCTURED 156 | NEW 52 | MISSING 1186  
 > **Active Batch / Audit Task:** B-T1-TOOLS-01 🟡 — session 6 done: treeSitterAnalysis/ParsedCommand/readOnlyCommandValidation(full)/bashCommandHelpers(complete)/readOnlyValidation(adapt-new) ✅
@@ -1856,7 +1856,7 @@
 | 1812 | `utils/cronJitterConfig.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1813 | `utils/cronScheduler.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1814 | `utils/cronTasks.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
-| 1815 | `utils/cronTasksLock.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
+| 1815 | `utils/cronTasksLock.ts` | `utils/cronTasksLock.ts` | T6 | MISSING | high | ALIGNED | copy-verbatim | safeParseJSON(raw,false)→safeParseJSON(raw) |
 | 1816 | `utils/crossProjectResume.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1817 | `utils/debug.ts` | `utils/debug.ts` | T6 | MISSING | high | ALIGNED | copy | stub re-export from utils/log.ts |
 | 1818 | `utils/deepLink/banner.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
