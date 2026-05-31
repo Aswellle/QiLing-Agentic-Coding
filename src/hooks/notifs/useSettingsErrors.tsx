@@ -3,11 +3,7 @@ import { useNotifications } from '../../context/notifications.js'
 import { getIsRemoteMode } from '../../bootstrap/state.js'
 import type { ValidationError } from '../../utils/settings/validation.js'
 import { useSettingsChange } from '../useSettingsChange.js'
-
-// FROM CC: getSettingsWithAllErrors from utils/settings/allErrors.ts — stub
-const getSettingsWithAllErrors = (): { errors: ValidationError[] } => ({
-  errors: [],
-})
+import { getSettingsWithAllErrors } from '../../utils/settings/allErrors.js'
 
 const SETTINGS_ERRORS_NOTIFICATION_KEY = 'settings-errors'
 
