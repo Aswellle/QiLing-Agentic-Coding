@@ -8,6 +8,8 @@ import type { Tool } from "./types/tool.js";
 import type { PermissionMode } from "./utils/permissions/PermissionMode.js";
 
 export type { Tool };
+export const toolMatchesName = (tool: { name: string }, name: string): boolean => tool.name === name;
+export type Tools = Record<string, Tool>;
 export type AnyObject = import("zod").ZodType<{ [key: string]: unknown }>;
 export type ValidationResult =
   | { result: true }
@@ -44,6 +46,7 @@ export type ToolUseContext = {
   getAppState(): AppState;
   setAppState: (updater: (prev: AppState) => AppState) => void;
   abortController: AbortController;
+  toolUseId?: string;
   options: {
     isNonInteractiveSession: boolean;
     [key: string]: unknown;

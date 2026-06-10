@@ -242,3 +242,13 @@ export function extractTag(html: string, tagName: string): string | null {
   }
   return null
 }
+
+// FROM CC: getLastAssistantMessage — find the last assistant message
+import type { Message } from "../types/message.js";
+export function getLastAssistantMessage(messages: Message[]): Message | undefined {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (messages[i]?.role === "assistant") return messages[i];
+  }
+  return undefined;
+}
+

@@ -142,3 +142,17 @@ export function getSessionDisplayName(
 export function isCustomTitleEnabled(): boolean {
   return true  // Always enabled in QiLing
 }
+
+// FROM CC: recordSidechainTranscript — sidechain agent transcript capture
+export function recordSidechainTranscript(
+  _parentSessionId: string,
+  _agentId: string,
+  _messages: unknown[],
+): void { /* NO-OP: sidechain transcripts not ported */ }
+
+// FROM CC: getAgentTranscriptPath — agent transcript path resolution
+export function getAgentTranscriptPath(
+  _sessionId: string,
+  _agentId: string,
+): string { return ""; }
+
