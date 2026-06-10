@@ -116,5 +116,5 @@ export function getVertexRegionForModel(model: string | undefined): string | und
 }
 
 // FROM CC: utils/envUtils.isInProtectedNamespace — namespace guard
-export function isInProtectedNamespace(_path: string): boolean { return false; }
+export function isInProtectedNamespace(_path?: string): boolean { return false; }
 

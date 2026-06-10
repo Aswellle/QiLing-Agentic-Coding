@@ -50,6 +50,19 @@ export interface Message {
    */
   isApiErrorMessage?: boolean
   apiError?: 'max_output_tokens' | 'prompt_too_long' | 'invalid_request'
+  // FROM CC compat: optional fields written by agentToolUtils/finalizeAgentTool
+  // and forkedAgent. These are set at runtime by the API response pipeline.
+  /** CC: message.usage — API token usage for this message */
+  usage?: {
+    input_tokens: number
+    output_tokens: number
+    cache_creation_input_tokens: number | null
+    cache_read_input_tokens: number | null
+  }
+  /** CC: message.requestId — API request correlation ID */
+  requestId?: string
+  /** CC: message.id — unique message ID for analytics */
+  id?: string
 }
 
 export interface TokenUsage {

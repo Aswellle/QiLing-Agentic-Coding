@@ -59,7 +59,7 @@ export function normalizeForAPI(messages: Message[]): Message[] {
 // ─── Content extraction ───────────────────────────────────────────────────────
 
 /** Extract all text content from a message as a single string. */
-export function extractTextContent(content: Message['content']): string {
+export function extractTextContent(content: Message['content'], _joinSep?: string): string {
   if (typeof content === 'string') return content
   return content
     .filter(b => b.type === 'text')

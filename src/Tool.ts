@@ -9,7 +9,7 @@ import type { PermissionMode } from "./utils/permissions/PermissionMode.js";
 
 export type { Tool };
 export const toolMatchesName = (tool: { name: string }, name: string): boolean => tool.name === name;
-export type Tools = Record<string, Tool>;
+export type Tools = Tool[];
 export type AnyObject = import("zod").ZodType<{ [key: string]: unknown }>;
 export type ValidationResult =
   | { result: true }
