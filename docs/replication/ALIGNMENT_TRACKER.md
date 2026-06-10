@@ -1,10 +1,10 @@
 ﻿# ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 鈫?B (decisions locked)
-> **Last Updated:** 2026-06-10T12:00
+> **Last Updated:** 2026-06-10T14:00
 > **Audit Progress:** T0 鉁?| T1 鉁?| T2 鉁?| T3 鉁?| T4 鉁?| T5 鉁?| T6 鉁?| T7 鉁?| EXT 鉁? 
 > **Verdict Distribution:** FULLY_ALIGNED 366 | PARTIAL 194 | DIVERGED 89 | RESTRUCTURED 156 | NEW 52 | MISSING 1186  
-> **Active Batch / Audit Task:** B-T6-utils — session 17aj done: swarm pane-side complete (types/detection/it2Setup/registry/PaneBackendExecutor/TmuxBackend/ITermBackend/spawnUtils/teammateLayoutManager) + utils/tasks + utils/teammateMailbox; next: in-process chain (F1998/F2006/F2009)
+> **Active Batch / Audit Task:** B-T6-tasks-core — session 17ak done: Task.ts + utils/task/{diskOutput,framework} + messageQueueManager(core) + tasks/{types,InProcessTeammateTask} + swarm/{spawnInProcess,teamHelpers} + AppState tasks/teamContext fields; next: InProcessBackend + inProcessRunner + registry direct-import restore
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL 鈮?20% weighted
 
 ---
@@ -159,7 +159,7 @@
 | 115 | `constants/github-app.ts` | `constants/github-app.ts` | T7 | DIVERGED | high | KEPT | skip | overlap=32% |
 | 116 | `constants/messages.ts` | `constants/messages.ts` | T7 | FULLY_ALIGNED | medium | ALIGNED | 鈥?| identical to CC |
 | 117 | `constants/product.ts` | `constants/product.ts` | T7 | PARTIAL | high | ALIGNED | adapt-complete | added CLAUDE_AI_STAGING_BASE_URL/CLAUDE_AI_LOCAL_BASE_URL/getClaudeAiBaseUrl; getRemoteSessionUrl still simplified (no bridge) |
-| 118 | `constants/spinnerVerbs.ts` | `constants/spinnerVerbs.ts` | T7 | DIVERGED | high | KEPT | skip | overlap=25% |
+| 118 | `constants/spinnerVerbs.ts` | `constants/spinnerVerbs.ts` | T7 | DIVERGED | high | KEPT | skip | overlap=25%; getSpinnerVerbs (settings-aware) copy-blocked in; verb list stays QiLing-localized |
 | 119 | `constants/toolLimits.ts` | `constants/toolLimits.ts` | T7 | FULLY_ALIGNED | medium | ALIGNED | 鈥?| identical to CC |
 | 120 | `constants/tools.ts` | `constants/tools.ts` | T7 | PARTIAL | medium | ALIGNED | copy-block | added CUSTOM/ASYNC/IN_PROCESS_TEAMMATE tool sets + TOOL_SEARCH import + conditional AGENT_TOOL; COORDINATOR diverged (QiLing expanded) |
 | 121 | `constants/turnCompletionVerbs.ts` | `constants/turnCompletionVerbs.ts` | T7 | FULLY_ALIGNED | medium | ALIGNED | 鈥?| identical to CC |
@@ -840,7 +840,7 @@
 | 796 | `` | `utils/updater.ts` | T6 | NEW | high | KEPT | skip |  |
 | 797 | `ink/layout/engine.ts` | `vim/engine.ts` | T2 | RESTRUCTURED | medium | ALIGNED | 鈥?| export闆嗗悎瀹屾暣 |
 | 798 | `QueryEngine.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
-| 799 | `Task.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
+| 799 | `Task.ts` | `Task.ts` | T6 | MISSING | high | ALIGNED | copy | AppState import mapped to state/AppStateStore |
 | 800 | `Tool.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 801 | `assistant/sessionHistory.ts` | `` | EXT | MISSING | high | UNTOUCHED | copy |  |
 | 802 | `bootstrap/state.ts` | `` | T0 | MISSING | high | ALIGNED | adapt-new | lightweight adapter; 200+ fns; OTEL=stub |
@@ -1660,8 +1660,8 @@
 | 1616 | `state/teammateViewHelpers.ts` | `` | T0 | MISSING | high | ALIGNED | adapt-new | Swarm瑙嗗浘鍔╂墜瀛樻牴; Phase D鍊欓€?|
 | 1617 | `tasks.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1618 | `tasks/DreamTask/DreamTask.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1619 | `tasks/InProcessTeammateTask/InProcessTeammateTask.tsx` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1620 | `tasks/InProcessTeammateTask/types.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1619 | `tasks/InProcessTeammateTask/InProcessTeammateTask.tsx` | `tasks/InProcessTeammateTask/InProcessTeammateTask.tsx` | T6 | MISSING | high | ALIGNED | adapt-new |  |
+| 1620 | `tasks/InProcessTeammateTask/types.ts` | `tasks/InProcessTeammateTask/types.ts` | T6 | MISSING | high | ALIGNED | adapt-new | AgentToolResult/AgentProgress typed unknown until AgentTool layer (F1619-dep) lands |
 | 1621 | `tasks/LocalAgentTask/LocalAgentTask.tsx` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1622 | `tasks/LocalMainSessionTask.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1623 | `tasks/LocalShellTask/LocalShellTask.tsx` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
@@ -1670,7 +1670,7 @@
 | 1626 | `tasks/RemoteAgentTask/RemoteAgentTask.tsx` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1627 | `tasks/pillLabel.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1628 | `tasks/stopTask.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
-| 1629 | `tasks/types.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
+| 1629 | `tasks/types.ts` | `tasks/types.ts` | T6 | MISSING | high | ALIGNED | copy | union currently IPTT-only; extend as task types land (LocalShell/LocalAgent/RemoteAgent/Dream; Workflow+MonitorMcp missing from reference src) |
 | 1630 | `tools.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1631 | `tools/AgentTool/AgentTool.tsx` | `tools/AgentTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
 | 1632 | `tools/AgentTool/UI.tsx` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
@@ -1915,7 +1915,7 @@
 | 1871 | `utils/mcp/elicitationValidation.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1872 | `utils/mcpInstructionsDelta.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1873 | `utils/memory/types.ts` | `utils/memory/types.ts` | T6 | MISSING | high | ALIGNED | adapt-new | MEMORY_TYPE_VALUES=User/Project/Local/Managed/AutoMem; TeamMem removed |
-| 1874 | `utils/messageQueueManager.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
+| 1874 | `utils/messageQueueManager.ts` | `utils/messageQueueManager.ts` | T6 | PARTIAL | high | ALIGNED | copy | queue core + aliases ported; text-input/image integration waits on types/textInputTypes (387L) + types/messageQueueTypes (missing from reference) |
 | 1875 | `utils/messages/mappers.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1876 | `utils/messages/systemInit.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1877 | `utils/model/agent.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
@@ -2050,15 +2050,15 @@
 | 2006 | `utils/swarm/inProcessRunner.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 2007 | `utils/swarm/permissionSync.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 2008 | `utils/swarm/reconnection.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 2009 | `utils/swarm/spawnInProcess.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 2009 | `utils/swarm/spawnInProcess.ts` | `utils/swarm/spawnInProcess.ts` | T6 | MISSING | high | ALIGNED | adapt-new | perfetto register/unregister hooks deferred (telemetry/perfettoTracing not ported) |
 | 2010 | `utils/swarm/spawnUtils.ts` | `utils/swarm/spawnUtils.ts` | T6 | MISSING | high | ALIGNED | adapt-new |  |
-| 2011 | `utils/swarm/teamHelpers.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 2011 | `utils/swarm/teamHelpers.ts` | `utils/swarm/teamHelpers.ts` | T6 | MISSING | high | ALIGNED | adapt-new | gitExe()->git literal per gitDiff.ts precedent |
 | 2012 | `utils/swarm/teammateInit.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 2013 | `utils/swarm/teammateLayoutManager.ts` | `utils/swarm/teammateLayoutManager.ts` | T6 | MISSING | high | ALIGNED | adapt-new |  |
 | 2014 | `utils/swarm/teammatePromptAddendum.ts` | `` | T6 | MISSING | high | ALIGNED | adapt-new |  |
 | 2015 | `utils/task/TaskOutput.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 2016 | `utils/task/diskOutput.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 2017 | `utils/task/framework.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 2016 | `utils/task/diskOutput.ts` | `utils/task/diskOutput.ts` | T6 | MISSING | high | ALIGNED | adapt-new | readFileRange/tailFile call sites adapted to QiLing fsOperations signatures |
+| 2017 | `utils/task/framework.ts` | `utils/task/framework.ts` | T6 | MISSING | high | ALIGNED | adapt-new | LocalAgentTaskState-only fields (retain/evictAfter/diskLoaded) accessed via guarded casts until that type lands |
 | 2018 | `utils/task/sdkProgress.ts` | `` | T6 | MISSING | high | ALIGNED | adapt-new |  |
 | 2019 | `utils/tasks.ts` | `utils/tasks.ts` | T6 | MISSING | high | ALIGNED | copy |  |
 | 2020 | `utils/teamDiscovery.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |

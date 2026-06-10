@@ -17,168 +17,193 @@
  * CC's bun-bundle feature flags that would break QiLing's build.
  */
 
-import type { Settings } from '../settings/schema.js'
-import { createStore, type Store } from './store.js'
-import type { PermissionMode } from '../utils/permissions/PermissionMode.js'
-import type { EffortLevel } from '../utils/effort.js'
-import type { MCPServerConnection } from '../services/mcp/types.js'
-import type { Notification } from '../context/notifications.js'
+import type { Notification } from "../context/notifications.js";
+import type { MCPServerConnection } from "../services/mcp/types.js";
+import type { Settings } from "../settings/schema.js";
+import type { EffortLevel } from "../utils/effort.js";
+import type { PermissionMode } from "../utils/permissions/PermissionMode.js";
+import { type Store, createStore } from "./store.js";
 
 /** Inline — QiLing's fileHistory.ts doesn't export a consolidated state type */
 type FileHistoryState = {
-  snapshots: Array<{ filePath: string; content: string; timestamp: number }>
-  trackedFiles: Set<string>
-  snapshotSequence: number
-}
+  snapshots: Array<{ filePath: string; content: string; timestamp: number }>;
+  trackedFiles: Set<string>;
+  snapshotSequence: number;
+};
 
 /** Resource exposed by an MCP server */
-type ServerResource = { uri: string; name: string; description?: string; mimeType?: string }
+type ServerResource = {
+  uri: string;
+  name: string;
+  description?: string;
+  mimeType?: string;
+};
 
 // ─── Auxiliary types ──────────────────────────────────────────────────────────
 
 export type ToolPermissionContext = {
-  mode: PermissionMode
+  mode: PermissionMode;
   /** Glob-pattern allow rules (session scope) */
-  allow: string[]
+  allow: string[];
   /** Glob-pattern deny rules (session scope) */
-  deny: string[]
+  deny: string[];
   /** Additional working directories beyond project root */
-  additionalDirectories: string[]
-}
+  additionalDirectories: string[];
+};
 
 export function getEmptyToolPermissionContext(): ToolPermissionContext {
-  return { mode: 'default', allow: [], deny: [], additionalDirectories: [] }
+  return { mode: "default", allow: [], deny: [], additionalDirectories: [] };
 }
 
 export type MCPState = {
-  clients: MCPServerConnection[]
-  tools: unknown[]
-  commands: unknown[]
-  resources: Record<string, ServerResource[]>
+  clients: MCPServerConnection[];
+  tools: unknown[];
+  commands: unknown[];
+  resources: Record<string, ServerResource[]>;
   /** Incremented by /reload-plugins to trigger MCP reconnect effects */
-  pluginReconnectKey: number
-}
+  pluginReconnectKey: number;
+};
 
 export type PluginEntry = {
-  id: string
-  name: string
-  version?: string
-  source: 'user' | 'project' | 'local'
-  description?: string
-}
+  id: string;
+  name: string;
+  version?: string;
+  source: "user" | "project" | "local";
+  description?: string;
+};
 
 export type PluginError = {
-  pluginId: string
-  message: string
-  type: 'load' | 'init' | 'mcp'
-}
+  pluginId: string;
+  message: string;
+  type: "load" | "init" | "mcp";
+};
 
 export type PluginState = {
-  enabled: PluginEntry[]
-  disabled: PluginEntry[]
-  commands: unknown[]
-  errors: PluginError[]
-  needsRefresh: boolean
-}
+  enabled: PluginEntry[];
+  disabled: PluginEntry[];
+  commands: unknown[];
+  errors: PluginError[];
+  needsRefresh: boolean;
+};
 
 export type ElicitationEvent = {
-  requestId: string
-  toolName: string
-  serverName: string
-  schema: unknown
-}
+  requestId: string;
+  toolName: string;
+  serverName: string;
+  schema: unknown;
+};
 
 export type TodoItem = {
-  id: string
-  content: string
-  status: 'pending' | 'in_progress' | 'completed' | 'cancelled'
-  priority: 'low' | 'medium' | 'high'
-}
+  id: string;
+  content: string;
+  status: "pending" | "in_progress" | "completed" | "cancelled";
+  priority: "low" | "medium" | "high";
+};
 
-export type TodoList = TodoItem[]
+export type TodoList = TodoItem[];
 
-export type TaskState = {
-  id: string
-  type: string
-  status: 'pending' | 'running' | 'completed' | 'failed' | 'killed'
-  description: string
-  command?: string
-  isBackgrounded?: boolean
-  toolUseId?: string
-  notified?: boolean
-  [k: string]: unknown
-}
+// FROM CC: TaskState union lives in tasks/types.ts (re-exported here so
+// existing selector imports keep working). The previous loose inline type
+// predated the tasks subsystem port.
+import type { TaskState } from "../tasks/types.js";
+export type { TaskState } from "../tasks/types.js";
 
 // ─── AppState ─────────────────────────────────────────────────────────────────
 
 export type AppState = {
   // ── Core ──────────────────────────────────────────────────────────────────
-  settings: Settings
-  verbose: boolean
+  settings: Settings;
+  verbose: boolean;
 
   /** Active model identifier or alias (null = use default) */
-  mainLoopModel: string | null
+  mainLoopModel: string | null;
   /** Model pinned for this session via /model (survives compact, not restart) */
-  mainLoopModelForSession: string | null
+  mainLoopModelForSession: string | null;
 
   /** Permission mode + session-scoped allow/deny rules */
-  toolPermissionContext: ToolPermissionContext
+  toolPermissionContext: ToolPermissionContext;
 
   /** Thinking depth control */
-  thinkingEnabled: boolean | undefined
+  thinkingEnabled: boolean | undefined;
   /** Effort level for extended thinking */
-  effortValue: EffortLevel | undefined
+  effortValue: EffortLevel | undefined;
   /** Fast mode toggle (/fast) */
-  fastMode: boolean
+  fastMode: boolean;
 
   // ── UI state ──────────────────────────────────────────────────────────────
-  expandedView: 'none' | 'tasks'
-  statusLineText: string | undefined
+  expandedView: "none" | "tasks";
+  statusLineText: string | undefined;
   /** Set of overlay IDs currently open (for Escape coordination) */
-  activeOverlays: Set<string>
-  isBriefOnly: boolean
-  spinnerTip?: string
+  activeOverlays: Set<string>;
+  isBriefOnly: boolean;
+  spinnerTip?: string;
 
   // ── Agent / CLI ───────────────────────────────────────────────────────────
   /** Agent name from --agent flag or settings */
-  agent: string | undefined
+  agent: string | undefined;
 
   // ── MCP ───────────────────────────────────────────────────────────────────
-  mcp: MCPState
+  mcp: MCPState;
 
   // ── Plugins ───────────────────────────────────────────────────────────────
-  plugins: PluginState
+  plugins: PluginState;
 
   // ── Tasks (background agents / shell tasks) ───────────────────────────────
-  tasks: Record<string, TaskState>
+  tasks: Record<string, TaskState>;
+
+  // ── Team context (agent swarms) ───────────────────────────────────────────
+  // FROM CC: AppStateStore teamContext — team metadata + pane-teammate registry
+  teamContext?: {
+    teamName: string;
+    teamFilePath: string;
+    leadAgentId: string;
+    // Self-identity for swarm members (separate processes in tmux panes)
+    // Note: This is different from toolUseContext.agentId which is for in-process subagents
+    selfAgentId?: string; // Swarm member's own ID (same as leadAgentId for leaders)
+    selfAgentName?: string; // Swarm member's name ('team-lead' for leaders)
+    isLeader?: boolean; // True if this swarm member is the team leader
+    selfAgentColor?: string; // Assigned color for UI (used by dynamically joined sessions)
+    teammates: {
+      [teammateId: string]: {
+        name: string;
+        agentType?: string;
+        color?: string;
+        tmuxSessionName: string;
+        tmuxPaneId: string;
+        cwd: string;
+        worktreePath?: string;
+        spawnedAt: number;
+      };
+    };
+  };
 
   // ── Notifications ─────────────────────────────────────────────────────────
   notifications: {
-    current: Notification | null
-    queue: Notification[]
-  }
+    current: Notification | null;
+    queue: Notification[];
+  };
 
   // ── Todos ─────────────────────────────────────────────────────────────────
   /** Per-agent todo lists keyed by agentId ('' = main thread) */
-  todos: Record<string, TodoList>
+  todos: Record<string, TodoList>;
 
   // ── MCP Elicitation ───────────────────────────────────────────────────────
-  elicitation: { queue: ElicitationEvent[] }
+  elicitation: { queue: ElicitationEvent[] };
 
   // ── File history ──────────────────────────────────────────────────────────
-  fileHistory: FileHistoryState
+  fileHistory: FileHistoryState;
 
   // ── Initial message (from CLI args or plan mode exit) ─────────────────────
   initialMessage: {
-    message: { role: 'user'; content: string }
-    clearContext?: boolean
-    mode?: PermissionMode
-  } | null
-}
+    message: { role: "user"; content: string };
+    clearContext?: boolean;
+    mode?: PermissionMode;
+  } | null;
+};
 
 // ─── Store type ───────────────────────────────────────────────────────────────
 
-export type AppStateStore = Store<AppState>
+export type AppStateStore = Store<AppState>;
 
 // ─── Default state ────────────────────────────────────────────────────────────
 
@@ -192,7 +217,7 @@ export function getDefaultAppState(): AppState {
     thinkingEnabled: undefined,
     effortValue: undefined,
     fastMode: false,
-    expandedView: 'none',
+    expandedView: "none",
     statusLineText: undefined,
     activeOverlays: new Set(),
     isBriefOnly: false,
@@ -222,11 +247,11 @@ export function getDefaultAppState(): AppState {
       snapshotSequence: 0,
     },
     initialMessage: null,
-  }
+  };
 }
 
 // ─── Store factory ────────────────────────────────────────────────────────────
 
 export function createAppStore(initial?: Partial<AppState>): AppStateStore {
-  return createStore<AppState>({ ...getDefaultAppState(), ...initial })
+  return createStore<AppState>({ ...getDefaultAppState(), ...initial });
 }
