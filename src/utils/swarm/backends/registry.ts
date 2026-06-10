@@ -1,6 +1,7 @@
 import { getIsNonInteractiveSession } from "../../../bootstrap/state.js";
 import { logForDebugging } from "../../../utils/debug.js";
 import { getPlatform } from "../../../utils/platform.js";
+import { createInProcessBackend } from "./InProcessBackend.js";
 import { createPaneBackendExecutor } from "./PaneBackendExecutor.js";
 import {
   isInITerm2,
@@ -63,26 +64,6 @@ let TmuxBackendClass: (new () => PaneBackend) | null = null;
  * This allows the registry to compile before the backend implementations exist.
  */
 let ITermBackendClass: (new () => PaneBackend) | null = null;
-
-/**
- * Factory for the in-process backend.
- * FROM CC: registry imports createInProcessBackend from './InProcessBackend.js'
- * directly. QiLing defers the in-process execution chain (inProcessRunner /
- * spawnInProcess / InProcessTeammateTask not yet ported), so InProcessBackend
- * uses the same late-registration pattern this file already uses for
- * TmuxBackend/ITermBackend. Restore the direct import once InProcessBackend lands.
- */
-let InProcessBackendFactory: (() => TeammateExecutor) | null = null;
-
-/**
- * Registers the InProcessBackend factory with the registry.
- * Called by InProcessBackend.ts to avoid importing a not-yet-ported module.
- */
-export function registerInProcessBackend(
-  factory: () => TeammateExecutor,
-): void {
-  InProcessBackendFactory = factory;
-}
 
 /**
  * Ensures backend classes are dynamically imported so getBackendByType() can
@@ -425,12 +406,7 @@ export function getResolvedTeammateMode(): "in-process" | "tmux" {
  */
 export function getInProcessBackend(): TeammateExecutor {
   if (!cachedInProcessBackend) {
-    if (!InProcessBackendFactory) {
-      throw new Error(
-        "InProcessBackend not registered. Import InProcessBackend.ts before using the registry.",
-      );
-    }
-    cachedInProcessBackend = InProcessBackendFactory();
+    cachedInProcessBackend = createInProcessBackend();
   }
   return cachedInProcessBackend;
 }

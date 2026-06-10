@@ -1,10 +1,10 @@
 ﻿# ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 鈫?B (decisions locked)
-> **Last Updated:** 2026-06-10T14:00
+> **Last Updated:** 2026-06-10T16:00
 > **Audit Progress:** T0 鉁?| T1 鉁?| T2 鉁?| T3 鉁?| T4 鉁?| T5 鉁?| T6 鉁?| T7 鉁?| EXT 鉁? 
 > **Verdict Distribution:** FULLY_ALIGNED 366 | PARTIAL 194 | DIVERGED 89 | RESTRUCTURED 156 | NEW 52 | MISSING 1186  
-> **Active Batch / Audit Task:** B-T6-tasks-core — session 17ak done: Task.ts + utils/task/{diskOutput,framework} + messageQueueManager(core) + tasks/{types,InProcessTeammateTask} + swarm/{spawnInProcess,teamHelpers} + AppState tasks/teamContext fields; next: InProcessBackend + inProcessRunner + registry direct-import restore
+> **Active Batch / Audit Task:** B-T6-InProcessBackend — session 17al done: InProcessBackend.ts, registry direct-import restored, Tool.ts AppState/setAppState widened; next: inProcessRunner + AgentTool layer (blocked on runAgent/etc.)
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL 鈮?20% weighted
 
 ---
@@ -841,7 +841,7 @@
 | 797 | `ink/layout/engine.ts` | `vim/engine.ts` | T2 | RESTRUCTURED | medium | ALIGNED | 鈥?| export闆嗗悎瀹屾暣 |
 | 798 | `QueryEngine.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 799 | `Task.ts` | `Task.ts` | T6 | MISSING | high | ALIGNED | copy | AppState import mapped to state/AppStateStore |
-| 800 | `Tool.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
+| 800 | `Tool.ts` | `Tool.ts` | T6 | MISSING | high | ALIGNED | copy | getAppState widened to AppState; setAppState added for swarm tool use |
 | 801 | `assistant/sessionHistory.ts` | `` | EXT | MISSING | high | UNTOUCHED | copy |  |
 | 802 | `bootstrap/state.ts` | `` | T0 | MISSING | high | ALIGNED | adapt-new | lightweight adapter; 200+ fns; OTEL=stub |
 | 803 | `bridge/bridgeApi.ts` | `` | EXT | MISSING | high | UNTOUCHED | copy |  |
@@ -2039,7 +2039,7 @@
 | 1995 | `utils/suggestions/slackChannelSuggestions.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1996 | `utils/swarm/It2SetupPrompt.tsx` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1997 | `utils/swarm/backends/ITermBackend.ts` | `utils/swarm/backends/ITermBackend.ts` | T6 | MISSING | high | ALIGNED | adapt-new |  |
-| 1998 | `utils/swarm/backends/InProcessBackend.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new | waiting for inProcessRunner(F2006)/spawnInProcess(F2009)/tasks-InProcessTeammateTask subsystem |
+| 1998 | `utils/swarm/backends/InProcessBackend.ts` | `utils/swarm/backends/InProcessBackend.ts` | T6 | MISSING | high | ALIGNED | adapt-new | startInProcessTeammate() guarded (inProcessRunner not yet ported) |
 | 1999 | `utils/swarm/backends/PaneBackendExecutor.ts` | `utils/swarm/backends/PaneBackendExecutor.ts` | T6 | MISSING | high | ALIGNED | adapt-new |  |
 | 2000 | `utils/swarm/backends/TmuxBackend.ts` | `utils/swarm/backends/TmuxBackend.ts` | T6 | MISSING | high | ALIGNED | adapt-new |  |
 | 2001 | `utils/swarm/backends/detection.ts` | `utils/swarm/backends/detection.ts` | T6 | MISSING | high | ALIGNED | adapt-new |  |
