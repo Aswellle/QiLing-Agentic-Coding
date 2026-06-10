@@ -148,6 +148,12 @@ export type AppState = {
   // ── Plugins ───────────────────────────────────────────────────────────────
   plugins: PluginState;
 
+  // ── Session hooks (ephemeral function/command hooks per session) ─────────
+  // FROM CC: full type is Map<string, SessionStore> (utils/hooks/sessionHooks.ts).
+  // Using unknown to avoid duplicating the SessionStore/HookCommand shape here
+  // (the schema lives in schemas/hooks.ts).
+  sessionHooks: Map<string, unknown>;
+
   // ── Tasks (background agents / shell tasks) ───────────────────────────────
   tasks: Record<string, TaskState>;
 
@@ -237,6 +243,7 @@ export function getDefaultAppState(): AppState {
       errors: [],
       needsRefresh: false,
     },
+    sessionHooks: new Map(),
     tasks: {},
     notifications: { current: null, queue: [] },
     todos: {},
