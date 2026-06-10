@@ -1,10 +1,10 @@
 ﻿# ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 鈫?B (decisions locked)
-> **Last Updated:** 2026-06-10T16:00
+> **Last Updated:** 2026-06-10T17:00
 > **Audit Progress:** T0 鉁?| T1 鉁?| T2 鉁?| T3 鉁?| T4 鉁?| T5 鉁?| T6 鉁?| T7 鉁?| EXT 鉁? 
 > **Verdict Distribution:** FULLY_ALIGNED 366 | PARTIAL 194 | DIVERGED 89 | RESTRUCTURED 156 | NEW 52 | MISSING 1186  
-> **Active Batch / Audit Task:** B-T6-InProcessBackend — session 17al done: InProcessBackend.ts, registry direct-import restored, Tool.ts AppState/setAppState widened; next: inProcessRunner + AgentTool layer (blocked on runAgent/etc.)
+> **Active Batch / Audit Task:** B-T6-swarm-remaining — session 17am done: reconnection.ts + permissionSync.ts (2 files); next: teammateInit.ts (requires hooks/sessionHooks.ts)
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL 鈮?20% weighted
 
 ---
@@ -2048,8 +2048,8 @@
 | 2004 | `utils/swarm/backends/teammateModeSnapshot.ts` | `` | T6 | MISSING | high | ALIGNED | adapt-new |  |
 | 2005 | `utils/swarm/backends/types.ts` | `utils/swarm/backends/types.ts` | T6 | MISSING | high | ALIGNED | adapt-new |  |
 | 2006 | `utils/swarm/inProcessRunner.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 2007 | `utils/swarm/permissionSync.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 2008 | `utils/swarm/reconnection.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 2007 | `utils/swarm/permissionSync.ts` | `utils/swarm/permissionSync.ts` | T6 | MISSING | high | ALIGNED | adapt-new |  |
+| 2008 | `utils/swarm/reconnection.ts` | `utils/swarm/reconnection.ts` | T6 | MISSING | high | ALIGNED | adapt-new |  |
 | 2009 | `utils/swarm/spawnInProcess.ts` | `utils/swarm/spawnInProcess.ts` | T6 | MISSING | high | ALIGNED | adapt-new | perfetto register/unregister hooks deferred (telemetry/perfettoTracing not ported) |
 | 2010 | `utils/swarm/spawnUtils.ts` | `utils/swarm/spawnUtils.ts` | T6 | MISSING | high | ALIGNED | adapt-new |  |
 | 2011 | `utils/swarm/teamHelpers.ts` | `utils/swarm/teamHelpers.ts` | T6 | MISSING | high | ALIGNED | adapt-new | gitExe()->git literal per gitDiff.ts precedent |
