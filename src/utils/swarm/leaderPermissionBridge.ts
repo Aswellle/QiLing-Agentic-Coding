@@ -8,18 +8,18 @@
  * permission dialog rather than a worker badge.
  */
 
-type SetQueueFn<T> = (updater: (prev: T[]) => T[]) => void
-type SetPermissionContextFn = (context: Record<string, unknown>) => void
+type SetQueueFn<T> = (updater: (prev: T[]) => T[]) => void;
+type SetPermissionContextFn = (context: Record<string, unknown>) => void;
 
-let _setConfirmQueue: SetQueueFn<unknown> | null = null
-let _setPermissionContext: SetPermissionContextFn | null = null
+let _setConfirmQueue: SetQueueFn<unknown> | null = null;
+let _setPermissionContext: SetPermissionContextFn | null = null;
 
 /**
  * Register the REPL's confirm queue setter.
  * Called during REPL initialization.
  */
 export function registerSetConfirmQueue(fn: SetQueueFn<unknown>): void {
-  _setConfirmQueue = fn
+  _setConfirmQueue = fn;
 }
 
 /**
@@ -27,21 +27,21 @@ export function registerSetConfirmQueue(fn: SetQueueFn<unknown>): void {
  * Called during REPL initialization.
  */
 export function registerSetPermissionContext(fn: SetPermissionContextFn): void {
-  _setPermissionContext = fn
+  _setPermissionContext = fn;
 }
 
 /** Get the registered confirm queue setter, or null if not registered. */
 export function getSetConfirmQueue(): SetQueueFn<unknown> | null {
-  return _setConfirmQueue
+  return _setConfirmQueue;
 }
 
 /** Get the registered permission context setter, or null if not registered. */
 export function getSetPermissionContext(): SetPermissionContextFn | null {
-  return _setPermissionContext
+  return _setPermissionContext;
 }
 
 /** Reset all registered functions. For testing only. */
 export function resetLeaderPermissionBridge(): void {
-  _setConfirmQueue = null
-  _setPermissionContext = null
+  _setConfirmQueue = null;
+  _setPermissionContext = null;
 }

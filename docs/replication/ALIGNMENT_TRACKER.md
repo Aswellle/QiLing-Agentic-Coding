@@ -1,10 +1,10 @@
 ﻿# ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 鈫?B (decisions locked)
-> **Last Updated:** 2026-05-31T10:00
+> **Last Updated:** 2026-06-10T12:00
 > **Audit Progress:** T0 鉁?| T1 鉁?| T2 鉁?| T3 鉁?| T4 鉁?| T5 鉁?| T6 鉁?| T7 鉁?| EXT 鉁? 
 > **Verdict Distribution:** FULLY_ALIGNED 366 | PARTIAL 194 | DIVERGED 89 | RESTRUCTURED 156 | NEW 52 | MISSING 1186  
-> **Active Batch / Audit Task:** B-T1-TOOLS-01 馃煛 鈥?session 6 done: treeSitterAnalysis/ParsedCommand/readOnlyCommandValidation(full)/bashCommandHelpers(complete)/readOnlyValidation(adapt-new) 鉁?
+> **Active Batch / Audit Task:** B-T6-utils — session 17aj done: swarm pane-side complete (types/detection/it2Setup/registry/PaneBackendExecutor/TmuxBackend/ITermBackend/spawnUtils/teammateLayoutManager) + utils/tasks + utils/teammateMailbox; next: in-process chain (F1998/F2006/F2009)
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL 鈮?20% weighted
 
 ---
@@ -1084,7 +1084,7 @@
 | 1040 | `components/AutoUpdaterWrapper.tsx` | `` | T2 | MISSING | high | UNTOUCHED | copy |  |
 | 1041 | `components/AwsAuthStatusBox.tsx` | `` | T2 | MISSING | high | UNTOUCHED | copy |  |
 | 1042 | `components/BaseTextInput.tsx` | `` | T2 | MISSING | high | UNTOUCHED | copy |  |
-| 1043 | `components/BashModeProgress.tsx` | `` | T2 | MISSING | high | UNTOUCHED | copy |  |
+| 1043 | `components/BashModeProgress.tsx` | `` | T2 | MISSING | high | ALIGNED | copy |  |
 | 1044 | `components/BridgeDialog.tsx` | `` | T2 | MISSING | high | UNTOUCHED | copy |  |
 | 1045 | `components/BypassPermissionsModeDialog.tsx` | `` | T2 | MISSING | high | UNTOUCHED | copy |  |
 | 1046 | `components/ChannelDowngradeDialog.tsx` | `` | T2 | MISSING | high | UNTOUCHED | copy |  |
@@ -1103,7 +1103,7 @@
 | 1059 | `components/CustomSelect/use-select-input.ts` | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1060 | `components/DesktopHandoff.tsx` | `` | T2 | MISSING | high | UNTOUCHED | copy |  |
 | 1061 | `components/DesktopUpsell/DesktopUpsellStartup.tsx` | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1062 | `components/DevBar.tsx` | `` | T2 | MISSING | high | UNTOUCHED | copy |  |
+| 1062 | `components/DevBar.tsx` | `` | T2 | MISSING | high | ALIGNED | copy |  |
 | 1063 | `components/DevChannelsDialog.tsx` | `` | T2 | MISSING | high | UNTOUCHED | copy |  |
 | 1064 | `components/DiagnosticsDisplay.tsx` | `` | T2 | MISSING | high | UNTOUCHED | copy |  |
 | 1065 | `components/EffortCallout.tsx` | `` | T2 | MISSING | high | UNTOUCHED | copy |  |
@@ -1158,7 +1158,7 @@
 | 1114 | `components/ManagedSettingsSecurityDialog/utils.ts` | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1115 | `components/Markdown.tsx` | `` | T2 | MISSING | high | UNTOUCHED | copy |  |
 | 1116 | `components/MarkdownTable.tsx` | `` | T2 | MISSING | high | UNTOUCHED | copy |  |
-| 1117 | `components/MemoryUsageIndicator.tsx` | `` | T2 | MISSING | high | UNTOUCHED | copy |  |
+| 1117 | `components/MemoryUsageIndicator.tsx` | `` | T2 | MISSING | high | ALIGNED | copy |  |
 | 1118 | `components/MessageRow.tsx` | `` | T2 | MISSING | high | UNTOUCHED | copy |  |
 | 1119 | `components/MessageSelector.tsx` | `` | T2 | MISSING | high | UNTOUCHED | copy |  |
 | 1120 | `components/Messages.tsx` | `` | T2 | MISSING | high | UNTOUCHED | copy |  |
@@ -1270,7 +1270,7 @@
 | 1226 | `components/mcp/MCPToolListView.tsx` | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1227 | `components/mcp/McpParsingWarnings.tsx` | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1228 | `components/mcp/index.ts` | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1229 | `components/mcp/utils/reconnectHelpers.tsx` | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1229 | `components/mcp/utils/reconnectHelpers.tsx` | `` | T2 | MISSING | high | ALIGNED | adapt-new |  |
 | 1230 | `components/memory/MemoryFileSelector.tsx` | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1231 | `components/messageActions.tsx` | `` | T2 | MISSING | high | UNTOUCHED | copy |  |
 | 1232 | `components/messages/AdvisorMessage.tsx` | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
@@ -1299,9 +1299,9 @@
 | 1255 | `components/messages/UserToolResultMessage/UserToolResultMe鈥 | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1256 | `components/messages/UserToolResultMessage/UserToolSuccessM鈥 | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1257 | `components/messages/UserToolResultMessage/utils.tsx` | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1258 | `components/messages/nullRenderingAttachments.ts` | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1258 | `components/messages/nullRenderingAttachments.ts` | `` | T2 | MISSING | high | ALIGNED | adapt-new |  |
 | 1259 | `components/messages/teamMemCollapsed.tsx` | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1260 | `components/messages/teamMemSaved.ts` | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1260 | `components/messages/teamMemSaved.ts` | `` | T2 | MISSING | high | ALIGNED | adapt-new |  |
 | 1261 | `components/permissions/AskUserQuestionPermissionRequest/As鈥 | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1262 | `components/permissions/AskUserQuestionPermissionRequest/Pr鈥 | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1263 | `components/permissions/AskUserQuestionPermissionRequest/Pr鈥 | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
@@ -1355,7 +1355,7 @@
 | 1311 | `components/sandbox/SandboxDoctorSection.tsx` | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1312 | `components/sandbox/SandboxOverridesTab.tsx` | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1313 | `components/sandbox/SandboxSettings.tsx` | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1314 | `components/shell/OutputLine.tsx` | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1314 | `components/shell/OutputLine.tsx` | `` | T2 | MISSING | high | ALIGNED | adapt-new |  |
 | 1315 | `components/skills/SkillsMenu.tsx` | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1316 | `components/tasks/AsyncAgentDetailDialog.tsx` | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1317 | `components/tasks/BackgroundTask.tsx` | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
@@ -1367,7 +1367,7 @@
 | 1323 | `components/tasks/RemoteSessionProgress.tsx` | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1324 | `components/tasks/ShellDetailDialog.tsx` | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1325 | `components/tasks/ShellProgress.tsx` | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1326 | `components/tasks/renderToolActivity.tsx` | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1326 | `components/tasks/renderToolActivity.tsx` | `` | T2 | MISSING | high | ALIGNED | adapt-new |  |
 | 1327 | `components/tasks/taskStatusUtils.tsx` | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1328 | `components/teams/TeamStatus.tsx` | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1329 | `components/teams/TeamsDialog.tsx` | `` | T2 | MISSING | high | UNTOUCHED | adapt-new |  |
@@ -1395,18 +1395,18 @@
 | 1351 | `hooks/notifs/useDeprecationWarningNotification.tsx` | `hooks/notifs/useDeprecationWarningNotification.tsx` | T3 | MISSING | high | ALIGNED | adapt-new | fixed absolute imports; getModelDeprecationWarning |
 | 1352 | `hooks/notifs/useFastModeNotification.tsx` | `` | T3 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1353 | `hooks/notifs/useIDEStatusIndicator.tsx` | `` | T3 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1354 | `hooks/notifs/useInstallMessages.tsx` | `` | T3 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1355 | `hooks/notifs/useLspInitializationNotification.tsx` | `` | T3 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1356 | `hooks/notifs/useMcpConnectivityStatus.tsx` | `` | T3 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1354 | `hooks/notifs/useInstallMessages.tsx` | `` | T3 | MISSING | high | ALIGNED | adapt-new |  |
+| 1355 | `hooks/notifs/useLspInitializationNotification.tsx` | `` | T3 | MISSING | high | ALIGNED | adapt-new |  |
+| 1356 | `hooks/notifs/useMcpConnectivityStatus.tsx` | `` | T3 | MISSING | high | ALIGNED | adapt-new |  |
 | 1357 | `hooks/notifs/useModelMigrationNotifications.tsx` | `hooks/notifs/useModelMigrationNotifications.tsx` | T3 | MISSING | high | ALIGNED | adapt-new | sonnet46+opus migration notifs; uses getGlobalConfig |
 | 1358 | `hooks/notifs/useNpmDeprecationNotification.tsx` | `` | T3 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1359 | `hooks/notifs/usePluginAutoupdateNotification.tsx` | `` | T3 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1359 | `hooks/notifs/usePluginAutoupdateNotification.tsx` | `` | T3 | MISSING | high | ALIGNED | adapt-new |  |
 | 1360 | `hooks/notifs/usePluginInstallationStatus.tsx` | `hooks/notifs/usePluginInstallationStatus.tsx` | T3 | MISSING | high | ALIGNED | adapt-new | installationStatus not in QL AppState鈫抯afe no-op; ink鈫抜nk pkg |
 | 1361 | `hooks/notifs/useRateLimitWarningNotification.tsx` | `` | T3 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1362 | `hooks/notifs/useSettingsErrors.tsx` | `` | T3 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1363 | `hooks/notifs/useTeammateShutdownNotification.ts` | `` | T3 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1362 | `hooks/notifs/useSettingsErrors.tsx` | `` | T3 | MISSING | high | ALIGNED | adapt-new |  |
+| 1363 | `hooks/notifs/useTeammateShutdownNotification.ts` | `` | T3 | MISSING | high | ALIGNED | adapt-new |  |
 | 1364 | `hooks/toolPermission/PermissionContext.ts` | `` | T3 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1365 | `hooks/toolPermission/handlers/coordinatorHandler.ts` | `` | T3 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1365 | `hooks/toolPermission/handlers/coordinatorHandler.ts` | `` | T3 | MISSING | high | ALIGNED | adapt-new |  |
 | 1366 | `hooks/toolPermission/handlers/interactiveHandler.ts` | `` | T3 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1367 | `hooks/toolPermission/handlers/swarmWorkerHandler.ts` | `` | T3 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1368 | `hooks/toolPermission/permissionLogging.ts` | `` | T3 | MISSING | high | UNTOUCHED | adapt-new |  |
@@ -1423,7 +1423,7 @@
 | 1379 | `hooks/useClipboardImageHint.ts` | `hooks/useClipboardImageHint.ts` | T3 | MISSING | high | ALIGNED | copy-verbatim | +utils/imagePaste.ts stub (osascript/darwin only) |
 | 1380 | `hooks/useCommandKeybindings.tsx` | `` | T3 | MISSING | high | UNTOUCHED | copy |  |
 | 1381 | `hooks/useCommandQueue.ts` | `` | T3 | MISSING | high | UNTOUCHED | copy |  |
-| 1382 | `hooks/useCopyOnSelect.ts` | `` | T3 | MISSING | high | UNTOUCHED | copy |  |
+| 1382 | `hooks/useCopyOnSelect.ts` | `` | T3 | MISSING | high | ALIGNED | copy |  |
 | 1383 | `hooks/useDiffInIDE.ts` | `` | T3 | MISSING | high | UNTOUCHED | copy |  |
 | 1384 | `hooks/useDirectConnect.ts` | `` | T3 | MISSING | high | UNTOUCHED | copy |  |
 | 1385 | `hooks/useGlobalKeybindings.tsx` | `` | T3 | MISSING | high | UNTOUCHED | copy |  |
@@ -1451,7 +1451,7 @@
 | 1407 | `hooks/useSSHSession.ts` | `` | T3 | MISSING | high | UNTOUCHED | copy |  |
 | 1408 | `hooks/useScheduledTasks.ts` | `` | T3 | MISSING | high | UNTOUCHED | copy |  |
 | 1409 | `hooks/useSessionBackgrounding.ts` | `` | T3 | MISSING | high | UNTOUCHED | copy |  |
-| 1410 | `hooks/useSettings.ts` | `` | T3 | MISSING | high | UNTOUCHED | copy |  |
+| 1410 | `hooks/useSettings.ts` | `` | T3 | MISSING | high | ALIGNED | copy |  |
 | 1411 | `hooks/useSkillImprovementSurvey.ts` | `` | T3 | MISSING | high | UNTOUCHED | copy |  |
 | 1412 | `hooks/useSkillsChange.ts` | `` | T3 | MISSING | high | UNTOUCHED | copy |  |
 | 1413 | `hooks/useSwarmInitialization.ts` | `` | T3 | MISSING | high | UNTOUCHED | copy |  |
@@ -1675,17 +1675,17 @@
 | 1631 | `tools/AgentTool/AgentTool.tsx` | `tools/AgentTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
 | 1632 | `tools/AgentTool/UI.tsx` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1633 | `tools/AgentTool/agentToolUtils.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1634 | `tools/AgentTool/built-in/claudeCodeGuideAgent.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1634 | `tools/AgentTool/built-in/claudeCodeGuideAgent.ts` | `` | T1 | MISSING | high | BLOCKED | adapt-new |  |
 | 1635 | `tools/AgentTool/built-in/statuslineSetup.ts` | `tools/AgentTool/built-in/statuslineSetup.ts` | T1 | RESTRUCTURED | high | ALIGNED | adapt-new | created; QiLing consolidates agent defs in builtInAgents.ts |
 | 1636 | `tools/AgentTool/built-in/verificationAgent.ts` | `tools/AgentTool/built-in/verificationAgent.ts` | T1 | PARTIAL | high | ALIGNED | adapt-new | systemPrompt replaces getSystemPrompt(); wired into builtInAgents.ts |
-| 1637 | `tools/AgentTool/forkSubagent.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1638 | `tools/AgentTool/prompt.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1637 | `tools/AgentTool/forkSubagent.ts` | `` | T1 | MISSING | high | ALIGNED | adapt-new |  |
+| 1638 | `tools/AgentTool/prompt.ts` | `` | T1 | MISSING | high | ALIGNED | adapt-new |  |
 | 1639 | `tools/AgentTool/resumeAgent.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1640 | `tools/AgentTool/runAgent.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1641 | `tools/AskUserQuestionTool/AskUserQuestionTool.tsx` | `tools/AskUserQuestionTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
 | 1642 | `tools/BashTool/BashTool.tsx` | `tools/BashTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
-| 1643 | `tools/BashTool/BashToolResultMessage.tsx` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1644 | `tools/BashTool/UI.tsx` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1643 | `tools/BashTool/BashToolResultMessage.tsx` | `` | T1 | MISSING | high | ALIGNED | adapt-new |  |
+| 1644 | `tools/BashTool/UI.tsx` | `` | T1 | MISSING | high | ALIGNED | adapt-new |  |
 | 1645 | `tools/BashTool/bashCommandHelpers.ts` | `tools/BashTool/bashCommandHelpers.ts` | T1 | MISSING | high | ALIGNED | adapt-new | full port; ParsedCommand.ts ported; BashTool import ../BashTool.js |
 | 1646 | `tools/BashTool/bashPermissions.ts` | `tools/BashTool/bashPermissions.ts` | T1 | MISSING | high | ALIGNED | adapt-new | full port; stripped bun-bundle/ANT analytics; type shims for ToolPermissionContext/PermissionResult |
 | 1647 | `tools/BashTool/modeValidation.ts` | `src/tools/BashTool/modeValidation.ts` | T1 | PARTIAL | high | ALIGNED | adapt-new | PermissionDecision\|null (null=passthrough); ToolPermissionContext from state/AppStateStore |
@@ -1695,8 +1695,8 @@
 | 1651 | `tools/BashTool/sedEditParser.ts` | `src/tools/BashTool/sedEditParser.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | 鈥?| file exists; tracker had empty target path |
 | 1652 | `tools/BashTool/shouldUseSandbox.ts` | `tools/BashTool/shouldUseSandbox.ts` | T1 | MISSING | high | ALIGNED | adapt-new | full port; stripped ANT analytics; getSettings_DEPRECATED 鈫?empty stub |
 | 1653 | `tools/BriefTool/BriefTool.ts` | `tools/BriefTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
-| 1654 | `tools/BriefTool/UI.tsx` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1655 | `tools/BriefTool/attachments.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1654 | `tools/BriefTool/UI.tsx` | `` | T1 | MISSING | high | BLOCKED | adapt-new |  |
+| 1655 | `tools/BriefTool/attachments.ts` | `` | T1 | MISSING | high | ALIGNED | adapt-new |  |
 | 1656 | `tools/BriefTool/upload.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1657 | `tools/ConfigTool/ConfigTool.ts` | `tools/ConfigTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
 | 1658 | `tools/ConfigTool/UI.tsx` | `` | T1 | MISSING | high | ALIGNED | adapt-new |  |
@@ -1708,23 +1708,23 @@
 | 1664 | `tools/EnterWorktreeTool/EnterWorktreeTool.ts` | `tools/EnterWorktreeTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
 | 1665 | `tools/EnterWorktreeTool/UI.tsx` | `` | T1 | MISSING | high | ALIGNED | adapt-new |  |
 | 1666 | `tools/ExitPlanModeTool/ExitPlanModeV2Tool.ts` | `tools/ExitPlanModeTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
-| 1667 | `tools/ExitPlanModeTool/UI.tsx` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1667 | `tools/ExitPlanModeTool/UI.tsx` | `` | T1 | MISSING | high | BLOCKED | adapt-new |  |
 | 1668 | `tools/ExitWorktreeTool/ExitWorktreeTool.ts` | `tools/ExitWorktreeTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
 | 1669 | `tools/ExitWorktreeTool/UI.tsx` | `` | T1 | MISSING | high | ALIGNED | adapt-new |  |
 | 1670 | `tools/FileEditTool/FileEditTool.ts` | `tools/FileEditTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
-| 1671 | `tools/FileEditTool/UI.tsx` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1671 | `tools/FileEditTool/UI.tsx` | `` | T1 | MISSING | high | ALIGNED | adapt-new |  |
 | 1672 | `tools/FileEditTool/utils.ts` | `src/tools/FileEditTool/utils.ts` | T1 | PARTIAL | high | ALIGNED | adapt-new | readFileSyncCached鈫抮eadFileSync('utf-8'); getPatchForDisplay sig adapted |
 | 1673 | `tools/FileReadTool/FileReadTool.ts` | `tools/FileReadTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
-| 1674 | `tools/FileReadTool/UI.tsx` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1674 | `tools/FileReadTool/UI.tsx` | `` | T1 | MISSING | high | ALIGNED | adapt-new |  |
 | 1675 | `tools/FileReadTool/limits.ts` | `tools/FileReadTool/limits.ts` | T1 | PARTIAL | high | ALIGNED | adapt-new | GrowthBook/memoize removed; env var + hardcoded defaults only |
 | 1676 | `tools/FileWriteTool/FileWriteTool.ts` | `tools/FileWriteTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
-| 1677 | `tools/FileWriteTool/UI.tsx` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1677 | `tools/FileWriteTool/UI.tsx` | `` | T1 | MISSING | high | ALIGNED | adapt-new |  |
 | 1678 | `tools/GlobTool/GlobTool.ts` | `tools/GlobTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
-| 1679 | `tools/GlobTool/UI.tsx` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1679 | `tools/GlobTool/UI.tsx` | `` | T1 | MISSING | high | ALIGNED | adapt-new |  |
 | 1680 | `tools/GrepTool/GrepTool.ts` | `tools/GrepTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
-| 1681 | `tools/GrepTool/UI.tsx` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1681 | `tools/GrepTool/UI.tsx` | `` | T1 | MISSING | high | ALIGNED | adapt-new |  |
 | 1682 | `tools/LSPTool/LSPTool.ts` | `tools/LspTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
-| 1683 | `tools/LSPTool/UI.tsx` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1683 | `tools/LSPTool/UI.tsx` | `` | T1 | MISSING | high | ALIGNED | adapt-new |  |
 | 1684 | `tools/LSPTool/formatters.ts` | `tools/LspTool/formatters.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
 | 1685 | `tools/LSPTool/prompt.ts` | `tools/LspTool/prompt.ts` | T1 | PARTIAL | high | ALIGNED | adapt-new | file existed; descriptions slightly shortened |
 | 1686 | `tools/LSPTool/schemas.ts` | `tools/LspTool/schemas.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
@@ -1732,14 +1732,14 @@
 | 1688 | `tools/ListMcpResourcesTool/ListMcpResourcesTool.ts` | `tools/ListMcpResourcesTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
 | 1689 | `tools/ListMcpResourcesTool/UI.tsx` | `` | T1 | MISSING | high | ALIGNED | adapt-new |  |
 | 1690 | `tools/MCPTool/MCPTool.ts` | `tools/McpTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
-| 1691 | `tools/MCPTool/UI.tsx` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1691 | `tools/MCPTool/UI.tsx` | `` | T1 | MISSING | high | ALIGNED | adapt-new |  |
 | 1692 | `tools/MCPTool/classifyForCollapse.ts` | `tools/McpTool/classifyForCollapse.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
 | 1693 | `tools/MCPTool/prompt.ts` | `tools/McpTool/prompt.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
 | 1694 | `tools/McpAuthTool/McpAuthTool.ts` | `tools/McpAuthTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
 | 1695 | `tools/NotebookEditTool/NotebookEditTool.ts` | `tools/NotebookEditTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
-| 1696 | `tools/NotebookEditTool/UI.tsx` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1696 | `tools/NotebookEditTool/UI.tsx` | `` | T1 | MISSING | high | ALIGNED | adapt-new |  |
 | 1697 | `tools/PowerShellTool/PowerShellTool.tsx` | `tools/PowerShellTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
-| 1698 | `tools/PowerShellTool/UI.tsx` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1698 | `tools/PowerShellTool/UI.tsx` | `` | T1 | MISSING | high | ALIGNED | adapt-new |  |
 | 1699 | `tools/PowerShellTool/modeValidation.ts` | `tools/PowerShellTool/modeValidation.ts` | T1 | MISSING | high | ALIGNED | copy-verbatim | decisionReason.type 'mode'鈫?other' |
 | 1700 | `tools/PowerShellTool/pathValidation.ts` | `tools/PowerShellTool/pathValidation.ts` | T1 | MISSING | high | ALIGNED | copy-verbatim | PermissionRule鈫扨ermissionRule.ts; safeResolvePath鈫抯afeResolvePathCC; blockedPath removed |
 | 1701 | `tools/PowerShellTool/powershellPermissions.ts` | `tools/PowerShellTool/powershellPermissions.ts` | T1 | MISSING | high | ALIGNED | adapt-new | PermissionResult/PermissionDecisionReason from PermissionResult.ts; all 4 PS deps complete |
@@ -1747,18 +1747,18 @@
 | 1703 | `tools/PowerShellTool/readOnlyValidation.ts` | `tools/PowerShellTool/readOnlyValidation.ts` | T1 | MISSING | high | ALIGNED | adapt-new | drop isGhSafe ANT guard; GH_READ_ONLY_COMMANDS empty |
 | 1704 | `tools/REPLTool/primitiveTools.ts` | `tools/REPLTool/primitiveTools.ts` | T1 | PARTIAL | high | ALIGNED | adapt-new | flat QiLing imports; lazy getter preserved |
 | 1705 | `tools/ReadMcpResourceTool/ReadMcpResourceTool.ts` | `tools/ReadMcpResourceTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
-| 1706 | `tools/ReadMcpResourceTool/UI.tsx` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1706 | `tools/ReadMcpResourceTool/UI.tsx` | `` | T1 | MISSING | high | ALIGNED | adapt-new |  |
 | 1707 | `tools/RemoteTriggerTool/RemoteTriggerTool.ts` | `tools/RemoteTriggerTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
 | 1708 | `tools/RemoteTriggerTool/UI.tsx` | `` | T1 | MISSING | high | ALIGNED | adapt-new |  |
 | 1709 | `tools/ScheduleCronTool/CronCreateTool.ts` | `tools/CronCreateTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
 | 1710 | `tools/ScheduleCronTool/CronDeleteTool.ts` | `tools/CronDeleteTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
 | 1711 | `tools/ScheduleCronTool/CronListTool.ts` | `tools/CronListTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
-| 1712 | `tools/ScheduleCronTool/UI.tsx` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1712 | `tools/ScheduleCronTool/UI.tsx` | `` | T1 | MISSING | high | ALIGNED | adapt-new |  |
 | 1713 | `tools/SendMessageTool/SendMessageTool.ts` | `tools/SendMessageTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
 | 1714 | `tools/SendMessageTool/UI.tsx` | `` | T1 | MISSING | high | ALIGNED | adapt-new |  |
 | 1715 | `tools/SkillTool/SkillTool.ts` | `tools/SkillTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
-| 1716 | `tools/SkillTool/UI.tsx` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1717 | `tools/SkillTool/prompt.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1716 | `tools/SkillTool/UI.tsx` | `` | T1 | MISSING | high | ALIGNED | adapt-new |  |
+| 1717 | `tools/SkillTool/prompt.ts` | `` | T1 | MISSING | high | ALIGNED | adapt-new |  |
 | 1718 | `tools/SyntheticOutputTool/SyntheticOutputTool.ts` | `tools/SyntheticOutputTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
 | 1719 | `tools/TaskCreateTool/TaskCreateTool.ts` | `tools/TaskCreateTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
 | 1720 | `tools/TaskGetTool/TaskGetTool.ts` | `tools/TaskGetTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
@@ -1774,13 +1774,13 @@
 | 1730 | `tools/TodoWriteTool/TodoWriteTool.ts` | `tools/TodoWriteTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
 | 1731 | `tools/TodoWriteTool/prompt.ts` | `tools/TodoWriteTool/prompt.ts` | T1 | FULLY_ALIGNED | high | ALIGNED | copy-verbatim |  |
 | 1732 | `tools/ToolSearchTool/ToolSearchTool.ts` | `tools/ToolSearchTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
-| 1733 | `tools/WebFetchTool/UI.tsx` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1733 | `tools/WebFetchTool/UI.tsx` | `` | T1 | MISSING | high | ALIGNED | adapt-new |  |
 | 1734 | `tools/WebFetchTool/WebFetchTool.ts` | `tools/WebFetchTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
 | 1735 | `tools/WebFetchTool/utils.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1736 | `tools/WebSearchTool/UI.tsx` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1736 | `tools/WebSearchTool/UI.tsx` | `` | T1 | MISSING | high | ALIGNED | adapt-new |  |
 | 1737 | `tools/WebSearchTool/WebSearchTool.ts` | `tools/WebSearchTool.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip |  |
 | 1738 | `tools/shared/spawnMultiAgent.ts` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1739 | `tools/testing/TestingPermissionTool.tsx` | `` | T1 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1739 | `tools/testing/TestingPermissionTool.tsx` | `` | T1 | MISSING | high | BLOCKED | adapt-new |  |
 | 1740 | `tools/utils.ts` | `tools/toolUtils.ts` | T1 | RESTRUCTURED | medium | ALIGNED | skip | renamed toolUtils.ts; same two exports (tagMessagesWithToolUseID, getToolUseIDFromParentMessage) |
 | 1741 | `types/command.ts` | `` | T7 | MISSING | high | UNTOUCHED | copy |  |
 | 1742 | `types/generated/events_mono/claude_code/v1/claude_code_int鈥 | `` | T7 | MISSING | high | UNTOUCHED | adapt-new |  |
@@ -1860,11 +1860,11 @@
 | 1816 | `utils/crossProjectResume.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1817 | `utils/debug.ts` | `utils/debug.ts` | T6 | MISSING | high | ALIGNED | copy | stub re-export from utils/log.ts |
 | 1818 | `utils/deepLink/banner.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1819 | `utils/deepLink/parseDeepLink.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1819 | `utils/deepLink/parseDeepLink.ts` | `` | T6 | MISSING | high | ALIGNED | adapt-new |  |
 | 1820 | `utils/deepLink/protocolHandler.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1821 | `utils/deepLink/registerProtocol.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1822 | `utils/deepLink/terminalLauncher.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1823 | `utils/deepLink/terminalPreference.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1823 | `utils/deepLink/terminalPreference.ts` | `` | T6 | MISSING | high | ALIGNED | adapt-new |  |
 | 1824 | `utils/desktopDeepLink.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1825 | `utils/doctorContextWarnings.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1826 | `utils/doctorDiagnostic.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
@@ -1880,7 +1880,7 @@
 | 1836 | `utils/filePersistence/filePersistence.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1837 | `utils/forkedAgent.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1838 | `utils/fullscreen.ts` | `utils/fullscreen.ts` | T6 | MISSING | high | ALIGNED | copy-verbatim | useCwd鈫抩mit; USER_TYPE=ant 鈫?false for QiLing (opt-in) |
-| 1839 | `utils/githubRepoPathMapping.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
+| 1839 | `utils/githubRepoPathMapping.ts` | `` | T6 | MISSING | high | ALIGNED | copy |  |
 | 1840 | `utils/groupToolUses.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1841 | `utils/handlePromptSubmit.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1842 | `utils/headlessProfiler.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
@@ -1904,7 +1904,7 @@
 | 1860 | `utils/ide.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1861 | `utils/imagePaste.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1862 | `utils/imageStore.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
-| 1863 | `utils/immediateCommand.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
+| 1863 | `utils/immediateCommand.ts` | `` | T6 | MISSING | high | ALIGNED | copy |  |
 | 1864 | `utils/inProcessTeammateHelpers.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1865 | `utils/jetbrains.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1866 | `utils/listSessionsImpl.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
@@ -1919,7 +1919,7 @@
 | 1875 | `utils/messages/mappers.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1876 | `utils/messages/systemInit.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1877 | `utils/model/agent.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1878 | `utils/model/antModels.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1878 | `utils/model/antModels.ts` | `` | T6 | MISSING | high | ALIGNED | adapt-new |  |
 | 1879 | `utils/model/bedrock.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1880 | `utils/model/model.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1881 | `utils/model/modelCapabilities.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
@@ -1933,9 +1933,9 @@
 | 1889 | `utils/nativeInstaller/pidLock.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1890 | `utils/permissions/PermissionPromptToolResultSchema.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1891 | `utils/permissions/PermissionUpdate.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1892 | `utils/permissions/autoModeState.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1892 | `utils/permissions/autoModeState.ts` | `` | T6 | MISSING | high | ALIGNED | adapt-new |  |
 | 1893 | `utils/permissions/bypassPermissionsKillswitch.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1894 | `utils/permissions/classifierDecision.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1894 | `utils/permissions/classifierDecision.ts` | `` | T6 | MISSING | high | ALIGNED | adapt-new |  |
 | 1895 | `utils/permissions/filesystem.ts` | `utils/permissions/filesystem.ts` | T6 | MISSING | high | ALIGNED | adapt-new | full port; inline stubs for memdir/agentMemory/settings/UNC; adapted getPlanSlug/getPlansDirectory; isScratchpadEnabled=false |
 | 1896 | `utils/permissions/getNextPermissionMode.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1897 | `utils/permissions/pathValidation.ts` | `utils/permissions/pathValidation.ts` | T6 | MISSING | high | ALIGNED | adapt-new | full port; sandbox-adapter鈫抜ndex; safeResolvePathCC adapter |
@@ -1967,7 +1967,7 @@
 | 1923 | `utils/plugins/mcpbHandler.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1924 | `utils/plugins/officialMarketplaceGcs.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1925 | `utils/plugins/officialMarketplaceStartupCheck.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1926 | `utils/plugins/orphanedPluginFilter.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1926 | `utils/plugins/orphanedPluginFilter.ts` | `` | T6 | MISSING | high | ALIGNED | adapt-new |  |
 | 1927 | `utils/plugins/parseMarketplaceInput.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1928 | `utils/plugins/performStartupChecks.tsx` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1929 | `utils/plugins/pluginAutoupdate.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
@@ -1992,13 +1992,13 @@
 | 1948 | `utils/promptCategory.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1949 | `utils/promptEditor.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1950 | `utils/queryContext.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
-| 1951 | `utils/queryProfiler.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
+| 1951 | `utils/queryProfiler.ts` | `` | T6 | MISSING | high | ALIGNED | copy |  |
 | 1952 | `utils/queueProcessor.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
-| 1953 | `utils/readEditContext.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
-| 1954 | `utils/readFileInRange.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
+| 1953 | `utils/readEditContext.ts` | `` | T6 | MISSING | high | ALIGNED | copy |  |
+| 1954 | `utils/readFileInRange.ts` | `` | T6 | MISSING | high | ALIGNED | copy |  |
 | 1955 | `utils/sandbox/sandbox-adapter.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1956 | `utils/screenshotClipboard.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
-| 1957 | `utils/sdkEventQueue.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
+| 1957 | `utils/sdkEventQueue.ts` | `` | T6 | MISSING | high | ALIGNED | copy |  |
 | 1958 | `utils/secureStorage/keychainPrefetch.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1959 | `utils/secureStorage/macOsKeychainHelpers.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1960 | `utils/secureStorage/macOsKeychainStorage.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
@@ -2007,30 +2007,30 @@
 | 1963 | `utils/sessionIngressAuth.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1964 | `utils/sessionRestore.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1965 | `utils/sessionStart.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
-| 1966 | `utils/sessionState.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
+| 1966 | `utils/sessionState.ts` | `` | T6 | MISSING | high | ALIGNED | copy |  |
 | 1967 | `utils/sessionStoragePortable.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
-| 1968 | `utils/settings/allErrors.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1968 | `utils/settings/allErrors.ts` | `` | T6 | MISSING | high | ALIGNED | adapt-new |  |
 | 1969 | `utils/settings/applySettingsChange.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1970 | `utils/settings/changeDetector.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1971 | `utils/settings/constants.ts` | `utils/settings/constants.ts` | T6 | MISSING | high | ALIGNED | copy-verbatim | SettingSource types + getEnabledSettingSources |
-| 1972 | `utils/settings/mdm/constants.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1973 | `utils/settings/mdm/rawRead.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1972 | `utils/settings/mdm/constants.ts` | `` | T6 | MISSING | high | ALIGNED | adapt-new |  |
+| 1973 | `utils/settings/mdm/rawRead.ts` | `` | T6 | MISSING | high | ALIGNED | adapt-new |  |
 | 1974 | `utils/settings/mdm/settings.ts` | `utils/settings/mdm/settings.ts` | T6 | MISSING | high | ALIGNED | adapt-new | stub |
 | 1975 | `utils/settings/permissionValidation.ts` | `utils/settings/permissionValidation.ts` | T6 | MISSING | high | ALIGNED | adapt-new | stub |
 | 1976 | `utils/settings/settings.ts` | `utils/settings/settings.ts` | T6 | MISSING | high | ALIGNED | adapt-new | TRANSCRIPT_CLASSIFIER鈫抐alse; getFsImpl鈫抎irect fs; 1013L |
 | 1977 | `utils/settings/settingsCache.ts` | `utils/settings/settingsCache.ts` | T6 | MISSING | high | ALIGNED | copy-verbatim | session/source/parseFile caches |
 | 1978 | `utils/settings/types.ts` | `utils/settings/types.ts` | T6 | MISSING | high | ALIGNED | adapt-new | full SettingsSchema; bun:bundle stripped |
-| 1979 | `utils/settings/validateEditTool.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1979 | `utils/settings/validateEditTool.ts` | `` | T6 | MISSING | high | ALIGNED | adapt-new |  |
 | 1980 | `utils/settings/validation.ts` | `utils/settings/validation.ts` | T6 | MISSING | high | ALIGNED | copy-verbatim | import path fixed |
 | 1981 | `utils/shell/bashProvider.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1982 | `utils/shell/powershellProvider.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1982 | `utils/shell/powershellProvider.ts` | `` | T6 | MISSING | high | ALIGNED | adapt-new |  |
 | 1983 | `utils/shell/prefix.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1984 | `utils/shell/readOnlyCommandValidation.ts` | `utils/shell/readOnlyCommandValidation.ts` | T6 | MISSING | high | ALIGNED | adapt-new | full port; GH_READ_ONLY_COMMANDS鈫抏mpty (ANT-only); all git/rg/docker/pyright maps + validateFlags |
-| 1985 | `utils/shell/specPrefix.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1985 | `utils/shell/specPrefix.ts` | `` | T6 | MISSING | high | ALIGNED | adapt-new |  |
 | 1986 | `utils/sideQuestion.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1987 | `utils/sinks.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1988 | `utils/skills/skillChangeDetector.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1989 | `utils/standaloneAgent.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
+| 1989 | `utils/standaloneAgent.ts` | `` | T6 | MISSING | high | ALIGNED | copy |  |
 | 1990 | `utils/stats.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1991 | `utils/status.tsx` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 1992 | `utils/statusNoticeDefinitions.tsx` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
@@ -2038,33 +2038,33 @@
 | 1994 | `utils/suggestions/commandSuggestions.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1995 | `utils/suggestions/slackChannelSuggestions.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 1996 | `utils/swarm/It2SetupPrompt.tsx` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1997 | `utils/swarm/backends/ITermBackend.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1998 | `utils/swarm/backends/InProcessBackend.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 1999 | `utils/swarm/backends/PaneBackendExecutor.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 2000 | `utils/swarm/backends/TmuxBackend.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 2001 | `utils/swarm/backends/detection.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 2002 | `utils/swarm/backends/it2Setup.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 2003 | `utils/swarm/backends/registry.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 2004 | `utils/swarm/backends/teammateModeSnapshot.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 2005 | `utils/swarm/backends/types.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 1997 | `utils/swarm/backends/ITermBackend.ts` | `utils/swarm/backends/ITermBackend.ts` | T6 | MISSING | high | ALIGNED | adapt-new |  |
+| 1998 | `utils/swarm/backends/InProcessBackend.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new | waiting for inProcessRunner(F2006)/spawnInProcess(F2009)/tasks-InProcessTeammateTask subsystem |
+| 1999 | `utils/swarm/backends/PaneBackendExecutor.ts` | `utils/swarm/backends/PaneBackendExecutor.ts` | T6 | MISSING | high | ALIGNED | adapt-new |  |
+| 2000 | `utils/swarm/backends/TmuxBackend.ts` | `utils/swarm/backends/TmuxBackend.ts` | T6 | MISSING | high | ALIGNED | adapt-new |  |
+| 2001 | `utils/swarm/backends/detection.ts` | `utils/swarm/backends/detection.ts` | T6 | MISSING | high | ALIGNED | adapt-new |  |
+| 2002 | `utils/swarm/backends/it2Setup.ts` | `utils/swarm/backends/it2Setup.ts` | T6 | MISSING | high | ALIGNED | adapt-new |  |
+| 2003 | `utils/swarm/backends/registry.ts` | `utils/swarm/backends/registry.ts` | T6 | MISSING | high | ALIGNED | adapt-new | InProcessBackend wired via late-registration (registerInProcessBackend); restore direct import when F1998 lands |
+| 2004 | `utils/swarm/backends/teammateModeSnapshot.ts` | `` | T6 | MISSING | high | ALIGNED | adapt-new |  |
+| 2005 | `utils/swarm/backends/types.ts` | `utils/swarm/backends/types.ts` | T6 | MISSING | high | ALIGNED | adapt-new |  |
 | 2006 | `utils/swarm/inProcessRunner.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 2007 | `utils/swarm/permissionSync.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 2008 | `utils/swarm/reconnection.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 2009 | `utils/swarm/spawnInProcess.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 2010 | `utils/swarm/spawnUtils.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 2010 | `utils/swarm/spawnUtils.ts` | `utils/swarm/spawnUtils.ts` | T6 | MISSING | high | ALIGNED | adapt-new |  |
 | 2011 | `utils/swarm/teamHelpers.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 2012 | `utils/swarm/teammateInit.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 2013 | `utils/swarm/teammateLayoutManager.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 2014 | `utils/swarm/teammatePromptAddendum.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
+| 2013 | `utils/swarm/teammateLayoutManager.ts` | `utils/swarm/teammateLayoutManager.ts` | T6 | MISSING | high | ALIGNED | adapt-new |  |
+| 2014 | `utils/swarm/teammatePromptAddendum.ts` | `` | T6 | MISSING | high | ALIGNED | adapt-new |  |
 | 2015 | `utils/task/TaskOutput.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 2016 | `utils/task/diskOutput.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 2017 | `utils/task/framework.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 2018 | `utils/task/sdkProgress.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
-| 2019 | `utils/tasks.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
+| 2018 | `utils/task/sdkProgress.ts` | `` | T6 | MISSING | high | ALIGNED | adapt-new |  |
+| 2019 | `utils/tasks.ts` | `utils/tasks.ts` | T6 | MISSING | high | ALIGNED | copy |  |
 | 2020 | `utils/teamDiscovery.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
 | 2021 | `utils/teamMemoryOps.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
-| 2022 | `utils/teammate.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
-| 2023 | `utils/teammateMailbox.ts` | `` | T6 | MISSING | high | UNTOUCHED | copy |  |
+| 2022 | `utils/teammate.ts` | `` | T6 | MISSING | high | ALIGNED | copy |  |
+| 2023 | `utils/teammateMailbox.ts` | `utils/teammateMailbox.ts` | T6 | MISSING | high | ALIGNED | copy | Message wrapper adapted to flat role/content; lockfile LockOptions widened |
 | 2024 | `utils/telemetry/betaSessionTracing.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 2025 | `utils/telemetry/bigqueryExporter.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |
 | 2026 | `utils/telemetry/events.ts` | `` | T6 | MISSING | high | UNTOUCHED | adapt-new |  |

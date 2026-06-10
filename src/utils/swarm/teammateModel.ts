@@ -5,8 +5,8 @@
  * Must be provider-aware for Bedrock/Vertex/Foundry compatibility.
  */
 
-import { CLAUDE_OPUS_4_6_CONFIG } from '../model/configs.js'
-import { getAPIProvider } from '../model/providers.js'
+import { CLAUDE_OPUS_4_6_CONFIG } from "../model/configs.js";
+import { getAPIProvider } from "../model/providers.js";
 
 /**
  * Get the hardcoded fallback model for teammates.
@@ -16,5 +16,5 @@ import { getAPIProvider } from '../model/providers.js'
  * @[MODEL LAUNCH]: Update when a new default teammate model launches.
  */
 export function getHardcodedTeammateModelFallback(): string {
-  return CLAUDE_OPUS_4_6_CONFIG[getAPIProvider()]
+  return CLAUDE_OPUS_4_6_CONFIG[getAPIProvider()];
 }
