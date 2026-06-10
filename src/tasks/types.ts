@@ -7,11 +7,28 @@
 // lands so the exported shape converges on the reference.
 
 import type { InProcessTeammateTaskState } from "./InProcessTeammateTask/types.js";
+// FROM CC: TaskState union includes LocalShellTaskState, LocalAgentTaskState,
+// RemoteAgentTaskState, LocalWorkflowTaskState, MonitorMcpTaskState,
+// DreamTaskState. These types are not yet ported; their task state types are
+// approximated via a loose index signature so existing switch-based consumers
+// (pillLabel, stopTask) compile.
+export type LocalShellTaskState = InProcessTeammateTaskState & { type: "local_bash"; command?: string; kind?: string; isBackgrounded?: boolean; };
+export type LocalAgentTaskState = InProcessTeammateTaskState & { type: "local_agent"; retain?: boolean; };
+export type RemoteAgentTaskState = InProcessTeammateTaskState & { type: "remote_agent"; isUltraplan?: boolean; ultraplanPhase?: string; };
+export type LocalWorkflowTaskState = InProcessTeammateTaskState & { type: "local_workflow"; };
+export type MonitorMcpTaskState = InProcessTeammateTaskState & { type: "monitor_mcp"; };
+export type DreamTaskState = InProcessTeammateTaskState & { type: "dream"; };
 
-export type TaskState = InProcessTeammateTaskState;
+export type TaskState =
+  | InProcessTeammateTaskState
+  | LocalShellTaskState
+  | LocalAgentTaskState
+  | RemoteAgentTaskState
+  | LocalWorkflowTaskState
+  | MonitorMcpTaskState
+  | DreamTaskState;
 
-// Task types that can appear in the background tasks indicator
-export type BackgroundTaskState = InProcessTeammateTaskState;
+export type BackgroundTaskState = TaskState;
 
 /**
  * Check if a task should be shown in the background tasks indicator.
