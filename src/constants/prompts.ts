@@ -31,3 +31,16 @@ export async function enhanceSystemPromptWithEnvDetails(
 - Do not use a colon before tool calls. Text like "Let me read the file:" followed by a read tool call should just be "Let me read the file." with a period.`
   return [...existingSystemPrompt, notes]
 }
+
+// FROM CC: getSystemPrompt — full main-loop system prompt assembly.
+// STUB: QiLing's system prompt is assembled in its own loop; CC-ported
+// teammate code (inProcessRunner) calls this to build the teammate prompt.
+// Returns an empty part list until the prompt assembly is bridged.
+export async function getSystemPrompt(
+  _tools: unknown,
+  _mainLoopModel: unknown,
+  _unused?: unknown,
+  _mcpClients?: unknown,
+): Promise<string[]> {
+  return []
+}

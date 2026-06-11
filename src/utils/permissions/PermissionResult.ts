@@ -41,6 +41,8 @@ export type PermissionAllowDecision<Input = unknown> = {
   decisionReason?: PermissionDecisionReason
   metadata?: PermissionMetadata
   acceptFeedback?: string
+  /** CC: feedback content blocks attached to the decision */
+  contentBlocks?: unknown[]
 }
 
 export type PermissionDenyDecision = {
@@ -57,6 +59,8 @@ export type PermissionAskDecision = {
   metadata?: PermissionMetadata
   suggestions?: PermissionUpdate[]
   pendingClassifierCheck?: PendingClassifierCheck
+  /** CC: feedback content blocks attached to the decision */
+  contentBlocks?: unknown[]
 }
 
 export type PermissionPassthroughDecision = {

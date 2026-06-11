@@ -265,3 +265,29 @@ export function getLastAssistantMessage(messages: Message[]): Message | undefine
   return undefined;
 }
 
+// FROM CC: subagent rejection message constants (verbatim)
+// LOC: permission.subagent.rejected
+export const SUBAGENT_REJECT_MESSAGE =
+  'Permission for this tool use was denied. The tool use was rejected (eg. if it was a file edit, the new_string was NOT written to the file). Try a different approach or report the limitation to complete your task.'
+// LOC: permission.subagent.rejected_with_reason
+export const SUBAGENT_REJECT_MESSAGE_WITH_REASON_PREFIX =
+  'Permission for this tool use was denied. The tool use was rejected (eg. if it was a file edit, the new_string was NOT written to the file). The user said:\n'
+
+// FROM CC: createAssistantAPIErrorMessage — assistant message representing an
+// API error condition (adapted to QiLing's flat Message shape).
+export function createAssistantAPIErrorMessage({
+  content,
+  apiError,
+}: {
+  content: string
+  apiError?: Message['apiError']
+}): Message {
+  return {
+    role: 'assistant' as const,
+    type: 'assistant',
+    content: [{ type: 'text' as const, text: content }],
+    isApiErrorMessage: true,
+    ...(apiError ? { apiError } : {}),
+  }
+}
+

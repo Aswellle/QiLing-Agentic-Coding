@@ -63,3 +63,17 @@ export function getRuleByContentsForToolName(
 ): Map<string, PermissionRule> {
   return getRuleByContentsForTool(context, { name: toolName }, behavior)
 }
+
+// FROM CC: hasPermissionsToUseTool — full permission evaluation pipeline.
+// STUB: QiLing's evaluation lives in src/permissions/manager.ts with a
+// different interface; bridging is pending the query() runtime bridge.
+// Returning 'ask' is the safe default (caller escalates to the leader UI).
+export async function hasPermissionsToUseTool(
+  _tool: unknown,
+  _input: unknown,
+  _toolUseContext: unknown,
+  _assistantMessage: unknown,
+  _toolUseID: string,
+): Promise<import("./PermissionResult.js").PermissionDecision> {
+  return { behavior: "ask" };
+}

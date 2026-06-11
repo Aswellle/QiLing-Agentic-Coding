@@ -9,7 +9,10 @@
  */
 
 type SetQueueFn<T> = (updater: (prev: T[]) => T[]) => void;
-type SetPermissionContextFn = (context: Record<string, unknown>) => void;
+type SetPermissionContextFn = (
+  context: Record<string, unknown>,
+  opts?: { preserveMode?: boolean },
+) => void;
 
 let _setConfirmQueue: SetQueueFn<unknown> | null = null;
 let _setPermissionContext: SetPermissionContextFn | null = null;
@@ -45,3 +48,11 @@ export function resetLeaderPermissionBridge(): void {
   _setConfirmQueue = null;
   _setPermissionContext = null;
 }
+
+// FROM CC compat: CC names for the bridge getters. The queue items are
+// ToolUseConfirm-shaped objects; typed as Record<string, unknown> here since
+// the full ToolUseConfirm type lives in the (unported) leader UI layer.
+export const getLeaderToolUseConfirmQueue = getSetConfirmQueue as () =>
+  | ((updater: (prev: Array<Record<string, unknown>>) => Array<Record<string, unknown>>) => void)
+  | null;
+export const getLeaderSetToolPermissionContext = getSetPermissionContext;

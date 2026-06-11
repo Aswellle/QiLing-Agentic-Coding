@@ -7,6 +7,7 @@ import { parseAgentId } from "../../../utils/agentId.js";
 import { logForDebugging } from "../../../utils/debug.js";
 import { jsonStringify } from "../../../utils/slowOperations.js";
 import { writeToMailbox } from "../../../utils/teammateMailbox.js";
+import { startInProcessTeammate } from "../inProcessRunner.js";
 import {
   killInProcessTeammate,
   spawnInProcessTeammate,
@@ -99,14 +100,31 @@ export class InProcessBackend implements TeammateExecutor {
       result.teammateContext &&
       result.abortController
     ) {
-      // FROM CC: startInProcessTeammate() lives in inProcessRunner.ts (1552L)
-      // which depends on the full AgentTool loop stack (runAgent, etc.) not
-      // yet ported. The teammate is registered in AppState but the execution
-      // loop is a no-op until the in-process runner lands. The leader can
-      // still kill/terminate the teammate — the task state exists.
-      logForDebugging(
-        `[InProcessBackend] SPAWNED ${result.agentId} — skipped startInProcessTeammate (inProcessRunner not yet ported)`,
-      );
+      // FROM CC: startInProcessTeammate — fire-and-forget agent loop.
+      // The prompt is passed through the task state and config.
+      startInProcessTeammate({
+        identity: {
+          agentId: result.agentId,
+          agentName: config.name,
+          teamName: config.teamName,
+          color: config.color,
+          planModeRequired: config.planModeRequired ?? false,
+          parentSessionId: result.teammateContext.parentSessionId,
+        },
+        taskId: result.taskId,
+        prompt: config.prompt,
+        teammateContext: result.teammateContext,
+        // Strip messages: the teammate never reads toolUseContext.messages
+        // (runAgent overrides it via createSubagentContext). Passing the
+        // parent's conversation would pin it for the teammate's lifetime.
+        toolUseContext: { ...this.context, messages: [] },
+        abortController: result.abortController,
+        model: config.model,
+        systemPrompt: config.systemPrompt,
+        systemPromptMode: config.systemPromptMode,
+        allowedTools: config.permissions,
+        allowPermissionPrompts: config.allowPermissionPrompts,
+      });
 
       logForDebugging(
         `[InProcessBackend] Started agent execution for ${result.agentId}`,

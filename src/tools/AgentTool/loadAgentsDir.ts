@@ -179,3 +179,19 @@ export function isBuiltInAgent(
 ): def is BuiltInAgent & { source: 'built-in'; filePath?: undefined } {
   return def.source === 'built-in'
 }
+
+// FROM CC compat: CustomAgentDefinition — CC's agent definition shape with a
+// getSystemPrompt() method. QiLing's AgentDefinition uses a systemPrompt
+// string; CC-ported teammate code (inProcessRunner) constructs this shape and
+// casts to AgentDefinition at the runAgent boundary.
+export type CustomAgentDefinition = {
+  agentType: string
+  whenToUse?: string
+  getSystemPrompt: () => string
+  tools?: string[]
+  source?: string
+  permissionMode?: import('../../utils/permissions/PermissionMode.js').PermissionMode
+  model?: string
+  memory?: string
+  [key: string]: unknown
+}

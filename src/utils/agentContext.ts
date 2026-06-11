@@ -10,7 +10,19 @@ import { AsyncLocalStorage } from 'async_hooks'
 export type AgentContext = {
   agentId: string
   parentAgentId?: string
-  isSubagent: boolean
+  isSubagent?: boolean
+  // FROM CC compat: analytics-attribution fields written by teammate runners
+  // (inProcessRunner). Optional — QiLing's own subagent paths don't set them.
+  parentSessionId?: string
+  agentName?: string
+  teamName?: string
+  agentColor?: string
+  planModeRequired?: boolean
+  isTeamLead?: boolean
+  agentType?: string
+  invokingRequestId?: string
+  invocationKind?: string
+  invocationEmitted?: boolean
 }
 
 const agentContextStorage = new AsyncLocalStorage<AgentContext>()
