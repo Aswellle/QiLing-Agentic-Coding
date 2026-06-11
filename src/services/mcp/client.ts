@@ -321,3 +321,7 @@ export async function callMcpTool(
 // ─── Re-exports for convenience ───────────────────────────────────────────────
 export { buildMcpToolName }
 export type { MCPServerConnection, ConnectedMCPServer, FailedMCPServer }
+
+// FROM CC compat: CC names this connectToServer; QiLing's port named it
+// connectToMcpServer. Alias for CC-ported callers (runAgent).
+export const connectToServer = connectToMcpServer

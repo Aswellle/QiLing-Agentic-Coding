@@ -9,8 +9,10 @@ import { PAUSE_ICON } from '../../constants/figures.js'
 import { z } from 'zod'
 import { lazySchema } from '../lazySchema.js'
 
-export type PermissionMode = 'default' | 'plan' | 'acceptEdits' | 'bypassPermissions' | 'dontAsk'
-export type ExternalPermissionMode = Exclude<PermissionMode, never>
+// 'auto' and 'bubble' are CC's internal (ant-only) modes — kept in the type
+// for CC-ported agent code; excluded from the external/schema mode list.
+export type PermissionMode = 'default' | 'plan' | 'acceptEdits' | 'bypassPermissions' | 'dontAsk' | 'auto' | 'bubble'
+export type ExternalPermissionMode = Exclude<PermissionMode, 'auto' | 'bubble'>
 
 export const PERMISSION_MODES = ['default', 'plan', 'acceptEdits', 'bypassPermissions', 'dontAsk'] as const
 export const EXTERNAL_PERMISSION_MODES = PERMISSION_MODES
@@ -28,7 +30,9 @@ type PermissionModeConfig = {
   color: ModeColorKey
 }
 
-const PERMISSION_MODE_CONFIG: Record<PermissionMode, PermissionModeConfig> = {
+// Partial: 'auto'/'bubble' (CC ant-only modes) have no display config —
+// getModeConfig falls back to default for them.
+const PERMISSION_MODE_CONFIG: Partial<Record<PermissionMode, PermissionModeConfig>> = {
   default: {
     title: 'Default',
     shortTitle: 'Default',
@@ -62,7 +66,7 @@ const PERMISSION_MODE_CONFIG: Record<PermissionMode, PermissionModeConfig> = {
 }
 
 function getModeConfig(mode: PermissionMode): PermissionModeConfig {
-  return PERMISSION_MODE_CONFIG[mode] ?? PERMISSION_MODE_CONFIG.default
+  return PERMISSION_MODE_CONFIG[mode] ?? PERMISSION_MODE_CONFIG.default!
 }
 
 export function permissionModeFromString(str: string): PermissionMode {
@@ -92,9 +96,9 @@ export function isDefaultMode(mode: PermissionMode | undefined): boolean {
 }
 
 export function isExternalPermissionMode(mode: PermissionMode): mode is ExternalPermissionMode {
-  return true  // In QiLing, all modes are external
+  return mode !== 'auto' && mode !== 'bubble'
 }
 
 export function toExternalPermissionMode(mode: PermissionMode): ExternalPermissionMode {
-  return mode
+  return isExternalPermissionMode(mode) ? mode : 'default'
 }

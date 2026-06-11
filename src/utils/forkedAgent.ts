@@ -132,10 +132,12 @@ export function createCacheSafeParams(
   context: REPLHookContext,
 ): CacheSafeParams {
   return {
-    systemPrompt: context.systemPrompt,
+    // REPLHookContext carries QiLing's loose bridge shapes; the fork loop
+    // needs the branded SystemPrompt and full ToolUseContext.
+    systemPrompt: context.systemPrompt as unknown as SystemPrompt,
     userContext: context.userContext,
     systemContext: context.systemContext,
-    toolUseContext: context.toolUseContext,
+    toolUseContext: context.toolUseContext as unknown as ToolUseContext,
     forkContextMessages: context.messages,
   }
 }
@@ -210,7 +212,7 @@ export async function prepareForkedCommandContext(
 
   // Use command.agent if specified, otherwise 'general-purpose'
   const agentTypeName = command.agent ?? 'general-purpose'
-  const agents = context.options.agentDefinitions.activeAgents
+  const agents = context.options.agentDefinitions?.activeAgents ?? []
   const baseAgent =
     agents.find(a => a.agentType === agentTypeName) ??
     agents.find(a => a.agentType === 'general-purpose') ??
@@ -242,7 +244,7 @@ export function extractResultText(
   if (!lastAssistantMessage) return defaultText
 
   const textContent = extractTextContent(
-    lastAssistantMessage.message.content,
+    lastAssistantMessage.content,
     '\n',
   )
 
@@ -377,7 +379,7 @@ export function createSubagentContext(
     // Mutable state - cloned by default to maintain isolation
     // Clone overrides.readFileState if provided, otherwise clone from parent
     readFileState: cloneFileStateCache(
-      overrides?.readFileState ?? parentContext.readFileState,
+      (overrides?.readFileState ?? parentContext.readFileState)!,
     ),
     nestedMemoryAttachmentTriggers: new Set<string>(),
     loadedNestedMemoryPaths: new Set<string>(),
@@ -526,7 +528,7 @@ export async function runForkedAgent({
   // Generate agent ID and record initial messages for transcript
   // When skipTranscript is set, skip agent ID creation and all transcript I/O
   const agentId = skipTranscript ? undefined : createAgentId(forkLabel)
-  let lastRecordedUuid: UUID | null = null
+  let lastRecordedUuid: string | null = null
   if (agentId) {
     await recordSidechainTranscript(initialMessages, agentId).catch(err =>
       logForDebugging(
@@ -536,7 +538,7 @@ export async function runForkedAgent({
     // Track the last recorded message UUID for parent chain continuity
     lastRecordedUuid =
       initialMessages.length > 0
-        ? initialMessages[initialMessages.length - 1]!.uuid
+        ? (initialMessages[initialMessages.length - 1]!.uuid ?? null)
         : null
   }
 
@@ -592,13 +594,13 @@ export async function runForkedAgent({
             ),
         )
         if (msg.type !== 'progress') {
-          lastRecordedUuid = msg.uuid
+          lastRecordedUuid = msg.uuid ?? null
         }
       }
     }
   } finally {
     // Release cloned file state cache memory (same pattern as runAgent.ts)
-    isolatedToolUseContext.readFileState.clear()
+    isolatedToolUseContext.readFileState?.clear()
     // Release the cloned fork context messages
     initialMessages.length = 0
   }

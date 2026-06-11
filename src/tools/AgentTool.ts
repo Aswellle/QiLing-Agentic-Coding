@@ -3,7 +3,7 @@ import type { Tool, ToolResult, ToolContext, ToolDefinition } from '../types/too
 import { runQuery } from '../query'
 import type { Provider } from '../types/provider'
 import type { PermissionManager } from '../types/tool'
-import { BUILT_IN_AGENTS, getBuiltInAgent, type BuiltInAgent } from './AgentTool/builtInAgents'
+import { BUILT_IN_AGENTS, getBuiltInAgent, type BuiltInAgent } from './AgentTool/builtinAgents'
 import { getAllAgents, loadCustomAgents } from './AgentTool/loadAgentsDir'
 export { loadCustomAgents }
 

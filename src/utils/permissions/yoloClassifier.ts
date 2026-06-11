@@ -3,8 +3,8 @@
  * FROM CC: utils/permissions/yoloClassifier.js (1495L)
  * Stub providing types consumed by agentToolUtils. Full port pending.
  */
-import type { Tool } from "../Tool.js";
-import type { Message } from "../types/message.js";
+import type { Tool } from "../../Tool.js";
+import type { Message } from "../../types/message.js";
 export function buildTranscriptForClassifier(
   _messages: Message[],
   _tools: Tool[],

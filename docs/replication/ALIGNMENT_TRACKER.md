@@ -1,10 +1,10 @@
 ﻿# ALIGNMENT_TRACKER.md
 
 > **Current Phase:** A.5 鈫?B (decisions locked)
-> **Last Updated:** 2026-06-10T17:00
+> **Last Updated:** 2026-06-11T(auto-loop)
 > **Audit Progress:** T0 鉁?| T1 鉁?| T2 鉁?| T3 鉁?| T4 鉁?| T5 鉁?| T6 鉁?| T7 鉁?| EXT 鉁? 
 > **Verdict Distribution:** FULLY_ALIGNED 366 | PARTIAL 194 | DIVERGED 89 | RESTRUCTURED 156 | NEW 52 | MISSING 1186  
-> **Active Batch / Audit Task:** B-T6-swarm-remaining — session 17am done: reconnection.ts + permissionSync.ts (2 files); next: teammateInit.ts (requires hooks/sessionHooks.ts)
+> **Active Batch / Audit Task:** B-T6-swarm-remaining — typecheck-green repair done (parse error in teammateInit had masked 152 errors since 17an; runAgent+forkedAgent now compile, 10 new stubs, TPC unified). Remaining: utils/swarm/inProcessRunner.ts + It2SetupPrompt.tsx (last 2 swarm files)
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL 鈮?20% weighted
 
 ---

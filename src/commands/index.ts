@@ -1390,7 +1390,7 @@ export const BUILTIN_COMMANDS: Command[] = [
     name: '/agents',
     description: '列出所有可用的内置和自定义 Agent 定义',
     execute(_args, ctx) {
-      const { BUILT_IN_AGENTS } = require('../tools/AgentTool/builtInAgents') as typeof import('../tools/AgentTool/builtInAgents')
+      const { BUILT_IN_AGENTS } = require('../tools/AgentTool/builtinAgents') as typeof import('../tools/AgentTool/builtinAgents')
       const { loadCustomAgents } = require('../tools/AgentTool/loadAgentsDir') as typeof import('../tools/AgentTool/loadAgentsDir')
 
       const custom = loadCustomAgents(ctx.workingDir)

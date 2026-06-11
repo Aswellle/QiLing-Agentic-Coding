@@ -63,7 +63,44 @@ export interface Message {
   requestId?: string
   /** CC: message.id — unique message ID for analytics */
   id?: string
+  /** CC: message.type — CC's stream message discriminator ('assistant' |
+   *  'user' | 'progress' | 'stream_event' | ...). QiLing discriminates on
+   *  `role`; CC-ported loop code (forkedAgent, runAgent) reads this. */
+  type?: string
+  /** CC: system message subtype (e.g. 'compact_boundary') */
+  subtype?: string
 }
+
+// ─── CC message-shape compat aliases ──────────────────────────────────────────
+// CC wraps the API message in `message.message`; QiLing flattens it. These
+// aliases let CC-ported code (runAgent, forkedAgent) keep its casts while the
+// runtime objects are QiLing Messages with the compat fields above.
+
+export type UserMessage = Message & {
+  type: 'user'
+  message: { content: string | ContentBlock[] }
+}
+
+export type AssistantMessage = Message & {
+  type: 'assistant'
+  message: { content: ContentBlock[] }
+}
+
+export type StreamEvent = Message & {
+  type: 'stream_event'
+  event?: { type?: string; usage?: unknown }
+}
+
+export type RequestStartEvent = Message & { type: 'stream_request_start' }
+
+export type SystemCompactBoundaryMessage = Message & {
+  type: 'system'
+  subtype: 'compact_boundary'
+}
+
+export type TombstoneMessage = Message & { type: 'tombstone' }
+
+export type ToolUseSummaryMessage = Message & { type: 'tool_use_summary' }
 
 export interface TokenUsage {
   inputTokens: number

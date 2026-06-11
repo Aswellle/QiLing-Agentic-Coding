@@ -15,7 +15,7 @@
 import { existsSync, readdirSync, readFileSync } from 'fs'
 import { join } from 'path'
 import { homedir } from 'os'
-import type { BuiltInAgent } from './builtInAgents'
+import type { BuiltInAgent } from './builtinAgents.js'
 
 const AGENTS_SUBDIR = 'agents'
 
@@ -171,4 +171,11 @@ export function getAllAgents(cwd: string, builtIns: BuiltInAgent[]): Array<Built
   const customTypes = new Set(custom.map(a => a.agentType.toLowerCase()))
   const filteredBuiltIns = builtIns.filter(b => !customTypes.has(b.agentType.toLowerCase()))
   return [...custom, ...filteredBuiltIns]
+}
+
+// FROM CC: isBuiltInAgent — narrows AgentDefinition to the built-in variant.
+export function isBuiltInAgent(
+  def: AgentDefinition,
+): def is BuiltInAgent & { source: 'built-in'; filePath?: undefined } {
+  return def.source === 'built-in'
 }

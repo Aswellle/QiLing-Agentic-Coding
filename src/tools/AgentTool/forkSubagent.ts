@@ -7,7 +7,7 @@ import {
 import { isCoordinatorMode } from '../../coordinator/coordinatorMode.js'
 import type { Message, ToolUseContent } from '../../types/message.js'
 import { logForDebugging } from '../../utils/debug.js'
-import type { BuiltInAgent } from './builtInAgents.js'
+import type { BuiltInAgent } from './builtinAgents.js'
 
 // FROM CC: bun-bundle feature('FORK_SUBAGENT') — always false in QiLing
 const feature = (_flag: string) => false
@@ -36,7 +36,7 @@ export const FORK_SUBAGENT_TYPE = 'fork'
 
 /**
  * Synthetic agent definition for the fork path.
- * Not registered in builtInAgents — used only when !subagent_type and the
+ * Not registered in builtinAgents — used only when !subagent_type and the
  * experiment is active.
  */
 export const FORK_AGENT = {

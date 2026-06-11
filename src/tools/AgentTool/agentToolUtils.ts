@@ -498,12 +498,15 @@ export async function runAsyncAgentLifecycle({
         const t = prev.tasks[taskId];
         if (!isLocalAgentTask(t) || !(t as { retain?: boolean }).retain)
           return prev;
-        const base = t.messages ?? [];
+        const base = (t as { messages?: typeof message[] }).messages ?? [];
         return {
           ...prev,
           tasks: {
             ...prev.tasks,
-            [taskId]: { ...t, messages: [...base, message] },
+            [taskId]: {
+              ...(t as Record<string, unknown>),
+              messages: [...base, message],
+            } as never,
           },
         };
       });

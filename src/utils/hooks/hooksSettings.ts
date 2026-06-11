@@ -8,5 +8,7 @@ export function isHookEqual(
   b: HookCommand | { type: string },
 ): boolean {
   if (a.type !== b.type || a.type !== "command") return false;
-  return (a as HookCommand).value === (b as HookCommand).value;
+  return (
+    (a as { command?: string }).command === (b as { command?: string }).command
+  );
 }

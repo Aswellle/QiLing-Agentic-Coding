@@ -892,3 +892,47 @@ async function runStopHooksWithBlocking(
   }
   return { preventContinuation: false, blockingErrors: [] }
 }
+
+// ─── CC-compat query() generator ──────────────────────────────────────────────
+
+/**
+ * FROM CC: query() — CC's agentic query loop is an async generator yielding
+ * stream events and messages. QiLing's native loop is runQuery() above with a
+ * different (callback-driven) architecture.
+ *
+ * CC-ported agent code (forkedAgent.runForkedAgentQueryLoop, runAgent)
+ * consumes this generator interface. Bridging it onto runQuery() is an
+ * architecture decision (BLOCKED — pending user direction); until then this
+ * stub keeps the ported stack compiling. The runtime path is guarded
+ * upstream (e.g. InProcessBackend skips startInProcessTeammate).
+ */
+export type CCQueryParams = {
+  messages: Message[]
+  systemPrompt: unknown
+  userContext: unknown
+  systemContext: unknown
+  canUseTool?: unknown
+  toolUseContext: unknown
+  querySource?: string
+  maxOutputTokensOverride?: number
+  maxTurns?: number
+  skipCacheWrite?: boolean
+  [key: string]: unknown
+}
+
+export type CCQueryStreamMessage = Message & {
+  event?: { type?: string; usage?: never }
+  /** TTFT for stream_event message_start (CC metrics forwarding) */
+  ttftMs?: number
+  /** Attachment payload for type === 'attachment' messages */
+  attachment?: { type?: string; maxTurns?: number; [key: string]: unknown }
+}
+
+// eslint-disable-next-line require-yield
+export async function* query(
+  _params: CCQueryParams,
+): AsyncGenerator<CCQueryStreamMessage> {
+  throw new Error(
+    'CC query() loop is not yet ported to QiLing; use runQuery() instead',
+  )
+}

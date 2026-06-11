@@ -144,15 +144,31 @@ export function isCustomTitleEnabled(): boolean {
 }
 
 // FROM CC: recordSidechainTranscript — sidechain agent transcript capture
-export function recordSidechainTranscript(
-  _parentSessionId: string,
-  _agentId: string,
+// Signature matches CC's (messages, agentId?, startingParentUuid?).
+export async function recordSidechainTranscript(
   _messages: unknown[],
-): void { /* NO-OP: sidechain transcripts not ported */ }
+  _agentId?: string,
+  _startingParentUuid?: string | null,
+): Promise<void> { /* NO-OP: sidechain transcripts not ported */ }
 
 // FROM CC: getAgentTranscriptPath — agent transcript path resolution
 export function getAgentTranscriptPath(
   _sessionId: string,
   _agentId: string,
 ): string { return ""; }
+
+// FROM CC: agent transcript subdirectory routing + metadata — STUBS.
+export function setAgentTranscriptSubdir(
+  _agentId: string,
+  _subdir: string,
+): void { /* NO-OP */ }
+
+export function clearAgentTranscriptSubdir(_agentId: string): void {
+  /* NO-OP */
+}
+
+export async function writeAgentMetadata(
+  _agentId: string,
+  _metadata: Record<string, unknown>,
+): Promise<void> { /* NO-OP */ }
 

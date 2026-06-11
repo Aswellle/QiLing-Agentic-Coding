@@ -198,7 +198,21 @@ export function getAssistantMessageText(messages: Message[]): string | null {
 /**
  * Create a simple user message (mirrors CC's createUserMessage).
  */
-export function createUserMessage(content: string, opts?: { isMeta?: boolean }): Message {
+export function createUserMessage(
+  content:
+    | string
+    | { content: Message['content']; isMeta?: boolean },
+  opts?: { isMeta?: boolean },
+): Message {
+  // FROM CC compat: CC's createUserMessage takes an options object
+  // ({ content, isMeta }); QiLing callers pass a plain string. Accept both.
+  if (typeof content === 'object' && content !== null) {
+    return {
+      role: 'user' as const,
+      content: content.content,
+      ...(content.isMeta ? { isMeta: true as const } : {}),
+    }
+  }
   return {
     role: 'user' as const,
     content,
@@ -244,7 +258,6 @@ export function extractTag(html: string, tagName: string): string | null {
 }
 
 // FROM CC: getLastAssistantMessage — find the last assistant message
-import type { Message } from "../types/message.js";
 export function getLastAssistantMessage(messages: Message[]): Message | undefined {
   for (let i = messages.length - 1; i >= 0; i--) {
     if (messages[i]?.role === "assistant") return messages[i];

@@ -22,6 +22,19 @@ export interface BuiltInAgent {
   color?: string
   /** Whether to omit CLAUDE.md / QILING.md context injection */
   omitClaudeMd?: boolean
+  // FROM CC compat: optional CustomAgentDefinition fields read by runAgent /
+  // inProcessRunner. QiLing's built-ins use the systemPrompt string above;
+  // CC-shaped definitions provide getSystemPrompt().
+  getSystemPrompt?: (opts?: { toolUseContext?: unknown }) => string
+  permissionMode?: import('../../utils/permissions/PermissionMode.js').PermissionMode
+  effort?: import('../../utils/effort.js').EffortLevel
+  hooks?: Record<string, unknown>
+  skills?: string[]
+  mcpServers?: Array<string | Record<string, Record<string, unknown>>>
+  maxTurns?: number
+  callback?: () => void
+  criticalSystemReminder_EXPERIMENTAL?: string
+  memory?: string
 }
 
 // ─── Explore agent (ported from CC's exploreAgent.ts) ────────────────────────

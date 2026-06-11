@@ -2,7 +2,7 @@
 import type { UUID } from 'crypto'
 import { randomUUID } from 'crypto'
 import uniqBy from 'lodash-es/uniqBy.js'
-import { logForDebugging } from 'src/utils/debug.js'
+import { logForDebugging } from '../../utils/debug.js'
 import { getProjectRoot, getSessionId } from '../../bootstrap/state.js'
 import { getCommand, getSkillToolCommands, hasCommand } from '../../commands.js'
 import {
@@ -165,7 +165,7 @@ async function initializeAgentMcpServers(
       config = {
         ...serverConfig,
         scope: 'dynamic' as const,
-      } as ScopedMcpServerConfig
+      } as unknown as ScopedMcpServerConfig
       isNewlyCreated = true
     }
 
@@ -179,7 +179,7 @@ async function initializeAgentMcpServers(
     // Fetch tools if connected
     if (client.type === 'connected') {
       const tools = await fetchToolsForClient(client)
-      agentTools.push(...tools)
+      agentTools.push(...(tools as unknown as Tool[]))
       logForDebugging(
         `[Agent: ${agentDefinition.agentType}] Connected to MCP server '${name}' with ${tools.length} tools`,
       )
@@ -233,7 +233,7 @@ function isRecordableMessage(
 ): msg is
   | AssistantMessage
   | UserMessage
-  | ProgressMessage
+  | (Message & { type: 'progress' })
   | SystemCompactBoundaryMessage {
   return (
     msg.type === 'assistant' ||
@@ -374,7 +374,7 @@ export async function* runAgent({
 
   const agentReadFileState =
     forkContextMessages !== undefined
-      ? cloneFileStateCache(toolUseContext.readFileState)
+      ? cloneFileStateCache(toolUseContext.readFileState!)
       : createFileStateCacheWithSizeLimit(READ_FILE_STATE_CACHE_SIZE)
 
   const [baseUserContext, baseSystemContext] = await Promise.all([
@@ -652,7 +652,7 @@ export async function* runAgent({
     cleanup: mcpCleanup,
   } = await initializeAgentMcpServers(
     agentDefinition,
-    toolUseContext.options.mcpClients,
+    toolUseContext.options.mcpClients ?? [],
   )
 
   // Merge agent MCP tools with resolved agent tools, deduplicating by name.
@@ -742,7 +742,7 @@ export async function* runAgent({
   }).catch(_err => logForDebugging(`Failed to write agent metadata: ${_err}`))
 
   // Track the last recorded message UUID for parent chain continuity
-  let lastRecordedUuid: UUID | null = initialMessages.at(-1)?.uuid ?? null
+  let lastRecordedUuid: string | null = initialMessages.at(-1)?.uuid ?? null
 
   try {
     for await (const message of query({
@@ -760,7 +760,7 @@ export async function* runAgent({
       // so TTFT/OTPS update during subagent execution.
       if (
         message.type === 'stream_event' &&
-        message.event.type === 'message_start' &&
+        message.event?.type === 'message_start' &&
         message.ttftMs != null
       ) {
         toolUseContext.pushApiMetricsEntry?.(message.ttftMs)
@@ -770,7 +770,7 @@ export async function* runAgent({
       // Yield attachment messages (e.g., structured_output) without recording them
       if (message.type === 'attachment') {
         // Handle max turns reached signal from query.ts
-        if (message.attachment.type === 'max_turns_reached') {
+        if (message.attachment?.type === 'max_turns_reached') {
           logForDebugging(
             `[Agent
 : $
@@ -779,7 +779,7 @@ export async function* runAgent({
 }
 ] Reached max turns limit ($
 {
-  message.attachment.maxTurns
+  message.attachment?.maxTurns
 }
 )`,
           )
@@ -799,7 +799,7 @@ export async function* runAgent({
           logForDebugging(`Failed to record sidechain transcript: ${err}`),
         )
         if (message.type !== 'progress') {
-          lastRecordedUuid = message.uuid
+          lastRecordedUuid = message.uuid ?? null
         }
         yield message
       }
@@ -825,7 +825,7 @@ export async function* runAgent({
       cleanupAgentTracking(agentId)
     }
     // Release cloned file state cache memory
-    agentToolUseContext.readFileState.clear()
+    agentToolUseContext.readFileState?.clear()
     // Release the cloned fork context messages
     initialMessages.length = 0
     // Release perfetto agent registry entry
@@ -912,7 +912,9 @@ async function getAgentSystemPrompt(
 ): Promise<string[]> {
   const enabledToolNames = new Set(resolvedTools.map(t => t.name))
   try {
-    const agentPrompt = agentDefinition.getSystemPrompt({ toolUseContext })
+    // Optional in QiLing's AgentDefinition — the try/catch below already
+    // handles definitions without getSystemPrompt via DEFAULT_AGENT_PROMPT.
+    const agentPrompt = agentDefinition.getSystemPrompt!({ toolUseContext })
     const prompts = [agentPrompt]
 
     return await enhanceSystemPromptWithEnvDetails(

@@ -189,3 +189,31 @@ export async function processLargeToolResult(
 
   return buildLargeToolResultMessage(result)
 }
+
+// FROM CC: ContentReplacementState / createContentReplacementState /
+// cloneContentReplacementState — per-conversation-thread content replacement
+// state for the aggregate tool result budget.
+
+export type ContentReplacementState = {
+  seenIds: Set<string>
+  replacements: Map<string, string>
+}
+
+export function createContentReplacementState(): ContentReplacementState {
+  return { seenIds: new Set(), replacements: new Map() }
+}
+
+/**
+ * Clone replacement state for a cache-sharing fork (e.g. agentSummary).
+ * The fork needs state identical to the source at fork time so
+ * enforceToolResultBudget makes the same choices → same wire prefix →
+ * prompt cache hit. Mutating the clone does not affect the source.
+ */
+export function cloneContentReplacementState(
+  source: ContentReplacementState,
+): ContentReplacementState {
+  return {
+    seenIds: new Set(source.seenIds),
+    replacements: new Map(source.replacements),
+  }
+}

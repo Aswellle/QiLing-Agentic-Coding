@@ -20,6 +20,7 @@
 import type { Notification } from "../context/notifications.js";
 import type { MCPServerConnection } from "../services/mcp/types.js";
 import type { Settings } from "../settings/schema.js";
+import type { AdditionalWorkingDirectory } from "../types/permissions.js";
 import type { EffortLevel } from "../utils/effort.js";
 import type { PermissionMode } from "../utils/permissions/PermissionMode.js";
 import { type Store, createStore } from "./store.js";
@@ -41,6 +42,9 @@ type ServerResource = {
 
 // ─── Auxiliary types ──────────────────────────────────────────────────────────
 
+/** Source-keyed permission rule map (CC: { session: string[], project: string[], ... }) */
+export type ToolPermissionRulesBySource = Record<string, string[]>;
+
 export type ToolPermissionContext = {
   mode: PermissionMode;
   /** Glob-pattern allow rules (session scope) */
@@ -49,10 +53,33 @@ export type ToolPermissionContext = {
   deny: string[];
   /** Additional working directories beyond project root */
   additionalDirectories: string[];
+  // CC-compat fields — read by CC-ported permission code (bashPermissions,
+  // powershellPermissions, runAgent, forkedAgent). Populated with defaults
+  // by getEmptyToolPermissionContext(); QiLing's own permission manager
+  // continues to use allow/deny above.
+  additionalWorkingDirectories: Map<string, AdditionalWorkingDirectory>;
+  alwaysAllowRules: ToolPermissionRulesBySource;
+  alwaysDenyRules: ToolPermissionRulesBySource;
+  alwaysAskRules: ToolPermissionRulesBySource;
+  isBypassPermissionsModeAvailable: boolean;
+  isAutoModeAvailable?: boolean;
+  shouldAvoidPermissionPrompts?: boolean;
+  awaitAutomatedChecksBeforeDialog?: boolean;
+  prePlanMode?: PermissionMode;
 };
 
 export function getEmptyToolPermissionContext(): ToolPermissionContext {
-  return { mode: "default", allow: [], deny: [], additionalDirectories: [] };
+  return {
+    mode: "default",
+    allow: [],
+    deny: [],
+    additionalDirectories: [],
+    additionalWorkingDirectories: new Map(),
+    alwaysAllowRules: {},
+    alwaysDenyRules: {},
+    alwaysAskRules: {},
+    isBypassPermissionsModeAvailable: false,
+  };
 }
 
 export type MCPState = {

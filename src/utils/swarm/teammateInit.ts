@@ -5,7 +5,10 @@
  * Registers a Stop hook to notify the team leader when the teammate becomes idle.
  */
 
-import type { AppState } from "../../state/AppStateStore.js";
+import type {
+  AppState,
+  ToolPermissionContext,
+} from "../../state/AppStateStore.js";
 import { logForDebugging } from "../debug.js";
 import { addFunctionHook } from "../hooks/sessionHooks.js";
 import { applyPermissionUpdate } from "../permissions/PermissionUpdate.js";
@@ -73,9 +76,7 @@ export function initializeTeammateHooks(
             behavior: "allow" as const,
             destination: "session" as const,
           },
-        ) as unknown as import(
-          "../../state/AppStateStore.js",
-        ).ToolPermissionContext,
+        ) as unknown as ToolPermissionContext,
       }));
     }
   }

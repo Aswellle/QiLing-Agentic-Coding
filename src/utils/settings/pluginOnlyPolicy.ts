@@ -21,6 +21,7 @@ export type CustomizationSurface =
   | 'hooks'
   | 'output-styles'
   | 'agents'
+  | 'mcp'
 
 /**
  * Check whether a customization surface is locked to plugin-only sources.
