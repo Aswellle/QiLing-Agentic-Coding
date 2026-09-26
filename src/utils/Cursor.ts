@@ -383,6 +383,43 @@ export class Cursor {
     return this.modifyText(new Cursor(this.measuredText, this.nextVimWord().offset))
   }
 
+  /**
+   * Deletes a token before the cursor if one exists.
+   * Supports pasted text refs: [Pasted text #1], [Pasted text #1 +10 lines],
+   * [...Truncated text #1 +10 lines...]
+   *
+   * Note: @mentions are NOT tokenized since users may want to correct typos
+   * in file paths. Use Ctrl/Cmd+backspace for word-deletion on mentions.
+   *
+   * Returns null if no token found at cursor position.
+   * Only triggers when cursor is at end of token (followed by whitespace or EOL).
+   */
+  // FROM CC: deleteTokenBefore — image-chip branch omitted (QiLing has no image chips)
+  deleteTokenBefore(): Cursor | null {
+    if (this.isAtStart()) {
+      return null
+    }
+
+    // Only trigger if cursor is at a word boundary (whitespace or end of string after cursor)
+    const charAfter = this.text[this.offset]
+    if (charAfter !== undefined && !/\s/.test(charAfter)) {
+      return null
+    }
+
+    const textBefore = this.text.slice(0, this.offset)
+
+    // Check for pasted/truncated text refs: [Pasted text #1] or [...Truncated text #1 +50 lines...]
+    const pasteMatch = textBefore.match(
+      /(^|\s)\[(Pasted text #\d+(?: \+\d+ lines)?|Image #\d+|\.\.\.Truncated text #\d+ \+\d+ lines\.\.\.)\]$/,
+    )
+    if (pasteMatch) {
+      const matchStart = pasteMatch.index! + pasteMatch[1]!.length
+      return new Cursor(this.measuredText, matchStart).modifyText(this)
+    }
+
+    return null
+  }
+
   // ── Image chip no-ops (QiLing has no image chips in the prompt input) ────────
 
   snapOutOfImageRef(offset: number, _toward: 'start' | 'end'): number { return offset }
@@ -460,6 +497,106 @@ export class Cursor {
     const endLine = Math.min(allLines.length, startLine + maxVisibleLines)
     if (endLine >= allLines.length) return this.text.length
     return allLines[endLine]?.startOffset ?? this.text.length
+  }
+
+  // FROM CC: render — cursor char at the cursor offset, mask replacement,
+  // invert styling, ghost text at end of input, viewport windowing.
+  render(
+    cursorChar: string,
+    mask: string,
+    invert: (text: string) => string,
+    ghostText?: { text: string; dim: (text: string) => string },
+    maxVisibleLines?: number,
+  ): string {
+    const { line, column } = this.getPosition()
+    const allLines = this.measuredText.getWrappedText()
+
+    const startLine = this.getViewportStartLine(maxVisibleLines)
+    const endLine =
+      maxVisibleLines !== undefined && maxVisibleLines > 0
+        ? Math.min(allLines.length, startLine + maxVisibleLines)
+        : allLines.length
+
+    return allLines
+      .slice(startLine, endLine)
+      .map((text, i) => {
+        const currentLine = i + startLine
+        let displayText = text
+        if (mask) {
+          const graphemes = Array.from(getGraphemeSegmenter().segment(text))
+          if (currentLine === allLines.length - 1) {
+            // Last line: mask all but the trailing 6 chars so the user can
+            // confirm they pasted the right thing without exposing the full token
+            const visibleCount = Math.min(6, graphemes.length)
+            const maskCount = graphemes.length - visibleCount
+            const splitOffset =
+              graphemes.length > visibleCount ? graphemes[maskCount]!.index : 0
+            displayText = mask.repeat(maskCount) + text.slice(splitOffset)
+          } else {
+            // Earlier wrapped lines: fully mask. Previously only the last line
+            // was masked, leaking the start of the token on narrow terminals
+            // where the pasted OAuth code wraps across multiple lines.
+            displayText = mask.repeat(graphemes.length)
+          }
+        }
+        // looking for the line with the cursor
+        if (line !== currentLine) return displayText.trimEnd()
+
+        // Split the line into before/at/after cursor in a single pass over the
+        // graphemes, accumulating display width until we reach the cursor column.
+        // This replaces a two-pass approach (displayWidthToStringIndex + a second
+        // segmenter pass) — the intermediate stringIndex from that approach is
+        // always a grapheme boundary, so the "cursor in the middle of a
+        // multi-codepoint character" branch was unreachable.
+        let beforeCursor = ''
+        let atCursor = cursorChar
+        let afterCursor = ''
+        let currentWidth = 0
+        let cursorFound = false
+
+        for (const { segment } of getGraphemeSegmenter().segment(displayText)) {
+          if (cursorFound) {
+            afterCursor += segment
+            continue
+          }
+          const nextWidth = currentWidth + stringWidth(segment)
+          if (nextWidth > column) {
+            atCursor = segment
+            cursorFound = true
+          } else {
+            currentWidth = nextWidth
+            beforeCursor += segment
+          }
+        }
+
+        // Only invert the cursor if we have a cursor character to show
+        // When ghost text is present and cursor is at end, show first ghost char in cursor
+        let renderedCursor: string
+        let ghostSuffix = ''
+        if (
+          ghostText &&
+          currentLine === allLines.length - 1 &&
+          this.isAtEnd() &&
+          ghostText.text.length > 0
+        ) {
+          // First ghost character goes in the inverted cursor (grapheme-safe)
+          const firstGhostChar =
+            firstGrapheme(ghostText.text) || ghostText.text[0]!
+          renderedCursor = cursorChar ? invert(firstGhostChar) : firstGhostChar
+          // Rest of ghost text is dimmed after cursor
+          const ghostRest = ghostText.text.slice(firstGhostChar.length)
+          if (ghostRest.length > 0) {
+            ghostSuffix = ghostText.dim(ghostRest)
+          }
+        } else {
+          renderedCursor = cursorChar ? invert(atCursor) : atCursor
+        }
+
+        return (
+          beforeCursor + renderedCursor + ghostSuffix + afterCursor.trimEnd()
+        )
+      })
+      .join('\n')
   }
 }
 

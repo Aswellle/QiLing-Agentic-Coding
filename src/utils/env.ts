@@ -10,7 +10,7 @@ import { isEnvTruthy } from './envUtils.js'
 
 export type TerminalType =
   | 'iterm2' | 'kitty' | 'ghostty' | 'vscode' | 'wezterm'
-  | 'windows-terminal' | 'hyper' | 'alacritty' | 'unknown'
+  | 'windows-terminal' | 'hyper' | 'alacritty' | 'Apple_Terminal' | 'unknown'
 
 function detectTerminal(): TerminalType {
   const tp = process.env.TERM_PROGRAM
@@ -19,6 +19,8 @@ function detectTerminal(): TerminalType {
   if (process.env.ITERM_SESSION_ID || tp === 'iTerm.app') return 'iterm2'
   if (process.env.KITTY_WINDOW_ID) return 'kitty'
   if (tp === 'ghostty') return 'ghostty'
+  // FROM CC: TERM_PROGRAM passthrough — macOS Terminal.app reports 'Apple_Terminal'
+  if (tp === 'Apple_Terminal') return 'Apple_Terminal'
   if (process.env.VSCODE_INJECTION || process.env.VSCODE_PID) return 'vscode'
   if (process.env.WT_SESSION) return 'windows-terminal'
   if (process.env.WEZTERM_EXECUTABLE) return 'wezterm'
