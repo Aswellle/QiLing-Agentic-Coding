@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write   # needed to create GitHub releases and upload assets
+  actions: write    # needed to dispatch the homebrew formula update workflow (workflow_dispatch)
 
 jobs:
   # ─── Run tests before release ─────────────────────────────────────────────
@@ -172,3 +173,8 @@ jobs:
             dist/qiling-macos-arm64.gz
             dist/qiling-windows-x64.exe
             dist/SHA256SUMS.txt
+
+      - name: Trigger Homebrew formula update
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run update-homebrew.yml --repo ${{ github.repository }} -f version="${GITHUB_REF_NAME#v}"
