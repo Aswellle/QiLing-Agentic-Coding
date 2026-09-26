@@ -289,6 +289,7 @@ All builds use `--compile --minify` for self-contained native binaries.
 - **Windows**: PowerShellTool is primary; BashTool requires WSL/Git Bash
 - **Windows Terminal**: Shift+Tab needs VT support (Windows Terminal/ConEmu/VS Code, not raw `cmd.exe`)
 - **Build size**: Hard limit 150 MB per binary (CI-enforced)
+- **Windows local cross-compile**: Bun 1.3.x fails with "Failed to extract executable" when the Bun cache and the repo live on different drives — set `BUN_INSTALL_CACHE_DIR` to a path on the repo's drive (e.g. `D:\bun-cache`) before `bun run build:all`.
 
 ## Dependencies
 
