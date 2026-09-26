@@ -248,8 +248,8 @@ qiling [prompt] [选项]
 
 子命令
   qiling mcp list          列出已配置的 MCP 服务器
-  qiling mcp add <n> <cmd> 添加 MCP 服务器到 settings.json（-s global|project，--args）
-  qiling mcp remove <n>    删除 MCP 服务器（-s global|project）
+  qiling mcp add <n> <cmd> 添加 MCP 服务器到 settings.json（-s/--scope global|project、--args）
+  qiling mcp remove <n>    删除 MCP 服务器（-s/--scope global|project）
   qiling auth status       显示 API Key 配置状态
   qiling auth set-key <p> <key>  保存 API Key 到配置文件
   qiling doctor            运行环境诊断
@@ -334,7 +334,7 @@ qiling --coordinator
 qiling --proactive
 
 # 恢复上次会话
-qiling -c
+qiling -c                   # 继续最近会话
 qiling --resume             # 交互式选择历史会话
 ```
 
