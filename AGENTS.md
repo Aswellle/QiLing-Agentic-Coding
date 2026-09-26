@@ -4,7 +4,7 @@
 
 **QiLing (启灵)** is a terminal-based AI coding agent — a Claude Code clone written in TypeScript/Bun using React Ink for the TUI. It provides an interactive REPL for AI-assisted software engineering with multi-provider LLM support, permission-gated tool execution, multi-agent coordination, context compression, and a plugin/skill ecosystem.
 
-- **Version**: 0.4.3
+- **Version**: 0.5.0
 - **License**: MIT
 - **Binary**: Single cross-platform Bun binary (`qiling`)
 
