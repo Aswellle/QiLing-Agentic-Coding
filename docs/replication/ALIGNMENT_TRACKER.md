@@ -4,7 +4,7 @@
 > **Last Updated:** 2026-06-11T(auto-loop)
 > **Audit Progress:** T0 鉁?| T1 鉁?| T2 鉁?| T3 鉁?| T4 鉁?| T5 鉁?| T6 鉁?| T7 鉁?| EXT 鉁? 
 > **Verdict Distribution:** FULLY_ALIGNED 366 | PARTIAL 194 | DIVERGED 89 | RESTRUCTURED 156 | NEW 52 | MISSING 1186  
-> **Active Batch / Audit Task:** B-T6-swarm-remaining — inProcessRunner.ts LANDED (1576L, copy + 6 adaptations) + wired into InProcessBackend (guard removed); useSwarmPermissionPoller ported; CanUseToolFn/AgentContext/QuerySource aligned to CC shapes. Remaining: It2SetupPrompt.tsx ONLY (380L react-compiler output, needs de-memoization — no QiLing port uses react/compiler-runtime)
+> **Active Batch / Audit Task:** B-T6-swarm-remaining — inProcessRunner LANDED+wired. Remaining: It2SetupPrompt.tsx, BLOCKED on UI sub-batch B-T6-select-ui (dep map confirmed 2026-06-11): ① CustomSelect/select.tsx (689L compiled) needs use-select-input.ts + select-input-option.tsx + ink/hooks/use-declared-cursor + ink/stringWidth + Ansi-from-ink (PastedContent/ImageDimensions types exist?) ② components/Spinner.tsx (561L compiled; QiLing has Spinner/ dir internals incl. SpinnerGlyph ✓) ③ then It2SetupPrompt.tsx (380L). All three are react-compiler output → de-memoize per established convention. Theme keys permission/error/success exist ✓; useKeybinding('confirm:no')/useExitOnCtrlCDWithKeybindings/it2Setup exports verified ✓; import Box/Text/useInput from 'ink' directly (src/ink.ts not ported)
 > **Effective Alignment:** 265/2045 FULL + 299/2045 PARTIAL 鈮?20% weighted
 
 ---

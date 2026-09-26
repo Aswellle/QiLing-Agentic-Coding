@@ -120,3 +120,13 @@ export type ProgressMessage<P extends { type: string } = { type: string }> = {
   uuid: string
   timestamp: string
 }
+
+// FROM CC: MessageOrigin — CC's types/message.ts was not restored in the
+// sourcemap; this union is reconstructed from its usage sites
+// (utils/messages.ts wrapCommandText switch + queued_command attachment).
+// Provenance of a message. undefined = human (keyboard).
+export type MessageOrigin =
+  | { kind: 'human' }
+  | { kind: 'task-notification' }
+  | { kind: 'coordinator' }
+  | { kind: 'channel'; server: string }
